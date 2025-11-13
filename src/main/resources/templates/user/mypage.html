@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+
+<html class="" lang="en"><head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>My Profile</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <script>tailwind.config = {darkMode: "class", theme: {extend: {colors: {primary: "#0d273d", "background-light": "#f6f7f8", "background-dark": "#121a20"}, fontFamily: {display: "Manrope"}, borderRadius: {DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px"}}}};</script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL'0, 'wght'400, 'GRAD'0, 'opsz'24;
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark">
+<div class="relative flex min-h-screen w-full flex-col">
+    <div class="flex h-full w-full flex-1">
+        <!-- SideNavBar -->
+        <aside class="flex w-64 flex-col gap-y-4 border-r border-gray-200/50 dark:border-white/10 bg-white dark:bg-[#111813] p-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="User profile picture" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA5SaWrnFq8dPfen7u6KTpI_DTQcXDUyLzW44foiYNC-EuFkaSTBWV0K7MV6OfBVls4JUgvZnCsSepJql8-mYtNAWm08D-iIOwQaqr7HeKeY8SrGbZ0UR9WagHZEBal47x9zP7d2mbZfFXXjfna3w3-AfP2FKk9FmPR3AN6QnHDF_kva6jjfvkZi3mfz6EXIroskl6-dN9JSKdKlhAGku6dty1AY3Kzg36eL8t9ZoFliYgywHgEgHlWhUojkyXjVd_k4ER6ipAC64vr");'></div>
+                <div class="flex flex-col">
+                    <h1 class="text-black dark:text-white text-base font-medium leading-normal">김가은</h1>
+                    <p class="text-gray-500 dark:text-[#9db9a6] text-sm font-normal leading-normal">john.doe@email.com</p>
+                </div>
+            </div>
+            <nav class="flex flex-col gap-2">
+                <a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-primary/20 rounded-lg" href="#">
+                    <span class="material-symbols-outlined">dashboard</span>
+                    <p class="text-sm font-medium leading-normal">Dashboard</p>
+                </a>
+                <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 text-primary dark:bg-primary/20 dark:text-primary" href="#">
+                    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span>
+                    <p class="text-sm font-bold leading-normal">My Profile</p>
+                </a>
+                <a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-primary/20 rounded-lg" href="#">
+                    <span class="material-symbols-outlined">group</span>
+                    <p class="text-sm font-medium leading-normal">Member Management</p>
+                </a>
+                <a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-primary/20 rounded-lg" href="#">
+                    <span class="material-symbols-outlined">business_center</span>
+                    <p class="text-sm font-medium leading-normal">Board</p>
+                </a>
+                <a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-primary/20 rounded-lg" href="#">
+                    <span class="material-symbols-outlined">menu_book</span>
+                    <p class="text-sm font-medium leading-normal">Ledger</p>
+                </a>
+            </nav>
+            <div class="mt-auto flex flex-col gap-1">
+                <a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-primary/20 rounded-lg" href="#">
+                    <span class="material-symbols-outlined">settings</span>
+                    <p class="text-sm font-medium leading-normal">Settings</p>
+                </a>
+                <a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-primary/20 rounded-lg" href="#">
+                    <span class="material-symbols-outlined">logout</span>
+                    <p class="text-sm font-medium leading-normal">Logout</p>
+                </a>
+            </div>
+        </aside>
+        <!-- Main Content -->
+        <main class="flex-1 p-6 lg:p-10">
+            <div class="mx-auto max-w-4xl">
+                <!-- PageHeading -->
+                <div class="mb-8">
+                    <div class="flex min-w-72 flex-col gap-2">
+                        <h1 class="text-gray-900 dark:text-white text-4xl font-black leading-tight tracking-[-0.033em]">마이페이지</h1>
+                        <p class="text-gray-500 dark:text-[#9db9a6] text-base font-normal leading-normal">View and edit your personal information and account settings.</p>
+                    </div>
+                </div>
+                <!-- ProfileHeader -->
+                <div class="mb-8 rounded-xl border border-gray-200/50 dark:border-white/10 bg-white dark:bg-[#111813] p-4 sm:p-6 @container">
+                    <div class="flex w-full flex-col gap-6 @[520px]:flex-row @[520px]:justify-between @[520px]:items-center">
+                        <div class="flex items-center gap-6">
+                            <div class="relative">
+                                <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-24 w-24 sm:h-32 sm:w-32" data-alt="User profile avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBNqUod7U_pGGpXpxsKfvrFI8dnIyLWiBhiGZ85Mv61vmrsATTTLZh66nXGM7FL927o-goC7t8i6YP3ZBh_SadqzTlWe_Wn0Ln8Rzn_shbCKRuB63GzY-UDMYJDbLZPZuQxNkRdWcDNxVSWGULaPo__Y4yWZ4y4mIFHy1gVNVUw4aiweZnReFhT9P2gJSrialBS3fS8yAlulqwkpLTfJUBpwu2JQpgJyUQO3LF9j37241ioR0MpoeKIaOZuWOowg1MqClD27hRDmNAn");'></div>
+                                <button class="absolute bottom-0 right-0 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-primary text-black dark:text-black">
+                                    <span class="material-symbols-outlined" style="font-size: 20px;">edit</span>
+                                </button>
+                            </div>
+                            <div class="flex flex-col justify-center">
+                                <p class="text-gray-900 dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em]">김개똥</p>
+                                <p class="text-gray-500 dark:text-[#9db9a6] text-base font-normal leading-normal">Member ID: 12345678</p>
+                                <p class="text-gray-500 dark:text-[#9db9a6] text-base font-normal leading-normal">Joined on: Jan 15, 2023</p>
+                            </div>
+                        </div>
+                        <!-- Buttons would appear in edit mode -->
+                    </div>
+                </div>
+                <!-- Tabs -->
+                <div class="mb-8">
+                    <div class="flex border-b border-gray-200/50 dark:border-white/10 gap-4 sm:gap-8">
+                        <a class="flex flex-col items-center justify-center border-b-[3px] border-primary pb-3 pt-2" href="#">
+                            <p class="text-primary text-sm font-bold leading-normal tracking-[0.015em]">회원 정보</p>
+                        </a>
+                        <a class="flex flex-col items-center justify-center border-b-[3px] border-transparent text-gray-500 dark:text-[#9db9a6] pb-3 pt-2 hover:text-gray-800 dark:hover:text-white" href="#">
+                            <p class="text-sm font-bold leading-normal tracking-[0.015em]">주문·배송</p>
+                        </a>
+                        <a class="flex flex-col items-center justify-center border-b-[3px] border-transparent text-gray-500 dark:text-[#9db9a6] pb-3 pt-2 hover:text-gray-800 dark:hover:text-white" href="#">
+                            <p class="text-sm font-bold leading-normal tracking-[0.015em]">문의</p>
+                        </a>
+                    </div>
+                </div>
+                <!-- Profile Information Form -->
+                <div class="flex flex-col gap-8">
+                    <!-- Contact Details Section -->
+                    <div class="rounded-xl border border-gray-200/50 dark:border-white/10 bg-white dark:bg-[#111813] p-4 sm:p-6">
+                        <div class="flex items-center justify-between pb-4 border-b border-gray-200/50 dark:border-white/10 mb-6">
+                            <h2 class="text-gray-900 dark:text-white text-xl font-bold leading-tight tracking-[-0.015em]">회원 상세 정보</h2>
+                            <button class="flex items-center gap-2 min-w-[84px] cursor-pointer justify-center overflow-hidden rounded-lg h-9 px-3 bg-gray-100 dark:bg-white/10 text-gray-800 dark:text-white text-sm font-bold leading-normal tracking-[0.015em]">
+                                <span class="material-symbols-outlined" style="font-size: 18px;">edit</span>
+                                <span class="truncate">수정</span>
+                            </button>
+                        </div>
+                        <form class="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5" for="full-name">이름</label>
+                                <input class="w-full rounded-md border-gray-300 dark:border-white/20 bg-transparent text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-primary/50" id="full-name" readonly="" type="text" value="김가은"/>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5" for="email">Email</label>
+                                <input class="w-full rounded-md border-gray-300 dark:border-white/20 bg-transparent text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-primary/50" id="email" readonly="" type="email" value="john.doe@email.com"/>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5" for="phone">휴대폰 번호</label>
+                                <input class="w-full rounded-md border-gray-300 dark:border-white/20 bg-transparent text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-primary/50" id="phone" readonly="" type="tel" value="010-2345-6789"/>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5" for="address">주소</label>
+                                <input class="w-full rounded-md border-gray-300 dark:border-white/20 bg-transparent text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-primary/50" id="address" readonly="" type="text" value="경기도 오산시 까마귀로"/>
+                            </div>
+                        </form>
+                        <!-- Edit Mode Buttons -->
+                        <div class="mt-6 flex justify-end gap-3 hidden">
+                            <button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-gray-200 dark:bg-white/10 text-gray-800 dark:text-white text-sm font-bold leading-normal tracking-[0.015em]">
+                                <span class="truncate">Cancel</span>
+                            </button>
+                            <button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-black text-sm font-bold leading-normal tracking-[0.015em]">
+                                <span class="truncate">Save Changes</span>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Membership Info Section -->
+                    <div class="rounded-xl border border-gray-200/50 dark:border-white/10 bg-white dark:bg-[#111813] p-4 sm:p-6">
+                        <h2 class="text-gray-900 dark:text-white text-xl font-bold leading-tight tracking-[-0.015em] pb-4 border-b border-gray-200/50 dark:border-white/10 mb-6">Membership Info</h2>
+                        <div class="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
+                            <div>
+                                <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Join Date</p>
+                                <p class="text-base text-gray-900 dark:text-white">January 15, 2023</p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Membership Status</p>
+                                <span class="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/50 px-3 py-1 text-sm font-medium text-green-800 dark:text-green-300">Active</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+</body></html>
