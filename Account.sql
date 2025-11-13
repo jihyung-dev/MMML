@@ -62,11 +62,15 @@ CREATE TABLE smaccount.GROUP_MEMBER (
 
 -- === CATEGORY ===
 CREATE TABLE smaccount.CATEGORY (
-                                    category_id NUMBER PRIMARY KEY,
-                                    group_id NUMBER NOT NULL REFERENCES smaccount.BUDGET_GROUP(group_id),
-                                    type VARCHAR2(10) NOT NULL,
-                                    name VARCHAR2(50) NOT NULL,
-                                    CONSTRAINT UQ_CATEGORY UNIQUE (group_id, type, name)
+                                    category_id VARCHAR2(50) PRIMARY KEY,
+                                    name VARCHAR2(50) NOT NULL unique
+);
+
+CREATE TABLE smaccount.SUB_CATEGORY (
+
+                                    sub_id VARCHAR2(50) PRIMARY KEY,
+                                    name VARCHAR2(50) NOT NULL unique,
+                                    category_id VARCHAR2(50) not null REFERENCES smaccount.CATEGORY(category_id)
 );
 
 -- === LEDGER_ENTRY ===
@@ -77,7 +81,7 @@ CREATE TABLE smaccount.LEDGER_ENTRY (
                                         type VARCHAR2(10) NOT NULL,
                                         pay_type VARCHAR2(10),
                                         card_type VARCHAR2(10),
-                                        category_id NUMBER REFERENCES smaccount.CATEGORY(category_id),
+                                        category_id VARCHAR2(50) not null REFERENCES smaccount.CATEGORY(category_id),
                                         amount NUMBER(15,2) NOT NULL,
                                         currency VARCHAR2(3) DEFAULT 'KRW',
                                         occurred_at DATE NOT NULL,

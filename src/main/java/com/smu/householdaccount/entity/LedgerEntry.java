@@ -79,4 +79,5 @@ public class LedgerEntry {
 
     @Column(name = "UPDATED_AT")
     private Instant updatedAt;
+
 }

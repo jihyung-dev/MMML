@@ -41,9 +41,6 @@ public class BudgetGroup {
     private Instant updatedAt;
 
     @OneToMany(mappedBy = "group")
-    private Set<Category> categories = new LinkedHashSet<>();
-
-    @OneToMany(mappedBy = "group")
     private Set<GroupMember> groupMembers = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "group")

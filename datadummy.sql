@@ -378,52 +378,55 @@ commit;
 
 -- CATEGORY
 
-INSERT INTO smaccount.CATEGORY (category_id, group_id, type, name)
-VALUES (smaccount.SEQ_CATEGORY.NEXTVAL, 1, 'COMMON', '용돈');
-
-INSERT INTO smaccount.CATEGORY (category_id, group_id, type, name)
-VALUES (smaccount.SEQ_CATEGORY.NEXTVAL, 1, 'COMMON', '식비');
-
-INSERT INTO smaccount.CATEGORY (category_id, group_id, type, name)
-VALUES (smaccount.SEQ_CATEGORY.NEXTVAL, 1, 'COMMON', '교통비');
-
-INSERT INTO smaccount.CATEGORY (category_id, group_id, type, name)
-VALUES (smaccount.SEQ_CATEGORY.NEXTVAL, 1, 'COMMON', '공과금');
-
-INSERT INTO smaccount.CATEGORY (category_id, group_id, type, name)
-VALUES (smaccount.SEQ_CATEGORY.NEXTVAL, 1, 'COMMON', '주거비');
-
-INSERT INTO smaccount.CATEGORY (category_id, group_id, type, name)
-VALUES (smaccount.SEQ_CATEGORY.NEXTVAL, 1, 'COMMON', '병원비');
-
-INSERT INTO smaccount.CATEGORY (category_id, group_id, type, name)
-VALUES (smaccount.SEQ_CATEGORY.NEXTVAL, 1, 'COMMON', '쇼핑');
-
-INSERT INTO smaccount.CATEGORY (category_id, group_id, type, name)
-VALUES (smaccount.SEQ_CATEGORY.NEXTVAL, 1, 'COMMON', '카페/간식');
-
-INSERT INTO smaccount.CATEGORY (category_id, group_id, type, name)
-VALUES (smaccount.SEQ_CATEGORY.NEXTVAL, 1, 'COMMON', '교육비');
-
-INSERT INTO smaccount.CATEGORY (category_id, group_id, type, name)
-VALUES (smaccount.SEQ_CATEGORY.NEXTVAL, 1, 'COMMON', '보험료');
-
-INSERT INTO smaccount.CATEGORY (category_id, group_id, type, name)
-VALUES (smaccount.SEQ_CATEGORY.NEXTVAL, 1, 'COMMON', '적금/투자');
-
-INSERT INTO smaccount.CATEGORY (category_id, group_id, type, name)
-VALUES (smaccount.SEQ_CATEGORY.NEXTVAL, 1, 'COMMON', '경조사');
-
-INSERT INTO smaccount.CATEGORY (category_id, group_id, type, name)
-VALUES (smaccount.SEQ_CATEGORY.NEXTVAL, 1, 'COMMON', '아이용품');
-
-INSERT INTO smaccount.CATEGORY (category_id, group_id, type, name)
-VALUES (smaccount.SEQ_CATEGORY.NEXTVAL, 1, 'COMMON', '구독서비스');
-
-INSERT INTO smaccount.CATEGORY (category_id, group_id, type, name)
-VALUES (smaccount.SEQ_CATEGORY.NEXTVAL, 1, 'COMMON', '기타');
+INSERT INTO smaccount.CATEGORY (category_id, name) VALUES ('ALLOWANCE', '용돈');
+INSERT INTO smaccount.CATEGORY (category_id, name) VALUES ('FOOD', '식비');
+INSERT INTO smaccount.CATEGORY (category_id, name) VALUES ('TRANSPORT', '교통비');
+INSERT INTO smaccount.CATEGORY (category_id, name) VALUES ('UTILITY', '공과금');
+INSERT INTO smaccount.CATEGORY (category_id, name) VALUES ('HOUSING', '주거비');
+INSERT INTO smaccount.CATEGORY (category_id, name) VALUES ('HOSPITAL', '병원비');
+INSERT INTO smaccount.CATEGORY (category_id, name) VALUES ('SHOPPING', '쇼핑');
+INSERT INTO smaccount.CATEGORY (category_id, name) VALUES ('CAFE_SNACK', '카페/간식');
+INSERT INTO smaccount.CATEGORY (category_id, name) VALUES ('EDUCATION', '교육비');
+INSERT INTO smaccount.CATEGORY (category_id, name) VALUES ('INSURANCE', '보험료');
+INSERT INTO smaccount.CATEGORY (category_id, name) VALUES ('SAVING_INVEST', '적금/투자');
+INSERT INTO smaccount.CATEGORY (category_id, name) VALUES ('EVENT', '경조사');
+INSERT INTO smaccount.CATEGORY (category_id, name) VALUES ('KIDS', '아이용품');
+INSERT INTO smaccount.CATEGORY (category_id, name) VALUES ('SUBSCRIPTION', '구독서비스');
+INSERT INTO smaccount.CATEGORY (category_id, name) VALUES ('ETC', '기타');
 
 commit;
+
+-- SUB
+INSERT INTO smaccount.SUB_CATEGORY (sub_id, name, category_id) VALUES ('GROCERIES', '장보기', 'FOOD');
+INSERT INTO smaccount.SUB_CATEGORY (sub_id, name, category_id) VALUES ('DELIVERY', '배달', 'FOOD');
+INSERT INTO smaccount.SUB_CATEGORY (sub_id, name, category_id) VALUES ('RESTAURANT', '외식', 'FOOD');
+INSERT INTO smaccount.SUB_CATEGORY (sub_id, name, category_id) VALUES ('CAFE', '카페', 'FOOD');
+INSERT INTO smaccount.SUB_CATEGORY (sub_id, name, category_id) VALUES ('BUS', '버스', 'TRANSPORT');
+INSERT INTO smaccount.SUB_CATEGORY (sub_id, name, category_id) VALUES ('METRO', '지하철', 'TRANSPORT');
+INSERT INTO smaccount.SUB_CATEGORY (sub_id, name, category_id) VALUES ('TAXI', '택시', 'TRANSPORT');
+INSERT INTO smaccount.SUB_CATEGORY (sub_id, name, category_id) VALUES ('FUEL', '주유', 'TRANSPORT');
+INSERT INTO smaccount.SUB_CATEGORY (sub_id, name, category_id) VALUES ('CLOTHES', '의류', 'SHOPPING');
+INSERT INTO smaccount.SUB_CATEGORY (sub_id, name, category_id) VALUES ('BEAUTY', '화장품', 'SHOPPING');
+INSERT INTO smaccount.SUB_CATEGORY (sub_id, name, category_id) VALUES ('ELECTRONICS', '전자기기', 'SHOPPING');
+INSERT INTO smaccount.SUB_CATEGORY (sub_id, name, category_id) VALUES ('RENT', '월세', 'HOUSING');
+INSERT INTO smaccount.SUB_CATEGORY (sub_id, name, category_id) VALUES ('MAINTENANCE', '관리비', 'HOUSING');
+INSERT INTO smaccount.SUB_CATEGORY (sub_id, name, category_id) VALUES ('REPAIRS', '수리', 'HOUSING');
+INSERT INTO smaccount.SUB_CATEGORY (sub_id, name, category_id) VALUES ('CLINIC', '병원', 'HOSPITAL');
+INSERT INTO smaccount.SUB_CATEGORY (sub_id, name, category_id) VALUES ('PHARMACY', '약국', 'HOSPITAL');
+INSERT INTO smaccount.SUB_CATEGORY (sub_id, name, category_id) VALUES ('TEST', '검사비', 'HOSPITAL');
+INSERT INTO smaccount.SUB_CATEGORY (sub_id, name, category_id) VALUES ('ACADEMY', '학원', 'EDUCATION');
+INSERT INTO smaccount.SUB_CATEGORY (sub_id, name, category_id) VALUES ('BOOK', '교재', 'EDUCATION');
+INSERT INTO smaccount.SUB_CATEGORY (sub_id, name, category_id) VALUES ('ONLINE', '온라인강의', 'EDUCATION');
+INSERT INTO smaccount.SUB_CATEGORY (sub_id, name, category_id) VALUES ('SAVING', '적금', 'SAVING_INVEST');
+INSERT INTO smaccount.SUB_CATEGORY (sub_id, name, category_id) VALUES ('STOCK', '주식', 'SAVING_INVEST');
+INSERT INTO smaccount.SUB_CATEGORY (sub_id, name, category_id) VALUES ('FUND', '펀드', 'SAVING_INVEST');
+INSERT INTO smaccount.SUB_CATEGORY (sub_id, name, category_id) VALUES ('CRYPTO', '코인', 'SAVING_INVEST');
+INSERT INTO smaccount.SUB_CATEGORY (sub_id, name, category_id) VALUES ('HOBBY', '취미', 'ETC');
+INSERT INTO smaccount.SUB_CATEGORY (sub_id, name, category_id) VALUES ('TRAVEL', '여행', 'ETC');
+INSERT INTO smaccount.SUB_CATEGORY (sub_id, name, category_id) VALUES ('PETS', '반려동물', 'ETC');
+INSERT INTO smaccount.SUB_CATEGORY (sub_id, name, category_id) VALUES ('GIFTS', '선물', 'ETC');
+commit ;
+
 
 
 -- 1. 수입 - 용돈 (user01이 받은 용돈)
@@ -437,7 +440,7 @@ INSERT INTO smaccount.LEDGER_ENTRY (
              'IN',
              'CASH',
              (SELECT category_id FROM smaccount.CATEGORY
-              WHERE group_id = 1 AND name = '용돈'),
+              WHERE name = '용돈'),
              100000,
              DATE '2025-11-01',
              '엄마가 준 용돈'
@@ -454,7 +457,7 @@ INSERT INTO smaccount.LEDGER_ENTRY (
              'OUT',
              'CASH',
              (SELECT category_id FROM smaccount.CATEGORY
-              WHERE group_id = 1 AND name = '용돈'),
+              WHERE name = '용돈'),
              20000,
              DATE '2025-11-02',
              '동생 용돈'
@@ -471,7 +474,7 @@ INSERT INTO smaccount.LEDGER_ENTRY (
              'OUT',
              'CARD',
              (SELECT category_id FROM smaccount.CATEGORY
-              WHERE group_id = 1 AND name = '식비'),
+              WHERE name = '식비'),
              8500,
              DATE '2025-11-02',
              '회사 점심'
@@ -488,7 +491,7 @@ INSERT INTO smaccount.LEDGER_ENTRY (
              'OUT',
              'CARD',
              (SELECT category_id FROM smaccount.CATEGORY
-              WHERE group_id = 1 AND name = '교통비'),
+              WHERE name = '교통비'),
              1400,
              DATE '2025-11-02',
              '버스비'
@@ -505,7 +508,7 @@ INSERT INTO smaccount.LEDGER_ENTRY (
              'OUT',
              'TRANSFER',
              (SELECT category_id FROM smaccount.CATEGORY
-              WHERE group_id = 1 AND name = '공과금'),
+              WHERE name = '공과금'),
              62000,
              DATE '2025-11-03',
              '전기요금 자동이체'
@@ -522,7 +525,7 @@ INSERT INTO smaccount.LEDGER_ENTRY (
              'IN',
              'TRANSFER',
              (SELECT category_id FROM smaccount.CATEGORY
-              WHERE group_id = 1 AND name = '기타'),
+              WHERE name = '기타'),
              2500000,
              DATE '2025-11-01',
              '11월 급여'
@@ -539,7 +542,7 @@ INSERT INTO smaccount.LEDGER_ENTRY (
              'OUT',
              'CARD',
              (SELECT category_id FROM smaccount.CATEGORY
-              WHERE group_id = 1 AND name = '카페/간식'),
+              WHERE name = '카페/간식'),
              4800,
              DATE '2025-11-03',
              '아메리카노'
@@ -556,7 +559,7 @@ INSERT INTO smaccount.LEDGER_ENTRY (
              'OUT',
              'TRANSFER',
              (SELECT category_id FROM smaccount.CATEGORY
-              WHERE group_id = 1 AND name = '주거비'),
+              WHERE name = '주거비'),
              500000,
              DATE '2025-11-05',
              '11월 월세'
@@ -573,7 +576,7 @@ INSERT INTO smaccount.LEDGER_ENTRY (
              'IN',
              'TRANSFER',
              (SELECT category_id FROM smaccount.CATEGORY
-              WHERE group_id = 1 AND name = '적금/투자'),
+              WHERE name = '적금/투자'),
              1000000,
              DATE '2025-11-06',
              '적금 중도해지'
@@ -590,7 +593,7 @@ INSERT INTO smaccount.LEDGER_ENTRY (
              'OUT',
              'CARD',
              (SELECT category_id FROM smaccount.CATEGORY
-              WHERE group_id = 1 AND name = '구독서비스'),
+              WHERE name = '구독서비스'),
              17000,
              DATE '2025-11-07',
              '넷플릭스'
@@ -1019,255 +1022,366 @@ VALUES (smaccount.SEQ_ITEM.NEXTVAL, 'user095@test.com', '고구마 스틱', 9900
 commit;
 
 
--- ORDER_MAIN
-INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
-VALUES (
-           smaccount.SEQ_ORDER.NEXTVAL,
-           'user041@test.com',
-           58900,
-           'PAID',
-           SYSTIMESTAMP - 4
-       );
+-- -- ORDER_MAIN
+-- INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
+-- VALUES (
+--            smaccount.SEQ_ORDER.NEXTVAL,
+--            'user041@test.com',
+--            58900,
+--            'PAID',
+--            SYSTIMESTAMP - 4
+--        );
+--
+-- INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
+-- VALUES (
+--            smaccount.SEQ_ORDER.NEXTVAL,
+--            'user066@test.com',
+--            174900,
+--            'PAID',
+--            SYSTIMESTAMP - 10
+--        );
+--
+-- INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
+-- VALUES (
+--            smaccount.SEQ_ORDER.NEXTVAL,
+--            'user032@test.com',
+--            34900,
+--            'PAID',
+--            SYSTIMESTAMP - 6
+--        );
+--
+-- INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
+-- VALUES (
+--            smaccount.SEQ_ORDER.NEXTVAL,
+--            'user008@test.com',
+--            129900,
+--            'PAID',
+--            SYSTIMESTAMP - 2
+--        );
+--
+-- INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
+-- VALUES (
+--            smaccount.SEQ_ORDER.NEXTVAL,
+--            'user059@test.com',
+--            21900,
+--            'PAID',
+--            SYSTIMESTAMP - 8
+--        );
+--
+-- INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
+-- VALUES (
+--            smaccount.SEQ_ORDER.NEXTVAL,
+--            'user017@test.com',
+--            79900,
+--            'PAID',
+--            SYSTIMESTAMP - 12
+--        );
+--
+-- INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
+-- VALUES (
+--            smaccount.SEQ_ORDER.NEXTVAL,
+--            'user028@test.com',
+--            45900,
+--            'PAID',
+--            SYSTIMESTAMP - 9
+--        );
+--
+-- INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
+-- VALUES (
+--            smaccount.SEQ_ORDER.NEXTVAL,
+--            'user072@test.com',
+--            189900,
+--            'PAID',
+--            SYSTIMESTAMP - 13
+--        );
+--
+-- INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
+-- VALUES (
+--            smaccount.SEQ_ORDER.NEXTVAL,
+--            'user044@test.com',
+--            9900,
+--            'PAID',
+--            SYSTIMESTAMP - 3
+--        );
+--
+-- INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
+-- VALUES (
+--            smaccount.SEQ_ORDER.NEXTVAL,
+--            'user003@test.com',
+--            159900,
+--            'PAID',
+--            SYSTIMESTAMP - 14
+--        );
+--
+-- INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
+-- VALUES (
+--            smaccount.SEQ_ORDER.NEXTVAL,
+--            'user051@test.com',
+--            57900,
+--            'PAID',
+--            SYSTIMESTAMP - 5
+--        );
+--
+-- INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
+-- VALUES (
+--            smaccount.SEQ_ORDER.NEXTVAL,
+--            'user039@test.com',
+--            33900,
+--            'PAID',
+--            SYSTIMESTAMP - 11
+--        );
+--
+-- INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
+-- VALUES (
+--            smaccount.SEQ_ORDER.NEXTVAL,
+--            'user012@test.com',
+--            74900,
+--            'PAID',
+--            SYSTIMESTAMP - 4
+--        );
+--
+-- INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
+-- VALUES (
+--            smaccount.SEQ_ORDER.NEXTVAL,
+--            'user027@test.com',
+--            129900,
+--            'PAID',
+--            SYSTIMESTAMP - 8
+--        );
+--
+-- INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
+-- VALUES (
+--            smaccount.SEQ_ORDER.NEXTVAL,
+--            'user048@test.com',
+--            21900,
+--            'PAID',
+--            SYSTIMESTAMP - 1
+--        );
+--
+-- INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
+-- VALUES (
+--            smaccount.SEQ_ORDER.NEXTVAL,
+--            'user015@test.com',
+--            99900,
+--            'PAID',
+--            SYSTIMESTAMP - 6
+--        );
+--
+-- INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
+-- VALUES (
+--            smaccount.SEQ_ORDER.NEXTVAL,
+--            'user062@test.com',
+--            45900,
+--            'PAID',
+--            SYSTIMESTAMP - 10
+--        );
+--
+-- INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
+-- VALUES (
+--            smaccount.SEQ_ORDER.NEXTVAL,
+--            'user034@test.com',
+--            15900,
+--            'PAID',
+--            SYSTIMESTAMP - 3
+--        );
+--
+-- INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
+-- VALUES (
+--            smaccount.SEQ_ORDER.NEXTVAL,
+--            'user019@test.com',
+--            84900,
+--            'PAID',
+--            SYSTIMESTAMP - 12
+--        );
+--
+-- INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
+-- VALUES (
+--            smaccount.SEQ_ORDER.NEXTVAL,
+--            'user055@test.com',
+--            41900,
+--            'PAID',
+--            SYSTIMESTAMP - 2
+--        );
+--
+-- INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
+-- VALUES (
+--            smaccount.SEQ_ORDER.NEXTVAL,
+--            'user046@test.com',
+--            189900,
+--            'PAID',
+--            SYSTIMESTAMP - 9
+--        );
+--
+-- INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
+-- VALUES (
+--            smaccount.SEQ_ORDER.NEXTVAL,
+--            'user010@test.com',
+--            29900,
+--            'PAID',
+--            SYSTIMESTAMP - 6
+--        );
+--
+-- INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
+-- VALUES (
+--            smaccount.SEQ_ORDER.NEXTVAL,
+--            'user068@test.com',
+--            57900,
+--            'PAID',
+--            SYSTIMESTAMP - 7
+--        );
+--
+-- INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
+-- VALUES (
+--            smaccount.SEQ_ORDER.NEXTVAL,
+--            'user021@test.com',
+--            29900,
+--            'PAID',
+--            SYSTIMESTAMP - 4
+--        );
+--
+-- INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
+-- VALUES (
+--            smaccount.SEQ_ORDER.NEXTVAL,
+--            'user074@test.com',
+--            9900,
+--            'PAID',
+--            SYSTIMESTAMP - 1
+--        );
+--
+-- INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
+-- VALUES (
+--            smaccount.SEQ_ORDER.NEXTVAL,
+--            'user026@test.com',
+--            129900,
+--            'PAID',
+--            SYSTIMESTAMP - 13
+--        );
+--
+-- INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
+-- VALUES (
+--            smaccount.SEQ_ORDER.NEXTVAL,
+--            'user060@test.com',
+--            24900,
+--            'PAID',
+--            SYSTIMESTAMP - 5
+--        );
+-- commit;
 
 INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
-VALUES (
-           smaccount.SEQ_ORDER.NEXTVAL,
-           'user066@test.com',
-           174900,
-           'PAID',
-           SYSTIMESTAMP - 10
-       );
+VALUES (smaccount.SEQ_ORDER.NEXTVAL, 'user012@test.com', 74900, 'PAID', SYSTIMESTAMP - 3);
 
 INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
-VALUES (
-           smaccount.SEQ_ORDER.NEXTVAL,
-           'user032@test.com',
-           34900,
-           'PAID',
-           SYSTIMESTAMP - 6
-       );
+VALUES (smaccount.SEQ_ORDER.NEXTVAL, 'user043@test.com', 119900, 'PENDING', SYSTIMESTAMP - 1);
 
 INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
-VALUES (
-           smaccount.SEQ_ORDER.NEXTVAL,
-           'user008@test.com',
-           129900,
-           'PAID',
-           SYSTIMESTAMP - 2
-       );
+VALUES (smaccount.SEQ_ORDER.NEXTVAL, 'user027@test.com', 29900, 'CANCELLED', SYSTIMESTAMP - 7);
 
 INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
-VALUES (
-           smaccount.SEQ_ORDER.NEXTVAL,
-           'user059@test.com',
-           21900,
-           'PAID',
-           SYSTIMESTAMP - 8
-       );
+VALUES (smaccount.SEQ_ORDER.NEXTVAL, 'user058@test.com', 189900, 'SHIPPED', SYSTIMESTAMP - 5);
 
 INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
-VALUES (
-           smaccount.SEQ_ORDER.NEXTVAL,
-           'user017@test.com',
-           79900,
-           'PAID',
-           SYSTIMESTAMP - 12
-       );
+VALUES (smaccount.SEQ_ORDER.NEXTVAL, 'user036@test.com', 45900, 'DELIVERED', SYSTIMESTAMP - 9);
 
 INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
-VALUES (
-           smaccount.SEQ_ORDER.NEXTVAL,
-           'user028@test.com',
-           45900,
-           'PAID',
-           SYSTIMESTAMP - 9
-       );
+VALUES (smaccount.SEQ_ORDER.NEXTVAL, 'user071@test.com', 9900, 'REFUNDED', SYSTIMESTAMP - 2);
 
 INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
-VALUES (
-           smaccount.SEQ_ORDER.NEXTVAL,
-           'user072@test.com',
-           189900,
-           'PAID',
-           SYSTIMESTAMP - 13
-       );
+VALUES (smaccount.SEQ_ORDER.NEXTVAL, 'user004@test.com', 159900, 'PAID', SYSTIMESTAMP - 11);
 
 INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
-VALUES (
-           smaccount.SEQ_ORDER.NEXTVAL,
-           'user044@test.com',
-           9900,
-           'PAID',
-           SYSTIMESTAMP - 3
-       );
+VALUES (smaccount.SEQ_ORDER.NEXTVAL, 'user033@test.com', 37900, 'SHIPPED', SYSTIMESTAMP - 4);
 
 INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
-VALUES (
-           smaccount.SEQ_ORDER.NEXTVAL,
-           'user003@test.com',
-           159900,
-           'PAID',
-           SYSTIMESTAMP - 14
-       );
+VALUES (smaccount.SEQ_ORDER.NEXTVAL, 'user025@test.com', 129900, 'DELIVERED', SYSTIMESTAMP - 6);
 
 INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
-VALUES (
-           smaccount.SEQ_ORDER.NEXTVAL,
-           'user051@test.com',
-           57900,
-           'PAID',
-           SYSTIMESTAMP - 5
-       );
+VALUES (smaccount.SEQ_ORDER.NEXTVAL, 'user049@test.com', 24900, 'PENDING', SYSTIMESTAMP - 8);
 
-INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
-VALUES (
-           smaccount.SEQ_ORDER.NEXTVAL,
-           'user039@test.com',
-           33900,
-           'PAID',
-           SYSTIMESTAMP - 11
-       );
-
-INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
-VALUES (
-           smaccount.SEQ_ORDER.NEXTVAL,
-           'user012@test.com',
-           74900,
-           'PAID',
-           SYSTIMESTAMP - 4
-       );
-
-INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
-VALUES (
-           smaccount.SEQ_ORDER.NEXTVAL,
-           'user027@test.com',
-           129900,
-           'PAID',
-           SYSTIMESTAMP - 8
-       );
-
-INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
-VALUES (
-           smaccount.SEQ_ORDER.NEXTVAL,
-           'user048@test.com',
-           21900,
-           'PAID',
-           SYSTIMESTAMP - 1
-       );
-
-INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
-VALUES (
-           smaccount.SEQ_ORDER.NEXTVAL,
-           'user015@test.com',
-           99900,
-           'PAID',
-           SYSTIMESTAMP - 6
-       );
-
-INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
-VALUES (
-           smaccount.SEQ_ORDER.NEXTVAL,
-           'user062@test.com',
-           45900,
-           'PAID',
-           SYSTIMESTAMP - 10
-       );
-
-INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
-VALUES (
-           smaccount.SEQ_ORDER.NEXTVAL,
-           'user034@test.com',
-           15900,
-           'PAID',
-           SYSTIMESTAMP - 3
-       );
-
-INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
-VALUES (
-           smaccount.SEQ_ORDER.NEXTVAL,
-           'user019@test.com',
-           84900,
-           'PAID',
-           SYSTIMESTAMP - 12
-       );
-
-INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
-VALUES (
-           smaccount.SEQ_ORDER.NEXTVAL,
-           'user055@test.com',
-           41900,
-           'PAID',
-           SYSTIMESTAMP - 2
-       );
-
-INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
-VALUES (
-           smaccount.SEQ_ORDER.NEXTVAL,
-           'user046@test.com',
-           189900,
-           'PAID',
-           SYSTIMESTAMP - 9
-       );
-
-INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
-VALUES (
-           smaccount.SEQ_ORDER.NEXTVAL,
-           'user010@test.com',
-           29900,
-           'PAID',
-           SYSTIMESTAMP - 6
-       );
-
-INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
-VALUES (
-           smaccount.SEQ_ORDER.NEXTVAL,
-           'user068@test.com',
-           57900,
-           'PAID',
-           SYSTIMESTAMP - 7
-       );
-
-INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
-VALUES (
-           smaccount.SEQ_ORDER.NEXTVAL,
-           'user021@test.com',
-           29900,
-           'PAID',
-           SYSTIMESTAMP - 4
-       );
-
-INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
-VALUES (
-           smaccount.SEQ_ORDER.NEXTVAL,
-           'user074@test.com',
-           9900,
-           'PAID',
-           SYSTIMESTAMP - 1
-       );
-
-INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
-VALUES (
-           smaccount.SEQ_ORDER.NEXTVAL,
-           'user026@test.com',
-           129900,
-           'PAID',
-           SYSTIMESTAMP - 13
-       );
-
-INSERT INTO smaccount.ORDER_MAIN (order_id, buyer_id, total_amount, status, created_at)
-VALUES (
-           smaccount.SEQ_ORDER.NEXTVAL,
-           'user060@test.com',
-           24900,
-           'PAID',
-           SYSTIMESTAMP - 5
-       );
-commit;
+commit ;
 
 
 -- ORDER_ITEM
+INSERT INTO smaccount.ORDER_ITEM (order_item_id, order_id, item_id, qty, price)
+VALUES (smaccount.SEQ_ORDER_ITEM.NEXTVAL, 1, 5, 2, 15900);
+
+INSERT INTO smaccount.ORDER_ITEM (order_item_id, order_id, item_id, qty, price)
+VALUES (smaccount.SEQ_ORDER_ITEM.NEXTVAL, 1, 12, 1, 8900);
+
+INSERT INTO smaccount.ORDER_ITEM (order_item_id, order_id, item_id, qty, price)
+VALUES (smaccount.SEQ_ORDER_ITEM.NEXTVAL, 2, 17, 3, 22900);
+
+INSERT INTO smaccount.ORDER_ITEM (order_item_id, order_id, item_id, qty, price)
+VALUES (smaccount.SEQ_ORDER_ITEM.NEXTVAL, 2, 23, 1, 9900);
+
+INSERT INTO smaccount.ORDER_ITEM (order_item_id, order_id, item_id, qty, price)
+VALUES (smaccount.SEQ_ORDER_ITEM.NEXTVAL, 3, 8, 2, 12900);
+
+INSERT INTO smaccount.ORDER_ITEM (order_item_id, order_id, item_id, qty, price)
+VALUES (smaccount.SEQ_ORDER_ITEM.NEXTVAL, 3, 31, 1, 49900);
+
+INSERT INTO smaccount.ORDER_ITEM (order_item_id, order_id, item_id, qty, price)
+VALUES (smaccount.SEQ_ORDER_ITEM.NEXTVAL, 4, 14, 4, 5600);
+
+INSERT INTO smaccount.ORDER_ITEM (order_item_id, order_id, item_id, qty, price)
+VALUES (smaccount.SEQ_ORDER_ITEM.NEXTVAL, 4, 38, 1, 22500);
+
+INSERT INTO smaccount.ORDER_ITEM (order_item_id, order_id, item_id, qty, price)
+VALUES (smaccount.SEQ_ORDER_ITEM.NEXTVAL, 5, 9, 2, 17900);
+
+INSERT INTO smaccount.ORDER_ITEM (order_item_id, order_id, item_id, qty, price)
+VALUES (smaccount.SEQ_ORDER_ITEM.NEXTVAL, 5, 44, 1, 39900);
+
+INSERT INTO smaccount.ORDER_ITEM (order_item_id, order_id, item_id, qty, price)
+VALUES (smaccount.SEQ_ORDER_ITEM.NEXTVAL, 6, 11, 1, 7800);
+
+INSERT INTO smaccount.ORDER_ITEM (order_item_id, order_id, item_id, qty, price)
+VALUES (smaccount.SEQ_ORDER_ITEM.NEXTVAL, 7, 19, 3, 24900);
+
+INSERT INTO smaccount.ORDER_ITEM (order_item_id, order_id, item_id, qty, price)
+VALUES (smaccount.SEQ_ORDER_ITEM.NEXTVAL, 8, 27, 1, 32900);
+
+INSERT INTO smaccount.ORDER_ITEM (order_item_id, order_id, item_id, qty, price)
+VALUES (smaccount.SEQ_ORDER_ITEM.NEXTVAL, 9, 33, 4, 15900);
+
+INSERT INTO smaccount.ORDER_ITEM (order_item_id, order_id, item_id, qty, price)
+VALUES (smaccount.SEQ_ORDER_ITEM.NEXTVAL, 10, 41, 2, 8900);
+
+commit ;
 
 
+-- SHIPMENT
+
+INSERT INTO smaccount.SHIPMENT (shipment_id, order_id, tracking_no, carrier, status)
+VALUES (smaccount.SEQ_SHIPMENT.NEXTVAL, 1, 'TRK000001', 'CJ', 'SHIPPED');
+
+INSERT INTO smaccount.SHIPMENT (shipment_id, order_id, tracking_no, carrier, status)
+VALUES (smaccount.SEQ_SHIPMENT.NEXTVAL, 2, 'TRK000002', '한진', 'IN_TRANSIT');
+
+INSERT INTO smaccount.SHIPMENT (shipment_id, order_id, tracking_no, carrier, status)
+VALUES (smaccount.SEQ_SHIPMENT.NEXTVAL, 3, 'TRK000003', '로젠', 'DELIVERED');
+
+INSERT INTO smaccount.SHIPMENT (shipment_id, order_id, tracking_no, carrier, status)
+VALUES (smaccount.SEQ_SHIPMENT.NEXTVAL, 4, 'TRK000004', 'CJ', 'DELIVERED');
+
+INSERT INTO smaccount.SHIPMENT (shipment_id, order_id, tracking_no, carrier, status)
+VALUES (smaccount.SEQ_SHIPMENT.NEXTVAL, 5, 'TRK000005', '한진', 'SHIPPED');
+
+INSERT INTO smaccount.SHIPMENT (shipment_id, order_id, tracking_no, carrier, status)
+VALUES (smaccount.SEQ_SHIPMENT.NEXTVAL, 6, 'TRK000006', '로젠', 'IN_TRANSIT');
+
+INSERT INTO smaccount.SHIPMENT (shipment_id, order_id, tracking_no, carrier, status)
+VALUES (smaccount.SEQ_SHIPMENT.NEXTVAL, 7, 'TRK000007', 'CJ', 'SHIPPED');
+
+INSERT INTO smaccount.SHIPMENT (shipment_id, order_id, tracking_no, carrier, status)
+VALUES (smaccount.SEQ_SHIPMENT.NEXTVAL, 8, 'TRK000008', '한진', 'DELIVERED');
+
+INSERT INTO smaccount.SHIPMENT (shipment_id, order_id, tracking_no, carrier, status)
+VALUES (smaccount.SEQ_SHIPMENT.NEXTVAL, 9, 'TRK000009', '로젠', 'IN_TRANSIT');
+
+INSERT INTO smaccount.SHIPMENT (shipment_id, order_id, tracking_no, carrier, status)
+VALUES (smaccount.SEQ_SHIPMENT.NEXTVAL, 10, 'TRK000010', 'CJ', 'SHIPPED');
+
+commit ;
 
 
 
