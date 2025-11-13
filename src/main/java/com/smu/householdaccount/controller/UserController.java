@@ -42,12 +42,8 @@ public class UserController{
     @GetMapping("/kakao/kakaoCallback")
     public String kakaoCallback(@RequestParam String code){
         boolean isSuccess = kakaoApiService.handleAuthorizationCallback(code);
+        JSONObject userInfo = kakaoApiService.getUserProfile();
         return "callback/kakao";
-    }
-
-    @GetMapping("/kakao/profile")
-    public ResponseEntity<?> getKakaoProfile() {
-        return kakaoApiService.getUserProfile();
     }
 
     /**

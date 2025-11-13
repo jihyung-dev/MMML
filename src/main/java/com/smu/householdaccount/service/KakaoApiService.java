@@ -3,6 +3,9 @@ package com.smu.householdaccount.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smu.householdaccount.dto.KakaoTokenResponse;
 import jakarta.servlet.http.HttpSession;
+import org.apache.tomcat.util.json.JSONParser;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -107,14 +110,14 @@ public class KakaoApiService {
     }
 
     // 유저 정보
-    public ResponseEntity<?> getUserProfile() {
+    public JSONObject getUserProfile() {
         try {
             String response = call("GET", kapiHost + "/v2/user/me", null);
-            System.out.println(response);
-            return ResponseEntity.ok(objectMapper.readValue(response, Object.class));
+            JSONObject user = (JSONObject)new JSONValue().parse(response);
+            return user;
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.internalServerError().build();
+            return null; // 임시 조치
         }
     }
 }
