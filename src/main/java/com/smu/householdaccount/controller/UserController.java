@@ -43,6 +43,7 @@ public class UserController{
     public String kakaoCallback(@RequestParam String code){
         boolean isSuccess = kakaoApiService.handleAuthorizationCallback(code);
         JSONObject userInfo = kakaoApiService.getUserProfile();
+        System.out.println(userInfo);
         return "callback/kakao";
     }
 
