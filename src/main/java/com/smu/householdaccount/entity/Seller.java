@@ -9,24 +9,21 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.Instant;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "SELLER")
+@Table(name = "SELLER", schema = "SMACCOUNT")
 public class Seller {
     @Id
-    @Size(max = 50)
-    @Column(name = "SELLER_ID", nullable = false, length = 50)
-    private String sellerId;
+    @Size(max = 20)
+    @Column(name = "BIZ_NO", nullable = false, length = 20)
+    private String bizNo;
 
-    @MapsId
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.RESTRICT)
-    @JoinColumn(name = "SELLER_ID", nullable = false)
-    private Member member;
+    @JoinColumn(name = "SELLER_ID")
+    private Member seller;
 
     @Size(max = 30)
     @Column(name = "BIZ_TYPE", length = 30)
@@ -38,8 +35,5 @@ public class Seller {
 
     @Column(name = "UPDATED_AT")
     private Instant updatedAt;
-
-    @OneToMany(mappedBy = "seller")
-    private Set<Item> items = new LinkedHashSet<>();
 
 }
