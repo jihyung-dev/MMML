@@ -2,6 +2,7 @@ package com.smu.householdaccount.controller;
 
 import com.smu.householdaccount.service.KakaoApiService;
 import com.smu.householdaccount.service.NaverApiService;
+import com.smu.householdaccount.util.Utility;
 import jakarta.servlet.http.HttpServlet;
 import org.apache.coyote.Response;
 import org.json.simple.JSONObject;
@@ -23,6 +24,8 @@ public class UserController{
     public UserController(KakaoApiService kakaoApiService, NaverApiService naverApiService) {
         this.kakaoApiService = kakaoApiService;
         this.naverApiService = naverApiService;
+
+        System.out.println("암호화 확인용 : " + Utility.encrypt("테스트용"));
     }
 
     /**
@@ -43,6 +46,7 @@ public class UserController{
     public String kakaoCallback(@RequestParam String code){
         boolean isSuccess = kakaoApiService.handleAuthorizationCallback(code);
         JSONObject userInfo = kakaoApiService.getUserProfile();
+        System.out.println(userInfo);
         return "callback/kakao";
     }
 
