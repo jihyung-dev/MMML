@@ -28,10 +28,10 @@ public class NaverApiService {
     @Value("${naver.client-id}")
     private String clientId;
 
-    @Value("${naver.client_secret}")
+    @Value("${naver.client-secret}")
     private String clientSecret;
 
-    @Value("${naver.nauthHost}")
+    @Value("${naver.nauth-host}")
     private String naverNauthHost;
 
     @Value("${naver.napi-host}")
