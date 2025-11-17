@@ -1,6 +1,8 @@
 spring:
   application:
     name: HouseholdAccount
+  profiles:
+    include: API-KEY
   datasource:
 #    url: jdbc:oracle:thin:@//localhost:1521/XEPDB1dd
     url: jdbc:oracle:thin:@//192.168.0.7:1521/XEPDB1
@@ -15,17 +17,3 @@ spring:
 
 server:
   port: 7003
-
-kakao:
-  client-id: ${KAKAO_CLIENT_ID:c9bd1bf06f622e149a01cb25d1aaa006}
-  client-secret: ${KAKAO_CLIENT_SECRET:41CeYuxCaHI4qidUch4Uw95k9FLYBGnB}
-  redirect-uri: http://localhost:7003/user/kakao/kakaoCallback
-  kauth-host: https://kauth.kakao.com
-  kapi-host: https://kapi.kakao.com
-
-naver:
-  client_secret: ${NAVER_CLIENT_SECRET:2sAH6nEq3y}
-  client-id: ${NAVER_CLIENT_ID:jkkYoO0HihnD9w7fZALc}
-  redirect_uri : http://localhost:7003/user/naver/naverCallback
-  nauthHost: https://nid.naver.com
-  napi-host: https://openapi.naver.com
