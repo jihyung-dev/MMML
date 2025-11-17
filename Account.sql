@@ -27,6 +27,7 @@ CREATE SEQUENCE smaccount.SEQ_SHIPMENT     START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE smaccount.SEQ_GROUP_MEMBER START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE smaccount.SEQ_BOARD_LIKE   START WITH 1 INCREMENT BY 1;
 CREATE SEQUENCE smaccount.SEQ_ORDER_ITEM   START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE smaccount.SEQ_BIZ   START WITH 1 INCREMENT BY 1;
 
 
 -- === MEMBER ===
@@ -122,8 +123,10 @@ CREATE TABLE smaccount.BOARD_LIKE (
 );
 
 -- === HOTDEAL ===
-CREATE TABLE smaccount.SELLER (
-                                  seller_id VARCHAR2(50) PRIMARY KEY REFERENCES smaccount.MEMBER(member_id),
+CREATE TABLE smaccount.Biz (
+                                  biz_id NUMBER PRIMARY KEY,
+                                  biz_no VARCHAR2(30) NOT NULL UNIQUE,
+                                  seller_id VARCHAR2(50)  NOT NULL REFERENCES smaccount.MEMBER(member_id),
                                   biz_type VARCHAR2(30),
                                   created_at TIMESTAMP DEFAULT SYSTIMESTAMP,
                                   updated_at TIMESTAMP
@@ -133,7 +136,7 @@ CREATE TABLE smaccount.SELLER (
 -- sale_status 예: 'ON_SALE' | 'PAUSED' | 'SOLD_OUT' | 'ENDED'
 CREATE TABLE smaccount.ITEM (
                                 item_id NUMBER PRIMARY KEY,
-                                seller_id VARCHAR2(50) NOT NULL REFERENCES smaccount.SELLER(seller_id),
+                                seller_id VARCHAR2(50) NOT NULL REFERENCES smaccount.Biz(biz_no),
                                 name VARCHAR2(200) NOT NULL,
                                 price NUMBER(15,2) NOT NULL,
                                 stock NUMBER NOT NULL,

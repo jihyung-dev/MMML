@@ -13,9 +13,12 @@ import java.time.Instant;
 @Getter
 @Setter
 @Entity
-@Table(name = "SELLER", schema = "SMACCOUNT")
-public class Seller {
+@Table(name = "BIZ")
+public class Biz {
     @Id
+    @Column(name = "BIZ_ID", nullable = false)
+    private Long id;
+
     @Size(max = 20)
     @Column(name = "BIZ_NO", nullable = false, length = 20)
     private String bizNo;

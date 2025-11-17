@@ -28,7 +28,7 @@ public class Item {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.RESTRICT)
     @JoinColumn(name = "SELLER_ID", nullable = false)
-    private Seller seller;
+    private Biz biz;
 
     @Size(max = 200)
     @NotNull

@@ -76,7 +76,7 @@ public class Member {
     @OneToMany(mappedBy = "buyer")
     private Set<OrderMain> orderMains = new LinkedHashSet<>();
 
-    @OneToOne(mappedBy = "member")
-    private Seller seller;
+    @OneToMany(mappedBy = "seller")
+    private Set<Biz> biz;
 
 }
