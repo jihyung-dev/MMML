@@ -5,6 +5,7 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>Member Login</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="stylesheet" href="/css/login.css">
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
     <script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {primary: "#0d273d", "background-light": "#f6f7f8", "background-dark": "#121a20"}, fontFamily: {display: "Manrope"}, borderRadius: {DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px"}}}};</script>
@@ -61,14 +62,14 @@
                         </button>
                     </div>
                     <!-- Kakao Login Button -->
-                    <div class="flex pt-2 justify-center">
-                        <button class="kakao-btn" onclick="window.location.href='/user/kakao/authorize'" style="width: 384px; height: 48px">
+                    <div>
+                        <button class="social-btn" onclick="window.location.href='/user/kakao/authorize'">
                             <img src="/img/kakao_login_medium_narrow.png">
                         </button>
                     </div>
                     <!-- Naver Login Button -->
                     <div>
-                        <button class="naver-btn" onclick="window.location.href='/user/naver/authorize'">
+                        <button class="social-btn" onclick="window.location.href='/user/naver/authorize'">
                             <img src="/img/naver_login_narrow.png" >
                         </button>
                     </div>

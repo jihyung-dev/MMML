@@ -72,7 +72,7 @@ public class UserController{
         JSONObject userInfo = null;
         // access 토큰 획득 후 로그인 정보 획득
         if(state.equals(saved_token)) {
-            String accessToken = naverApiService.getAccessTokenUrl(code, state);
+            String accessToken = naverApiService.requestToken(code, state);
             System.out.println(accessToken);
 
             userInfo = naverApiService.getUserProfile(); // 유저 프로필 정보 획득 후 홈으로 리다이렉트
