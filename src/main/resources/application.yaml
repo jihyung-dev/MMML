@@ -17,3 +17,6 @@ spring:
 
 server:
   port: 7003
+
+render:
+  render-host: https://mmml-deep-learning-server.onrender.com/

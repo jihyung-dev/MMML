@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 
+import static com.smu.householdaccount.security.PathList.*;
+
 @Configuration
 public class SecurityConfig {
 
@@ -16,18 +18,8 @@ public class SecurityConfig {
                         csrf.ignoringRequestMatchers("/api/**")) // api는 토큰으로 이루어지고 있기 때문에 csrf 보안에서 제외
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/user/login",
-                                "/signup",
-
-                                // Kakao
-                                "/user/kakao/**",
-
-                                // Naver
-                                "/user/naver/**",
-
-                                // 혹시 모르니 Security 기본 콜백도 허용
-                                "/oauth2/**",
-                                "/login/oauth2/**"
+                                PathList.values(LOGIN, ERROR, ERROR_ALL, FAVICON, AI, KAKAO, NAVER, OAUTH2_1, OAUTH2_2,
+                                        STATIC_CSS, STATIC_ASSETS, STATIC_IMG, STATIC_JS)
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
