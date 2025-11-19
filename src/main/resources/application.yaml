@@ -6,8 +6,8 @@ spring:
   datasource:
 #    url: jdbc:oracle:thin:@//localhost:1521/XEPDB1dd
     url: jdbc:oracle:thin:@//192.168.0.7:1521/XEPDB1
-    username: scott
-    password: tiger
+    username: smaccount
+    password: smaccountpw
   jpa:
         show-sql: true
         properties:
