@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>My Activity</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0d293f",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#121a20",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+    <div class="flex flex-col flex-1">
+        <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-gray-200 dark:border-gray-700 px-6 py-3 bg-white dark:bg-background-dark/80 backdrop-blur-sm sticky top-0 z-10">
+            <div class="flex items-center gap-4 text-primary dark:text-white">
+<span class="material-symbols-outlined text-3xl">
+            deployed_code
+          </span>
+                <h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">Member Hub</h2>
+            </div>
+            <div class="flex flex-1 justify-end gap-4">
+                <label class="flex flex-col min-w-40 !h-10 max-w-sm">
+                    <div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+                        <div class="text-gray-500 dark:text-gray-400 flex border-none bg-background-light dark:bg-background-dark items-center justify-center pl-3 rounded-l-lg border-r-0">
+<span class="material-symbols-outlined text-xl">
+                  search
+                </span>
+                        </div>
+                        <input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-gray-900 dark:text-gray-100 focus:outline-0 focus:ring-0 border-none bg-background-light dark:bg-background-dark focus:border-none h-full placeholder:text-gray-500 dark:placeholder:text-gray-400 px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal" placeholder="Search..." value=""/>
+                    </div>
+                </label>
+                <div class="flex gap-2">
+                    <button class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-200 gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-2.5">
+<span class="material-symbols-outlined text-xl">
+                notifications
+              </span>
+                    </button>
+                    <button class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-200 gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-2.5">
+<span class="material-symbols-outlined text-xl">
+                settings
+              </span>
+                    </button>
+                </div>
+                <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="User profile picture" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCx-1Jr5UfjIAJCZf0WN6nzQIDTYkcvvkQU_g_59iyEqbThJDlUiBQ2u1sHj5i36fAkosvIrWovyZHGWJy13tMOck3V_oYlMSz1VJKpYAq0LjuSsDSoanquGmXow3lNPies7ZYq1-I8R2J3Ql5odbWBlTssmNX76gueOlUI_M_XkKvQ1bcyp8Yc5bEK6QNqAb3BL7CXFX9WKfloSeIaI3MKxCEPbpqLq6-xUs3xwIUc0hjwcO5jgsqZcEWkOJPnTzmUCamGhsLpEi5a");'></div>
+            </div>
+        </header>
+        <div class="flex flex-1">
+            <aside class="w-64 flex-shrink-0 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-background-dark/80">
+                <div class="flex h-full flex-col justify-between p-4">
+                    <div class="flex flex-col gap-4">
+                        <div class="flex gap-3 items-center">
+                            <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="User profile picture" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDwHypw4kEOHkDREIzvTlN1jGOAmkQ03oBjsMMHtKym7Q57AJ9GMJ0RhyWMJeLq6y5GoSJ2XXCr21cvmOf0rkG4h30SsOokoRwNiVBtmQSHaBIcuMLCYXVJrbfYpXH-qHMNME209bTGtx4AzRXhrpB-213mrY3QmwSSWOgE13CS7GFVzdFIxnbbjdPak4JowmVLDlqIs5vKchYdoPuSn_PbBBu_l6zmOMditr6y1w6D9Wej4gag4POrvVh-rMf2dZzPdxFY442HLSBL");'></div>
+                            <div class="flex flex-col">
+                                <h1 class="text-gray-900 dark:text-gray-100 text-base font-medium leading-normal">Daniel Park</h1>
+                                <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">daniel.park@example.com</p>
+                            </div>
+                        </div>
+                        <nav class="flex flex-col gap-2 mt-4">
+                            <a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-primary/20 rounded-lg" href="#">
+                                <span class="material-symbols-outlined">dashboard</span>
+                                <p class="text-sm font-medium leading-normal">Dashboard</p>
+                            </a>
+                            <a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-primary/20 rounded-lg" href="#">
+                                <span class="material-symbols-outlined">article</span>
+                                <p class="text-sm font-medium leading-normal">Board</p>
+                            </a>
+                            <a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-primary/20 rounded-lg" href="#">
+                                <span class="material-symbols-outlined">account_balance_wallet</span>
+                                <p class="text-sm font-medium leading-normal">Ledger</p>
+                            </a>
+                            <a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-primary/20 rounded-lg" href="#">
+                                <span class="material-symbols-outlined">local_fire_department</span>
+                                <p class="text-sm font-medium leading-normal">Hot Deals</p>
+                            </a>
+                            <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 text-primary dark:text-white dark:bg-primary" href="#">
+                                <span class="material-symbols-outlined">history</span>
+                                <p class="text-sm font-medium leading-normal">My Activity</p>
+                            </a>
+                        </nav>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-primary/20 rounded-lg" href="#">
+                            <span class="material-symbols-outlined">settings</span>
+                            <p class="text-sm font-medium leading-normal">Settings</p>
+                        </a>
+                        <a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-primary/20 rounded-lg" href="#">
+                            <span class="material-symbols-outlined">logout</span>
+                            <p class="text-sm font-medium leading-normal">Logout</p>
+                        </a>
+                    </div>
+                </div>
+            </aside>
+            <main class="flex-1 p-6 lg:p-10">
+                <div class="max-w-4xl mx-auto">
+                    <div class="flex flex-wrap justify-between gap-3 mb-8">
+                        <p class="text-gray-900 dark:text-white text-4xl font-black leading-tight tracking-[-0.033em] min-w-72">My Activity</p>
+                    </div>
+                    <section class="mb-10">
+                        <h2 class="text-gray-900 dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3 pt-5 border-b border-gray-200 dark:border-gray-700 mb-4">My Posts</h2>
+                        <div class="flex flex-col gap-3">
+                            <div class="flex gap-4 bg-white dark:bg-background-dark rounded-xl p-4 justify-between border border-gray-200 dark:border-gray-700 shadow-sm">
+                                <div class="flex items-start gap-4 flex-1">
+                                    <div class="text-primary dark:text-white flex items-center justify-center rounded-lg bg-primary/20 dark:bg-primary/30 shrink-0 size-12">
+                                        <span class="material-symbols-outlined">article</span>
+                                    </div>
+                                    <div class="flex flex-1 flex-col justify-center">
+                                        <a class="text-primary dark:text-white text-base font-medium leading-normal hover:underline" href="#">Community Board Maintenance Schedule</a>
+                                        <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">Date: 2023-10-26 | Views: 150, Likes: 25</p>
+                                        <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">Posted in: Announcements</p>
+                                    </div>
+                                </div>
+                                <div class="shrink-0"><a class="text-sm font-medium text-primary dark:text-white hover:underline" href="#">View Post</a></div>
+                            </div>
+                            <div class="flex gap-4 bg-white dark:bg-background-dark rounded-xl p-4 justify-between border border-gray-200 dark:border-gray-700 shadow-sm">
+                                <div class="flex items-start gap-4 flex-1">
+                                    <div class="text-primary dark:text-white flex items-center justify-center rounded-lg bg-primary/20 dark:bg-primary/30 shrink-0 size-12">
+                                        <span class="material-symbols-outlined">article</span>
+                                    </div>
+                                    <div class="flex flex-1 flex-col justify-center">
+                                        <a class="text-primary dark:text-white text-base font-medium leading-normal hover:underline" href="#">New Feature Rollout: Enhanced Search</a>
+                                        <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">Date: 2023-09-15 | Views: 320, Likes: 48</p>
+                                        <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">Posted in: Product Updates</p>
+                                    </div>
+                                </div>
+                                <div class="shrink-0"><a class="text-sm font-medium text-primary dark:text-white hover:underline" href="#">View Post</a></div>
+                            </div>
+                        </div>
+                    </section>
+                    <section class="mb-10">
+                        <h2 class="text-gray-900 dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3 pt-5 border-b border-gray-200 dark:border-gray-700 mb-4">My Comments</h2>
+                        <div class="flex flex-col gap-3">
+                            <div class="flex gap-4 bg-white dark:bg-background-dark rounded-xl p-4 justify-between border border-gray-200 dark:border-gray-700 shadow-sm">
+                                <div class="flex items-start gap-4 flex-1">
+                                    <div class="text-primary dark:text-white flex items-center justify-center rounded-lg bg-primary/20 dark:bg-primary/30 shrink-0 size-12">
+                                        <span class="material-symbols-outlined">chat_bubble</span>
+                                    </div>
+                                    <div class="flex flex-1 flex-col justify-center">
+                                        <p class="text-gray-600 dark:text-gray-300 text-base font-normal leading-normal italic">"Great update! I've been waiting for this feature. It's going to make finding old posts so much easier..."</p>
+                                        <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal mt-2">On post: <a class="text-primary dark:text-white hover:underline" href="#">New Feature Rollout: Enhanced Search</a> | Date: 2023-09-16</p>
+                                    </div>
+                                </div>
+                                <div class="shrink-0"><a class="text-sm font-medium text-primary dark:text-white hover:underline" href="#">View Comment</a></div>
+                            </div>
+                        </div>
+                    </section>
+                    <section class="mb-10">
+                        <h2 class="text-gray-900 dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3 pt-5 border-b border-gray-200 dark:border-gray-700 mb-4">Liked Posts</h2>
+                        <div class="flex flex-col gap-3">
+                            <div class="flex gap-4 bg-white dark:bg-background-dark rounded-xl p-4 justify-between border border-gray-200 dark:border-gray-700 shadow-sm">
+                                <div class="flex items-start gap-4 flex-1">
+                                    <div class="text-primary dark:text-white flex items-center justify-center rounded-lg bg-primary/20 dark:bg-primary/30 shrink-0 size-12">
+                                        <span class="material-symbols-outlined">favorite</span>
+                                    </div>
+                                    <div class="flex flex-1 flex-col justify-center">
+                                        <a class="text-primary dark:text-white text-base font-medium leading-normal hover:underline" href="#">Quarterly Member Meetup Highlights</a>
+                                        <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">Author: Jane Doe | Liked: 2023-11-01</p>
+                                        <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">Posted in: Events</p>
+                                    </div>
+                                </div>
+                                <div class="shrink-0"><a class="text-sm font-medium text-primary dark:text-white hover:underline" href="#">View Post</a></div>
+                            </div>
+                            <div class="flex gap-4 bg-white dark:bg-background-dark rounded-xl p-4 justify-between border border-gray-200 dark:border-gray-700 shadow-sm">
+                                <div class="flex items-start gap-4 flex-1">
+                                    <div class="text-primary dark:text-white flex items-center justify-center rounded-lg bg-primary/20 dark:bg-primary/30 shrink-0 size-12">
+                                        <span class="material-symbols-outlined">favorite</span>
+                                    </div>
+                                    <div class="flex flex-1 flex-col justify-center">
+                                        <a class="text-primary dark:text-white text-base font-medium leading-normal hover:underline" href="#">Tips for Maximizing Hot Deals</a>
+                                        <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">Author: John Smith | Liked: 2023-10-28</p>
+                                        <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">Posted in: Hot Deals</p>
+                                    </div>
+                                </div>
+                                <div class="shrink-0"><a class="text-sm font-medium text-primary dark:text-white hover:underline" href="#">View Post</a></div>
+                            </div>
+                        </div>
+                    </section>
+                    <section class="mb-10">
+                        <h2 class="text-gray-900 dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3 pt-5 border-b border-gray-200 dark:border-gray-700 mb-4">기록하기</h2>
+                        <div class="bg-white dark:bg-background-dark rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:items-end gap-4 mb-6">
+                                <div class="flex-1">
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5" for="ledger-date">Date</label>
+                                    <input class="form-input w-full rounded-lg text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 bg-background-light dark:bg-gray-800 focus:ring-primary/50 focus:border-primary/50" id="ledger-date" type="date" value="2023-11-20"/>
+                                </div>
+                                <button class="flex items-center justify-center gap-2 h-10 px-4 text-sm font-bold text-white bg-primary rounded-lg hover:bg-primary/90 w-full sm:w-auto">
+                                    <span class="material-symbols-outlined text-base">sync</span>
+                                    <span>불러오기</span>
+                                </button>
+                                <div class="flex items-center gap-2 rounded-lg p-1 bg-gray-100 dark:bg-gray-800 lg:ml-auto">
+                                    <button class="px-3 py-1.5 text-sm font-medium rounded-md bg-white dark:bg-gray-700 text-primary dark:text-white shadow">수입</button>
+                                    <button class="px-3 py-1.5 text-sm font-medium rounded-md text-gray-600 dark:text-gray-300">지출</button>
+                                </div>
+                            </div>
+<!--                            <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mb-6">-->
+<!--                                <div class="flex flex-col gap-3">-->
+<!--                                    <div class="flex justify-between items-center p-3 rounded-lg bg-background-light dark:bg-gray-800/50">-->
+<!--                                        <div class="flex flex-col">-->
+<!--                                            <p class="font-medium text-gray-800 dark:text-gray-200">Membership Fee</p>-->
+<!--                                            <p class="text-sm text-gray-500 dark:text-gray-400">2023-11-20</p>-->
+<!--                                        </div>-->
+<!--                                        <p class="font-semibold text-green-600 dark:text-green-400 text-lg">+ $50.00</p>-->
+<!--                                    </div>-->
+<!--                                    <div class="flex justify-between items-center p-3 rounded-lg bg-background-light dark:bg-gray-800/50">-->
+<!--                                        <div class="flex flex-col">-->
+<!--                                            <p class="font-medium text-gray-800 dark:text-gray-200">Event Ticket Sales</p>-->
+<!--                                            <p class="text-sm text-gray-500 dark:text-gray-400">2023-10-15</p>-->
+<!--                                        </div>-->
+<!--                                        <p class="font-semibold text-green-600 dark:text-green-400 text-lg">+ $120.00</p>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+<!--                            </div>-->
+                            <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+                                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3">카테고리</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div class="flex flex-col gap-1.5">
+<!--                                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300" for="main-category">대분류</label>-->
+                                        <select class="form-select w-full rounded-lg text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 bg-background-light dark:bg-gray-800 focus:ring-primary/50 focus:border-primary/50" id="main-category">
+                                            <option disabled selected hidden style="color:#9CA3AF;">대분류</option>
+                                            <option>용돈</option>
+                                            <option>식비</option>
+                                            <option>교통비</option>
+                                            <option>공과금</option>
+                                            <option>주거비</option>
+                                            <option>병원비</option>
+                                            <option>쇼핑</option>
+                                            <option>카페/간식</option>
+                                            <option>교육비</option>
+                                            <option>보험료</option>
+                                            <option>적금/투자</option>
+                                            <option>경조사</option>
+                                            <option>아이용품</option>
+                                            <option>구독 서비스</option>
+                                            <option>기타</option>
+                                            <option value="add-new">+ 직접 추가하기</option>
+                                        </select>
+                                    </div>
+
+<!--                                     직접 추가할 수 있기 위한 div -->
+                                    <div id="add-category-box" style="display:none; margin-top:8px;">
+                                        <input id="new-category-input" type="text" placeholder="새 대분류 입력" />
+                                        <button id="add-category-btn">추가</button>
+                                    </div>
+
+                                    <div class="flex flex-col gap-1.5">
+<!--                                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300" for="sub-category">소분류</label>-->
+                                        <select class="form-select w-full rounded-lg text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 bg-background-light dark:bg-gray-800 focus:ring-primary/50 focus:border-primary/50" id="sub-category">
+                                            <option disabled selected hidden style="color:#9CA3AF;">소분류</option>
+                                            <option>장보기</option>
+                                            <option>배달</option>
+                                            <option>외식</option>
+                                            <option>카페</option>
+                                            <option>버스</option>
+                                            <option>지하철</option>
+                                            <option>택시</option>
+                                            <option>주류</option>
+                                            <option>의류</option>
+                                            <option>화장품</option>
+                                            <option>전자기기</option>
+                                            <option>월세</option>
+                                            <option>관리비</option>
+                                            <option>수리</option>
+                                            <option>병원</option>
+                                            <option>약국</option>
+                                            <option>검사비</option>
+                                            <option>학원</option>
+                                            <option>교재</option>
+                                            <option>온라인강의</option>
+                                            <option>적금</option>
+                                            <option>주식</option>
+                                            <option>펀드</option>
+                                            <option>코인</option>
+                                            <option>취미</option>
+                                            <option>여행</option>
+                                            <option>반려동물</option>
+                                            <option>선물</option>
+                                            <option value="add-new2">+ 직접 추가하기</option>
+                                        </select>
+<!--                                        직접 추가할 수 있기 위한 div -->
+                                        <div id="add-sub-box" style="display:none; margin-top:8px;">
+                                            <input id="new-sub-input" type="text" placeholder="새 소분류 입력" />
+                                            <button id="add-sub-btn">추가</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex flex-col gap-1.5 md:col-span-2">
+                                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300" for="amount">금액</label>
+                                        <div class="flex items-stretch">
+                                            <input class="form-input w-full rounded-l-lg text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 bg-background-light dark:bg-gray-800 focus:ring-primary/50 focus:border-primary/50 border-r-0 rounded-r-none" id="amount" placeholder="금액을 입력하세요" type="number"/>
+                                            <select class="form-select rounded-l-none text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 focus:ring-primary/50 focus:border-primary/50">
+                                                <option>₩</option>
+                                                <option>$</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-4">
+                                    <button class="w-full flex items-center justify-center gap-2 h-10 px-4 text-sm font-bold text-white bg-primary rounded-lg hover:bg-primary/90">
+                                        <span>등록</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <div class="flex justify-center items-center gap-2 mt-8">
+                        <button class="flex items-center justify-center h-10 px-4 text-sm font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-background-dark border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-primary/20">Previous</button>
+                        <button class="flex items-center justify-center size-10 text-sm font-medium text-white bg-primary rounded-lg">1</button>
+                        <button class="flex items-center justify-center size-10 text-sm font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-background-dark border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-primary/20">2</button>
+                        <button class="flex items-center justify-center size-10 text-sm font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-background-dark border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-primary/20">3</button>
+                        <button class="flex items-center justify-center h-10 px-4 text-sm font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-background-dark border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-primary/20">Next</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</div>
+</body></html>
+<script>
+<!--    대분류 작동할 수 있게 하는 script -->
+    const mainCategory = document.getElementById("main-category");
+    const addBox = document.getElementById("add-category-box");
+
+    mainCategory.addEventListener("change", function() {
+        if (this.value === "add-new") {
+            addBox.style.display = "block"; // input 보여주기
+        } else {
+            addBox.style.display = "none";  // 다른 옵션 선택 → input 숨기기
+        }
+    });
+    const addBtn = document.getElementById("add-category-btn");
+    const newInput = document.getElementById("new-category-input");
+
+    addBtn.addEventListener("click", function() {
+        const newValue = newInput.value.trim();
+        if (!newValue) return alert("항목을 입력해 주세요!");
+
+        // 새로운 옵션 생성
+        const newOption = document.createElement("option");
+        newOption.textContent = newValue;
+
+        // “+ 직접 추가하기” 옵션 위에 추가
+        const addNewOption = document.querySelector('#main-category option[value="add-new"]');
+        mainCategory.insertBefore(newOption, addNewOption);
+
+        // select 값도 새로 선택되게 만듦
+        mainCategory.value = newValue;
+
+        // 입력창 숨기기 + 초기화
+        newInput.value = "";
+        addBox.style.display = "none";
+    });
+
+
+//     소분류 추가하기 작동
+
+    const subCategory = document.getElementById("sub-category");
+    const addSubBox = document.getElementById("add-sub-box");
+    const addSubBtn = document.getElementById("add-sub-btn");
+    const newSubInput = document.getElementById("new-sub-input");
+
+    // “+ 직접 추가하기” 클릭 감지
+    subCategory.addEventListener("change", function () {
+        if (this.value === "add-new2") {
+            addSubBox.style.display = "block";
+        } else {
+            addSubBox.style.display = "none";
+        }
+    });
+
+    // 새 소분류 추가 버튼
+    addSubBtn.addEventListener("click", function () {
+        const newValue = newSubInput.value.trim();
+        if (!newValue) return alert("항목을 입력해 주세요!");
+
+        const newOption = document.createElement("option");
+        newOption.textContent = newValue;
+
+        const addNewOption = document.querySelector('#sub-category option[value="add-new2"]');
+        subCategory.insertBefore(newOption, addNewOption);
+
+        subCategory.value = newValue;
+
+        newSubInput.value = "";
+        addSubBox.style.display = "none";
+    });
+</script>

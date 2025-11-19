@@ -92,19 +92,88 @@
                 <!-- Tabs -->
                 <div class="mb-8">
                     <div class="flex border-b border-gray-200/50 dark:border-white/10 gap-4 sm:gap-8">
-                        <a class="flex flex-col items-center justify-center border-b-[3px] border-primary pb-3 pt-2" href="#">
+                        <a id="tab-info" class="flex flex-col items-center justify-center border-b-[3px] border-primary pb-3 pt-2 cursor-pointer">
                             <p class="text-primary text-sm font-bold leading-normal tracking-[0.015em]">회원 정보</p>
+                        </a>
+                        <a id="tab-activity" class="flex flex-col items-center justify-center border-b-[3px] border-transparent text-gray-500 dark:text-[#9db9a6] pb-3 pt-2 hover:text-gray-800 dark:hover:text-white cursor-pointer">
+                            <p class="text-sm font-bold leading-normal tracking-[0.015em]">내 활동</p>
                         </a>
                         <a class="flex flex-col items-center justify-center border-b-[3px] border-transparent text-gray-500 dark:text-[#9db9a6] pb-3 pt-2 hover:text-gray-800 dark:hover:text-white" href="#">
                             <p class="text-sm font-bold leading-normal tracking-[0.015em]">주문·배송</p>
                         </a>
-                        <a class="flex flex-col items-center justify-center border-b-[3px] border-transparent text-gray-500 dark:text-[#9db9a6] pb-3 pt-2 hover:text-gray-800 dark:hover:text-white" href="#">
-                            <p class="text-sm font-bold leading-normal tracking-[0.015em]">문의</p>
-                        </a>
                     </div>
                 </div>
+                <section id="activity-section" class="hidden">
+                    <!--      작성한 글              -->
+                    <h2 class="text-gray-900 dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3 pt-5 border-b border-gray-200 dark:border-gray-700 mb-4">작성한 글</h2>
+                    <div class="flex flex-col gap-3">
+                        <div class="flex gap-4 bg-white dark:bg-background-dark rounded-xl p-4 justify-between border border-gray-200 dark:border-gray-700 shadow-sm">
+                            <div class="flex items-start gap-4 flex-1">
+                                <div class="text-primary dark:text-white flex items-center justify-center rounded-lg bg-primary/20 dark:bg-primary/30 shrink-0 size-12">
+                                    <span class="material-symbols-outlined">article</span>
+                                </div>
+                                <div class="flex flex-1 flex-col justify-center">
+                                    <a class="text-primary dark:text-white text-base font-medium leading-normal hover:underline" href="#">김지형 오빠 바보 똔개 -혜지 언니-</a>
+                                    <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">Date: 2023-10-26 | Views: 150, Likes: 25</p>
+                                    <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">Posted in: Announcements</p>
+                                </div>
+                            </div>
+                            <div class="shrink-0"><a class="text-sm font-medium text-primary dark:text-white hover:underline" href="#">View Post</a></div>
+                        </div>
+                        <div class="flex gap-4 bg-white dark:bg-background-dark rounded-xl p-4 justify-between border border-gray-200 dark:border-gray-700 shadow-sm">
+                            <div class="flex items-start gap-4 flex-1">
+                                <div class="text-primary dark:text-white flex items-center justify-center rounded-lg bg-primary/20 dark:bg-primary/30 shrink-0 size-12">
+                                    <span class="material-symbols-outlined">article</span>
+                                </div>
+                                <div class="flex flex-1 flex-col justify-center">
+                                    <a class="text-primary dark:text-white text-base font-medium leading-normal hover:underline" href="#">아우 힘들어 집 가고 싶다 진짜로</a>
+                                    <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">Date: 2023-09-15 | Views: 320, Likes: 48</p>
+                                    <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">Posted in: Product Updates</p>
+                                </div>
+                            </div>
+                            <div class="shrink-0"><a class="text-sm font-medium text-primary dark:text-white hover:underline" href="#">View Post</a></div>
+                        </div>
+                    </div>
+                </section>
+                <section id="activity1-section" class="hidden">
+                    <!--      작성한 글              -->
+                    <h2 class="text-gray-900 dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em] pb-3 pt-5 border-b border-gray-200 dark:border-gray-700 mb-4">작성한 글</h2>
+                    <div class="flex flex-col gap-3">
+                        <div class="flex gap-4 bg-white dark:bg-background-dark rounded-xl p-4 justify-between border border-gray-200 dark:border-gray-700 shadow-sm">
+                            <div class="flex items-start gap-4 flex-1">
+                                <div class="text-primary dark:text-white flex items-center justify-center rounded-lg bg-primary/20 dark:bg-primary/30 shrink-0 size-12">
+                                    <span class="material-symbols-outlined">article</span>
+                                </div>
+                                <div class="flex flex-1 flex-col justify-center">
+                                    <a class="text-primary dark:text-white text-base font-medium leading-normal hover:underline" href="#">안녕</a>
+                                    <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">Date: 2023-10-26 | Views: 150, Likes: 25</p>
+                                    <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">Posted in: Announcements</p>
+                                </div>
+                            </div>
+                            <div class="shrink-0"><a class="text-sm font-medium text-primary dark:text-white hover:underline" href="#">View Post</a></div>
+                        </div>
+                        <div class="flex gap-4 bg-white dark:bg-background-dark rounded-xl p-4 justify-between border border-gray-200 dark:border-gray-700 shadow-sm">
+                            <div class="flex items-start gap-4 flex-1">
+                                <div class="text-primary dark:text-white flex items-center justify-center rounded-lg bg-primary/20 dark:bg-primary/30 shrink-0 size-12">
+                                    <span class="material-symbols-outlined">article</span>
+                                </div>
+                                <div class="flex flex-1 flex-col justify-center">
+                                    <a class="text-primary dark:text-white text-base font-medium leading-normal hover:underline" href="#">아우 힘들어 집 가고 싶다 진짜로</a>
+                                    <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">Date: 2023-09-15 | Views: 320, Likes: 48</p>
+                                    <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">Posted in: Product Updates</p>
+                                </div>
+                            </div>
+                            <div class="shrink-0"><a class="text-sm font-medium text-primary dark:text-white hover:underline" href="#">View Post</a></div>
+                        </div>
+                    </div>
+                </section>
+
+
+
+
+
                 <!-- Profile Information Form -->
-                <div class="flex flex-col gap-8">
+                <div id="info-section" class="flex flex-col gap-8">
                     <!-- Contact Details Section -->
                     <div class="rounded-xl border border-gray-200/50 dark:border-white/10 bg-white dark:bg-[#111813] p-4 sm:p-6">
                         <div class="flex items-center justify-between pb-4 border-b border-gray-200/50 dark:border-white/10 mb-6">
@@ -161,4 +230,21 @@
         </main>
     </div>
 </div>
-</body></html>
+</body>
+<script>
+    const tabInfo = document.getElementById("tab-info");
+    const tabActivity = document.getElementById("tab-activity");
+    const infoSection = document.getElementById("info-section");
+    const activitySection = document.getElementById("activity-section");
+
+    tabActivity.addEventListener("click", () => {
+        infoSection.classList.add("hidden");
+        activitySection.classList.remove("hidden");
+    });
+
+    tabInfo.addEventListener("click", () => {
+        activitySection.classList.add("hidden");
+        infoSection.classList.remove("hidden");
+    });
+</script>
+</html>

@@ -1,0 +1,138 @@
+
+
+
+
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Account Recovery</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+    </style>
+    <script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {primary: "#0d273d", "background-light": "#f6f7f8", "background-dark": "#121a20"}, fontFamily: {display: "Manrope"}, borderRadius: {DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px"}}}};</script>
+</head>
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-[#e7eef3] dark:border-background-dark px-4 sm:px-10 md:px-20 lg:px-40 py-3 bg-white dark:bg-slate-900/50">
+    <div class="flex items-center gap-4 text-primary">
+        <div class="size-6">
+            <svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                <path d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z" fill="currentColor"></path>
+            </svg>
+        </div>
+        <a href="main_hm.html" class= "block hover:opacity-80 transition">
+            <h2 class="text-lg font-bold leading-tight tracking-[-0.015em] text-[#0d151b] dark:text-white">내돈내삶</h2>
+        </a>
+    </div>
+
+</header>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#111518] dark:text-gray-200">
+<div class="relative flex min-h-screen w-full flex-col items-center justify-center p-4">
+    <div class="w-full max-w-lg rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 shadow-sm">
+        <!-- PageHeading -->
+        <div class="p-6 md:p-8">
+            <div class="flex flex-col gap-2">
+                <p class="text-[#111518] dark:text-white text-3xl font-bold leading-tight tracking-tight">ID or Pw를 잊어버리셨습니까?</p>
+                <p class="text-[#637788] dark:text-gray-400 text-base font-normal leading-normal">아래에서 계정을 복구할 방법을 선택하세요</p>
+            </div>
+        </div>
+        <!-- SegmentedButtons -->
+        <div class="px-6 md:px-8">
+            <div class="flex h-12 flex-1 items-center justify-center rounded-lg bg-background-light dark:bg-background-dark p-1">
+                <label class="flex h-full grow cursor-pointer items-center justify-center overflow-hidden rounded-md px-2 text-sm font-medium leading-normal text-[#637788] dark:text-gray-400 has-[:checked]:bg-white has-[:checked]:text-[#111518] has-[:checked]:shadow-sm has-[:checked]:dark:bg-gray-700 has-[:checked]:dark:text-white">
+                    <span class="truncate">ID 찾기</span>
+                    <input checked="" class="invisible w-0" name="recovery-option" type="radio" value="Find ID"/>
+                </label>
+                <label class="flex h-full grow cursor-pointer items-center justify-center overflow-hidden rounded-md px-2 text-sm font-medium leading-normal text-[#637788] dark:text-gray-400 has-[:checked]:bg-white has-[:checked]:text-[#111518] has-[:checked]:shadow-sm has-[:checked]:dark:bg-gray-700 has-[:checked]:dark:text-white">
+                    <span class="truncate">비밀번호 찾기</span>
+                    <input class="invisible w-0" name="recovery-option" type="radio" value="Reset Password"/>
+                </label>
+            </div>
+        </div>
+        <div class="p-6 md:p-8">
+            <!-- Find ID Content -->
+            <div class="flex flex-col gap-4">
+                <!-- BodyText -->
+                <!--                <p class="text-[#111518] dark:text-white text-base font-normal leading-normal">Select a method to find your ID.</p>-->
+                <!-- RadioList -->
+                <!--                <div class="flex flex-col gap-3" style="&#45;&#45;radio-dot-svg: url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27%23198ae6%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3ccircle cx=%278%27 cy=%278%27 r=%274%27/%3e%3c/svg%3e');">-->
+                <!--                    <label class="flex cursor-pointer items-center gap-4 rounded-lg border border-solid border-gray-200 dark:border-gray-700 p-4 has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary/20">-->
+                <!--                        <input checked="" class="h-5 w-5 appearance-none rounded-full border-2 border-gray-300 dark:border-gray-600 bg-transparent text-transparent checked:border-primary checked:bg-[image:&#45;&#45;radio-dot-svg] focus:outline-none focus:ring-0 focus:ring-offset-0 checked:focus:border-primary" name="verification_method" type="radio"/>-->
+                <!--                        <div class="flex grow flex-col"><p class="text-sm font-medium text-[#111518] dark:text-gray-200">Verify by Email</p></div>-->
+                <!--                    </label>-->
+                <!--                    <label class="flex cursor-pointer items-center gap-4 rounded-lg border border-solid border-gray-200 dark:border-gray-700 p-4 has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary/20">-->
+                <!--                        <input class="h-5 w-5 appearance-none rounded-full border-2 border-gray-300 dark:border-gray-600 bg-transparent text-transparent checked:border-primary checked:bg-[image:&#45;&#45;radio-dot-svg] focus:outline-none focus:ring-0 focus:ring-offset-0 checked:focus:border-primary" name="verification_method" type="radio"/>-->
+                <!--&lt;!&ndash;                        <div class="flex grow flex-col"><p class="text-sm font-medium text-[#111518] dark:text-gray-200">Verify by Phone</p></div>&ndash;&gt;-->
+                <!--                    </label>-->
+            </div>
+            <!-- TextField -->
+            <div id="find-id-section">
+                <div class="flex flex-col gap-4 py-2">
+                    <label class="flex w-full flex-col">
+                        <p class="text-[#111518] dark:text-gray-200 text-sm font-medium leading-normal pb-2">이름</p>
+                        <input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-gray-300 bg-white p-3 text-base font-normal leading-normal text-[#111518] placeholder:text-gray-400 focus:border-primary focus:outline-0 focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:border-primary" placeholder="이름을 작성하세요" value=""/>
+                    </label>
+                    <label class="flex w-full flex-col">
+                        <p class="text-[#111518] dark:text-gray-200 text-sm font-medium leading-normal pb-2">이메일</p>
+                        <input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-gray-300 bg-white p-3 text-base font-normal leading-normal text-[#111518] placeholder:text-gray-400 focus:border-primary focus:outline-0 focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:border-primary" placeholder="등록한 이메일을 입력하세요" value=""/>
+                    </label>
+                </div>
+            </div>
+            <!--          비밀번호 찾기           -->
+            <div id="find-pw-section" class="hidden">
+                <div class="flex flex-col gap-4">
+                    <label class="flex w-full flex-col">
+                        <p class="text-[#111518] dark:text-gray-200 text-sm font-medium leading-normal pb-2">아이디</p>
+                        <input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-gray-300 bg-white p-3 text-base font-normal leading-normal text-[#111518] placeholder:text-gray-400 focus:border-primary focus:outline-0 focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:border-primary" placeholder="아이디를 작성하세요" value=""/>
+                    </label>
+
+                    <label class="flex w-full flex-col">
+                        <p class="text-[#111518] dark:text-gray-200 text-sm font-medium leading-normal pb-2">이메일</p>
+                        <input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-gray-300 bg-white p-3 text-base font-normal leading-normal text-[#111518] placeholder:text-gray-400 focus:border-primary focus:outline-0 focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 dark:focus:border-primary" placeholder="이메일을 작성하세요" value=""/>
+                    </label>
+                </div>
+            </div>
+            <div style="margin-top: 40px"></div>
+            <!-- Button -->
+            <button id="recovery-submit-btn" class="flex h-12 w-full items-center justify-center rounded-lg bg-primary px-6 text-base font-medium text-white shadow-sm transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-background-dark">
+                아이디 찾기
+            </button>
+            <!-- Alert -->
+            <div class="mt-2 hidden items-start gap-3 rounded-lg border border-green-500/30 bg-green-500/10 p-4 text-sm text-green-800 dark:text-green-300">
+                <span class="material-symbols-outlined text-xl !leading-none">check_circle</span>
+                <p>Success! An email with your ID has been sent to your registered address.</p>
+            </div>
+        </div>
+    </div>
+    <div class="border-t border-gray-200 dark:border-gray-700 p-6 md:p-8 text-center">
+        <a class="text-sm font-medium text-primary hover:underline" href="login.html">로그인으로 돌아가실래요?</a>
+    </div>
+</div>
+</div>
+</body>
+</html>
+<script>
+    const radios = document.querySelectorAll('input[name="recovery-option"]');
+    const idSection = document.getElementById("find-id-section");
+    const pwSection = document.getElementById("find-pw-section");
+    const submitBtn = document.getElementById("recovery-submit-btn");
+
+    radios.forEach(radio => {
+        radio.addEventListener("change", () => {
+            if (radio.value === "Find ID") {
+                idSection.classList.remove("hidden");
+                pwSection.classList.add("hidden");
+                submitBtn.textContent = "아이디 찾기";
+            } else {
+                pwSection.classList.remove("hidden");
+                idSection.classList.add("hidden");
+                submitBtn.textContent = "비밀번호 찾기";
+            }
+        });
+    });
+</script>
