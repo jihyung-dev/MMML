@@ -2,7 +2,6 @@
 --  DUMMY DATA: smaccount.MEMBER
 --  총 100개의 회원 데이터를 삽입합니다. (member_name은 유지, member_nickname을 창의적인 이름으로 변경)
 -- =============================
-
 -- 관리자 (ADMIN): ID U001 ~ U005
 INSERT INTO smaccount.MEMBER (member_id, password, role, member_name, member_nickname, address, phone, enabled)
 VALUES ('U001', 'hashed_admin_pass', 'ADMIN', '김민준', '샛별', '서울시 종로구 세종대로 1', '010-1111-0001', 'Y');
@@ -1479,3 +1478,4 @@ VALUES (smaccount.SEQ_SHIPMENT.NEXTVAL, 8, 'TRK10008', '등기우편', 'SHIPPING
 INSERT INTO smaccount.SHIPMENT (shipment_id, order_id, tracking_no, carrier, shipment_status)
 VALUES (smaccount.SEQ_SHIPMENT.NEXTVAL, 10, 'TRK10010', 'CJ대한통운', 'PREPARING');
 
+commit;

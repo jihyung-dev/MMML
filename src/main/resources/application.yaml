@@ -5,7 +5,8 @@ spring:
     include: API-KEY
   datasource:
 #    url: jdbc:oracle:thin:@//localhost:1521/XEPDB1dd
-    url: jdbc:oracle:thin:@//localhost:1521/XEPDB1
+    url: jdbc:oracle:thin:@//localhost:2345/XEPDB1
+#    url: jdbc:oracle:thin:@//localhost:1521/XEPDB1
     username: smaccount
     password: smaccountpw
   jpa:

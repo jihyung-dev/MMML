@@ -1,15 +1,15 @@
 package com.smu.householdaccount.repository;
 
-import com.smu.householdaccount.entity.BoardPost;
+import com.smu.householdaccount.entity.LedgerEntry;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+
 
 @Repository
-public interface BoardPostRepository extends JpaRepository<BoardPost,Long> {
+public interface LedgerEntryRepository extends JpaRepository<LedgerEntry, Long> {
     @Override
-    Page<BoardPost> findAll(Pageable pageable);
+    Page<LedgerEntry> findAll(Pageable pageable);
 }

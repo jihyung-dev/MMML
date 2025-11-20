@@ -1,19 +1,23 @@
 package com.smu.householdaccount.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Getter
 @Setter
 @Entity
+@ToString
 @Table(name = "MEMBER")
 public class Member {
     @Id
@@ -55,12 +59,14 @@ public class Member {
 
     @ColumnDefault("SYSTIMESTAMP")
     @Column(name = "CREATED_AT")
-    private Instant createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "UPDATED_AT")
-    private Instant updatedAt;
+    private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "writer")
+    @ToString.Exclude
+    @JsonIgnore
     private Set<BoardComment> boardComments = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "member")

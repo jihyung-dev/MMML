@@ -11,6 +11,7 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -40,10 +41,10 @@ public class OrderMain {
 
     @ColumnDefault("SYSTIMESTAMP")
     @Column(name = "CREATED_AT")
-    private Instant createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "UPDATED_AT")
-    private Instant updatedAt;
+    private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "order")
     private Set<OrderItem> orderItems = new LinkedHashSet<>();
