@@ -1,35 +1,41 @@
-package com.smu.householdaccount.entity
+package com.smu.householdaccount.entity;
 
-import jakarta.persistence.*
-import jakarta.validation.constraints.NotNull
-import org.hibernate.annotations.OnDelete
-import org.hibernate.annotations.OnDeleteAction
-import java.math.BigDecimal
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
+import java.math.BigDecimal;
+
+@Getter
+@Setter
 @Entity
 @Table(name = "ORDER_ITEM")
-open class OrderItem {
+public class OrderItem {
     @Id
     @Column(name = "ORDER_ITEM_ID", nullable = false)
-    open var id: Long? = null
+    private Long id;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "ORDER_ID", nullable = false)
-    open var order: OrderMain? = null
+    private com.smu.householdaccount.entity.OrderMain order;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.RESTRICT)
     @JoinColumn(name = "ITEM_ID", nullable = false)
-    open var item: Item? = null
+    private Item item;
 
     @NotNull
     @Column(name = "QTY", nullable = false)
-    open var qty: Long? = null
+    private Long qty;
 
     @NotNull
     @Column(name = "PRICE", nullable = false, precision = 15, scale = 2)
-    open var price: BigDecimal? = null
+    private BigDecimal price;
+
 }
