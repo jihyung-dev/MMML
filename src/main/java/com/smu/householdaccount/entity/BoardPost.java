@@ -5,14 +5,16 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
-
+@ToString(exclude = {"writer", "boardComments", "boardLikes"})
 @Getter
 @Setter
 @Entity
@@ -20,7 +22,7 @@ import java.util.Set;
 public class BoardPost {
     @Id
     @Column(name = "POST_ID", nullable = false)
-    private Long id;
+    private int id;
 
     @Size(max = 30)
     @NotNull
@@ -48,10 +50,10 @@ public class BoardPost {
 
     @ColumnDefault("SYSTIMESTAMP")
     @Column(name = "CREATED_AT")
-    private Instant createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "UPDATED_AT")
-    private Instant updatedAt;
+    private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "post")
     private Set<BoardComment> boardComments = new LinkedHashSet<>();
