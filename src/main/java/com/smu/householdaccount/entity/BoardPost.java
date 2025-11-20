@@ -15,7 +15,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
-
+@ToString(exclude = {"writer", "boardComments", "boardLikes"})
 @Getter
 @Setter
 @Entity
@@ -24,7 +24,7 @@ import java.util.Set;
 public class BoardPost {
     @Id
     @Column(name = "POST_ID", nullable = false)
-    private Long id;
+    private int id;
 
     @Size(max = 30)
     @NotNull
