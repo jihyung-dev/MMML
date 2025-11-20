@@ -15,7 +15,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
-@ToString(exclude = {"writer", "boardComments", "boardLikes"})
+//@ToString(exclude = {"writer", "boardComments", "boardLikes"})
 @Getter
 @Setter
 @Entity
