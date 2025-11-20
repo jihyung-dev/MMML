@@ -86,4 +86,14 @@ public class UserController{
     public String index() {
         return "login";
     }
+
+
+    @GetMapping("/main_hm")
+    public String mainHm() {
+        return "user/main_hm";
+    }
+
+
+
+
 }

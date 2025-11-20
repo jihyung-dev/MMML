@@ -19,7 +19,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 PathList.values(LOGIN, ERROR, ERROR_ALL, FAVICON, AI, KAKAO, NAVER, OAUTH2_1, OAUTH2_2,
-                                        STATIC_CSS, STATIC_ASSETS, STATIC_IMG, STATIC_JS)
+                                        STATIC_CSS, STATIC_ASSETS, STATIC_IMG, STATIC_JS,ALL)
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

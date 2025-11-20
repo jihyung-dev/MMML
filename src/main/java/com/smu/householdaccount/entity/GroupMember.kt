@@ -1,37 +1,32 @@
-package com.smu.householdaccount.entity;
+package com.smu.householdaccount.entity
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
+import jakarta.persistence.*
+import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Size
+import org.hibernate.annotations.OnDelete
+import org.hibernate.annotations.OnDeleteAction
 
-@Getter
-@Setter
 @Entity
 @Table(name = "GROUP_MEMBER")
-public class GroupMember {
+open class GroupMember {
     @Id
     @Column(name = "GROUP_MEMBER_ID", nullable = false)
-    private Long id;
+    open var id: Long? = null
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.RESTRICT)
     @JoinColumn(name = "GROUP_ID", nullable = false)
-    private BudgetGroup group;
+    open var group: BudgetGroup? = null
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.RESTRICT)
     @JoinColumn(name = "MEMBER_ID", nullable = false)
-    private Member member;
+    open var member: Member? = null
 
     @Size(max = 20)
     @NotNull
     @Column(name = "ROLE", nullable = false, length = 20)
-    private String role;
-
+    open var role: String? = null
 }
