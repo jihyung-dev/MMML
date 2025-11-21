@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Platform</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .primary-btn {
+            background-color: #0d273d;
+            color: white;
+        }
+        .primary-btn:hover {
+            background-color: #0a1f30;
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-light text-dark">
+
+<!-- Header -->
+<header class="navbar navbar-expand-md navbar-light bg-white shadow-sm sticky-top">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="#">
+            <svg fill="currentColor" viewBox="0 0 48 48" width="40" height="40">
+                <path d="M24 4H42V17.3333V30.6667H24V44H6V30.6667V17.3333H24V4Z"></path>
+            </svg>
+            <span class="ms-2 fw-bold">내돈내삶</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navMenu">
+            <ul class="navbar-nav ms-auto mb-2 mb-md-0 align-items-center">
+                <li class="nav-item"><a class="nav-link" href="#">Board</a></li>
+                <li class="nav-item"><a class="nav-link" href="ledger.html">Ledger</a></li>
+                <li class="nav-item"><a class="nav-link text-warning" href="#">Hot Deals</a></li>
+                <li class="nav-item ms-3">
+                    <a href="/login.html" class="btn primary-btn">Login / Join</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</header>
+
+<!-- Hero Section -->
+<main class="container py-5 text-center">
+    <img src="/img/undraw_online-stats_d57c.svg" alt="Online Stats" class="img-fluid mb-4" style="max-width: 400px;">
+    <h1 class="display-4 fw-bold">My Money My Life</h1>
+    <p class="lead mb-4">찬란하게 펼쳐질 당신의 삶을 응원합니다.</p>
+    <div class="d-flex flex-wrap justify-content-center gap-2">
+        <a href="#" class="btn primary-btn btn-lg">Explore Features</a>
+        <a href="login.html" class="btn btn-secondary btn-lg">로그인</a>
+    </div>
+</main>
+
+<!-- Feature Cards -->
+<div class="container py-5">
+    <h2 class="text-center mb-4 fw-bold">Discover Our Core Features</h2>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <a href="/board" class="text-decoration-none">
+                <div class="card h-100 shadow-sm">
+                    <img src="/img/undraw_collaborative-writing_ir40.svg" class="card-img-top" alt="Board">
+                    <div class="card-body text-center">
+                        <h5 class="card-title fw-bold">게시판</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="/ledger.html" class="text-decoration-none">
+                <div class="card h-100 shadow-sm">
+                    <img src="/img/undraw_investment-data_frxx.svg" class="card-img-top" alt="Ledger">
+                    <div class="card-body text-center">
+                        <h5 class="card-title fw-bold">가계부</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <img src="/img/undraw_web-shopping_xd5k.svg" class="card-img-top" alt="Hot Deals">
+                <div class="card-body text-center">
+                    <h5 class="card-title fw-bold">핫딜</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="container py-5">
+    <h2 class="text-center mb-4 fw-bold">Recent Activity</h2>
+    <ul class="list-group">
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <img src="/img/undraw_pic-profile_nr49.svg" class="rounded-circle" width="40" height="40" alt="Alex">
+                <div>
+                    <p class="mb-0">Alex Johnson <span class="text-muted">signed up.</span></p>
+                    <small class="text-muted">2 minutes ago</small>
+                </div>
+            </div>
+            <span class="badge bg-success rounded-pill">New Member</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width:40px; height:40px;">
+                    <span class="material-symbols-outlined">chat_bubble</span>
+                </div>
+                <div>
+                    <p class="mb-0">New post in <strong>"General Discussion"</strong></p>
+                    <small class="text-muted">15 minutes ago</small>
+                </div>
+            </div>
+            <a href="#" class="text-decoration-none text-primary">View</a>
+        </li>
+    </ul>
+</div>
+
+<!-- Footer -->
+<footer class="bg-light border-top py-4 mt-5">
+    <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+        <div class="d-flex align-items-center gap-2">
+            <svg fill="currentColor" viewBox="0 0 24 24" width="24" height="24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"></path>
+            </svg>
+            <span class="fw-bold text-muted">Commune</span>
+        </div>
+        <div class="text-muted text-center text-md-start">© 2024 Commune. All rights reserved.</div>
+        <div class="d-flex gap-3">
+            <a href="#" class="text-muted text-decoration-none">About Us</a>
+            <a href="#" class="text-muted text-decoration-none">Contact</a>
+            <a href="#" class="text-muted text-decoration-none">Privacy Policy</a>
+        </div>
+    </div>
+</footer>
+
+<!-- Bootstrap JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
