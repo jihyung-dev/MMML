@@ -1,10 +1,12 @@
 package com.smu.householdaccount.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -45,7 +47,9 @@ public class Seller {
     @Column(name = "UPDATED_AT")
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "sellerBizNo")
+    @OneToMany(mappedBy = "seller")
+    @JsonIgnore
+    @ToString.Exclude
     private Set<Item> items = new LinkedHashSet<>();
 
 }

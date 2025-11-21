@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>핫딜 아이템</title>
+</head>
+<body>
+    <h1>핫딜 아이템</h1>
+     <p th:text="${itemPage}"></p>
+     <p th:text="${itemPage.getContent()}"></p>
+    <table>
+        <thead>
+            <tr>
+                <td>번호</td>
+                <td>이름</td>
+                <td>가격</td>
+                <td>판매시작</td>
+                <td>판매종료</td>
+                <td>카테고리</td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="item:${itemPage.getContent()}">
+                <td th:text="${item.id}"></td>
+                <td th:text="${item.itemName}"></td>
+                <td th:text="${item.itemPrice}"></td>
+                <td th:text="${item.saleStartAt}"></td>
+                <td th:text="${item.saleEndAt}"></td>
+                <td th:text="${item.category.categoryName}"></td>
+            </tr>
+        </tbody>
+    </table>
+    <nav>
+        <a href="?page=0&size=20">1</a>
+        <a href="?page=1&size=20">2</a>
+        <a href="?page=2&size=20">3</a>
+        <a href="?page=3&size=20">4</a>
+        <a href="?page=4&size=20">5</a>
+    </nav>
+</body>
+</html>

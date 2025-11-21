@@ -1,10 +1,13 @@
 package com.smu.householdaccount.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.Generated;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -19,17 +22,24 @@ import java.util.Set;
 @Getter
 @Setter
 @Entity
+@ToString
 @Table(name = "ITEM")
 public class Item {
     @Id
-    @Column(name = "ITEM_ID", nullable = false)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_ITEM")
+    @SequenceGenerator(name = "SEQ_ITEM",sequenceName = "SEQ_ITEM",allocationSize=1)
+    @Column(name = "ITEM_ID")
     private Long id;
 
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @Column(name = "SELLER_BIZ_NO", nullable = false, length = 30)
+    private String sellerBizNo;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.RESTRICT)
-    @JoinColumn(name = "SELLER_BIZ_NO", nullable = false, referencedColumnName = "BIZ_NO")
-    private com.smu.householdaccount.entity.Seller sellerBizNo;
+    @JoinColumn(name = "SELLER_BIZ_NO", referencedColumnName = "BIZ_NO",insertable = false, updatable = false)
+    @ToString.Exclude
+    @JsonIgnore
+    private Seller seller;
 
     @Size(max = 200)
     @NotNull
@@ -44,10 +54,14 @@ public class Item {
     @Column(name = "ITEM_STOCK", nullable = false)
     private Long itemStock;
 
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @Column(name = "CATEGORY_ID", nullable = false, length = 50)
+    private String categoryId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.RESTRICT)
-    @JoinColumn(name = "CATEGORY_ID", nullable = false)
+    @JoinColumn(name = "CATEGORY_ID", insertable = false, updatable = false)
+    @ToString.Exclude
+    @JsonIgnore
     private Category category;
 
     @Column(name = "SALE_START_AT")
@@ -69,6 +83,8 @@ public class Item {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "item")
-    private Set<com.smu.householdaccount.entity.OrderItem> orderItems = new LinkedHashSet<>();
+    @ToString.Exclude
+    @JsonIgnore
+    private Set<OrderItem> orderItems = new LinkedHashSet<>();
 
 }

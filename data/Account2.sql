@@ -49,7 +49,7 @@ CREATE TABLE smaccount.MEMBER (
 
 -- === BUDGET_GROUP (가계부 그룹) ===
 CREATE TABLE smaccount.BUDGET_GROUP (
-                                        group_id NUMBER PRIMARY KEY,
+                                        group_id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
                                         group_name VARCHAR2(100) NOT NULL, -- 컬럼명 변경
                                         owner_id VARCHAR2(50) NOT NULL REFERENCES smaccount.MEMBER(member_id),
                                         created_at TIMESTAMP DEFAULT SYSTIMESTAMP,

@@ -1,6 +1,8 @@
 전체 URL 구조를 시각적으로 한 번에 (서버가 제공하는 동적 리소스)
 
 /,/index.html [GET]: 홈화면 (로그인,회원가입,카테고리별 인기정보글, 최신 내가한 질문)
+MyService
+ 내정보 조회 ()
 
 /info/list.do?page=1&sort=createAt [GET] : 정보글 리스트(페이징 20)
 /info/list.do?page=1&sort=createAt&search=엔터티+생성+법&field=title&tag=jpa [GET] : 정보글 검색(페이징 20)
