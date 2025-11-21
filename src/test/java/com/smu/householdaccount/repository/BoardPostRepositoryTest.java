@@ -42,7 +42,6 @@ class BoardPostRepositoryTest {
         List<BoardPost> date=boardPostRepository.findByCreatedAtBetween
                 (LocalDate.parse("2025-01-01").atStartOfDay(),LocalDate.parse("2025-01-05").atTime(23,59,59));
         System.out.println(date);
-
     }
 
 
