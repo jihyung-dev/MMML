@@ -1,4 +1,3 @@
-
 package com.smu.householdaccount.service;
 
 import com.smu.householdaccount.entity.BoardLike;
@@ -11,8 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -23,21 +20,17 @@ public class BoardLikeServiceImp implements BoardLikeService {
     private final MemberRepository memberRepository;
 
     @Override
-    public void like(Long likeId, int postId, String memberId) {
+    public void like(Long postId, String memberId) {
 
-        // 이미 눌렀으면 무시
-        if (isLiked(postId, memberId)) {
-            return;
-        }
+        if (isLiked(postId, memberId)) return;
 
         BoardPost post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("게시글 " + postId + " 없음"));
+                .orElseThrow(() -> new RuntimeException("게시글 없음"));
 
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new RuntimeException("회원 " + memberId + " 없음"));
+                .orElseThrow(() -> new RuntimeException("회원 없음"));
 
         BoardLike like = new BoardLike();
-        like.setId(likeId);
         like.setPost(post);
         like.setMember(member);
 
@@ -45,22 +38,18 @@ public class BoardLikeServiceImp implements BoardLikeService {
     }
 
     @Override
-    public void unlike(int postId, String memberId) {
-        Optional<BoardLike> optional =
-                boardLikeRepository.findByPost_IdAndMember_MemberId(postId, memberId);
-
-        optional.ifPresent(boardLikeRepository::delete);
+    public void unlike(Long postId, String memberId) {
+        boardLikeRepository.findByPost_IdAndMember_MemberId(postId, memberId)
+                .ifPresent(boardLikeRepository::delete);
     }
 
     @Override
-    public boolean isLiked(int postId, String memberId) {
-        return boardLikeRepository
-                .findByPost_IdAndMember_MemberId(postId, memberId)
-                .isPresent();
+    public boolean isLiked(Long postId, String memberId) {
+        return boardLikeRepository.findByPost_IdAndMember_MemberId(postId, memberId).isPresent();
     }
 
     @Override
-    public long countLikes(int postId) {
+    public long countLikes(Long postId) {
         return boardLikeRepository.countByPost_Id(postId);
     }
 }

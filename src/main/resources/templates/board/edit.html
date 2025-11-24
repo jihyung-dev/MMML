@@ -2,28 +2,33 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>게시글 수정</title>
+    <link rel="stylesheet" th:href="@{/css/edit.css}">
 </head>
 <body>
 
-<h2>게시글 수정</h2>
+<div class="edit-container">
 
-<form th:action="@{'/board/' + ${post.id} + '/edit'}" method="post">
+    <h2>게시글 수정</h2>
 
-    <label>카테고리:</label>
-    <input type="text" name="category" th:value="${post.category}" required><br/><br/>
+    <form th:action="@{'/board/' + ${post.id} + '/edit'}" method="post">
 
-    <label>제목:</label>
-    <input type="text" name="postTitle" th:value="${post.postTitle}" required><br/><br/>
+        <label>카테고리:</label>
+        <input type="text" name="category" th:value="${post.category}" required>
 
-    <label>내용:</label><br/>
-    <textarea name="postContent" rows="10" cols="60"
-              th:text="${post.postContent}" required></textarea><br/><br/>
+        <label>제목:</label>
+        <input type="text" name="postTitle" th:value="${post.postTitle}" required>
 
-    <button type="submit">수정 완료</button>
-</form>
+        <label>내용:</label>
+        <textarea name="postContent" rows="10"
+                  th:text="${post.postContent}" required></textarea>
 
-<br/>
-<a th:href="@{'/board/' + ${post.id}}">돌아가기</a>
+        <button type="submit">수정 완료</button>
+
+    </form>
+
+    <a class="back-btn" th:href="@{'/board/' + ${post.id}}">← 돌아가기</a>
+
+</div>
 
 </body>
 </html>

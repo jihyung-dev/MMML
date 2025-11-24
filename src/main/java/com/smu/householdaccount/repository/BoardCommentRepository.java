@@ -7,13 +7,9 @@ import java.util.List;
 
 public interface BoardCommentRepository extends JpaRepository<BoardComment, Long> {
 
-    /**
-     * 특정 게시글의 댓글 전체 조회 (작성순)
-     */
-    List<BoardComment> findByPost_IdOrderByCreatedAtAsc(int postId);
+    // 게시글 기준 댓글 전체 (정렬)
+    List<BoardComment> findByPost_IdOrderByCreatedAtAsc(Long postId);
 
-    /**
-     * 특정 댓글의 대댓글 조회 (작성순)
-     */
+    // 대댓글 조회
     List<BoardComment> findByParentComment_IdOrderByCreatedAtAsc(Long parentId);
 }

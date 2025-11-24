@@ -1,0 +1,53 @@
+package com.smu.householdaccount.entity;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
+import java.math.BigDecimal;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+@Getter
+@Setter
+@Entity
+@Table(name = "HOTDEAL_OPTION")
+public class HotdealOption {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "OPTION_ID", nullable = false)
+    private Long id;
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(name = "ITEM_ID", nullable = false)
+    private Item item;
+
+    @Size(max = 100)
+    @NotNull
+    @Column(name = "OPTION_TYPE", nullable = false, length = 100)
+    private String optionType;
+
+    @Size(max = 100)
+    @NotNull
+    @Column(name = "OPTION_VALUE", nullable = false, length = 100)
+    private String optionValue;
+
+    @ColumnDefault("0")
+    @Column(name = "ADDITIONAL_PRICE", precision = 15, scale = 2)
+    private BigDecimal additionalPrice;
+
+    @NotNull
+    @Column(name = "STOCK", nullable = false)
+    private Long stock;
+
+    @OneToMany(mappedBy = "option")
+    private Set<OrderItem> orderItems = new LinkedHashSet<>();
+
+}

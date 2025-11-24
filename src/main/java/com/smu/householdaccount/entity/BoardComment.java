@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -18,10 +17,10 @@ import java.util.Set;
 @Getter
 @Setter
 @Entity
-@ToString(exclude = {"post", "writer", "parentComment", "boardComments"})
 @Table(name = "BOARD_COMMENT")
 public class BoardComment {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "COMMENT_ID", nullable = false)
     private Long id;
 
@@ -29,12 +28,12 @@ public class BoardComment {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "POST_ID", nullable = false)
-    private com.smu.householdaccount.entity.BoardPost post;
+    private BoardPost post;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.RESTRICT)
     @JoinColumn(name = "WRITER_ID")
-    private com.smu.householdaccount.entity.Member writer;
+    private Member writer;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.RESTRICT)

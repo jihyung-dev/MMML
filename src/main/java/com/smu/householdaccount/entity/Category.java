@@ -25,12 +25,12 @@ public class Category {
     private String categoryName;
 
     @OneToMany(mappedBy = "category")
-    private Set<com.smu.householdaccount.entity.Item> items = new LinkedHashSet<>();
+    private Set<Item> items = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "category")
-    private Set<com.smu.householdaccount.entity.LedgerEntry> ledgerEntries = new LinkedHashSet<>();
+    private Set<LedgerEntry> ledgerEntries = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "category")
-    private Set<com.smu.householdaccount.entity.SubCategory> subCategories = new LinkedHashSet<>();
+    private Set<SubCategory> subCategories = new LinkedHashSet<>();
 
 }

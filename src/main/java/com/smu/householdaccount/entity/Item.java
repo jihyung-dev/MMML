@@ -1,13 +1,10 @@
 package com.smu.householdaccount.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Generated;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -15,30 +12,21 @@ import org.hibernate.annotations.OnDeleteAction;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 @Getter
 @Setter
 @Entity
-@ToString
 @Table(name = "ITEM")
 public class Item {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "SEQ_ITEM")
-    @SequenceGenerator(name = "SEQ_ITEM",sequenceName = "SEQ_ITEM",allocationSize=1)
-    @Column(name = "ITEM_ID")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ITEM_ID", nullable = false)
     private Long id;
 
-    @Column(name = "SELLER_BIZ_NO", nullable = false, length = 30)
-    private String sellerBizNo;
-
-    @ManyToOne(fetch = FetchType.LAZY)
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.RESTRICT)
-    @JoinColumn(name = "SELLER_BIZ_NO", referencedColumnName = "BIZ_NO",insertable = false, updatable = false)
-    @ToString.Exclude
-    @JsonIgnore
+    @JoinColumn(name = "SELLER_ID", nullable = false)
     private Seller seller;
 
     @Size(max = 200)
@@ -47,27 +35,36 @@ public class Item {
     private String itemName;
 
     @NotNull
-    @Column(name = "ITEM_PRICE", nullable = false, precision = 15, scale = 2)
-    private BigDecimal itemPrice;
+    @Column(name = "ORIGINAL_PRICE", nullable = false, precision = 15, scale = 2)
+    private BigDecimal originalPrice;
 
     @NotNull
-    @Column(name = "ITEM_STOCK", nullable = false)
-    private Long itemStock;
+    @Column(name = "ITEM_SALEPRICE", nullable = false, precision = 15, scale = 2)
+    private BigDecimal itemSaleprice;
 
-    @Column(name = "CATEGORY_ID", nullable = false, length = 50)
-    private String categoryId;
-
-    @ManyToOne(fetch = FetchType.LAZY)
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.RESTRICT)
-    @JoinColumn(name = "CATEGORY_ID", insertable = false, updatable = false)
-    @ToString.Exclude
-    @JsonIgnore
+    @JoinColumn(name = "CATEGORY_ID", nullable = false)
     private Category category;
+
+    @Size(max = 500)
+    @Column(name = "ITEM_IMAGE_URL", length = 500)
+    private String itemImageUrl;
+
+    @ColumnDefault("0")
+    @Column(name = "VIEW_COUNT")
+    private Long viewCount;
+
+    @ColumnDefault("0")
+    @Column(name = "POPULARITY_SCORE")
+    private Long popularityScore;
 
     @Column(name = "SALE_START_AT")
     private LocalDate saleStartAt;
 
-    @Column(name = "SALE_END_AT")
+    @NotNull
+    @Column(name = "SALE_END_AT", nullable = false)
     private LocalDate saleEndAt;
 
     @Size(max = 20)
@@ -77,14 +74,9 @@ public class Item {
 
     @ColumnDefault("SYSTIMESTAMP")
     @Column(name = "CREATED_AT")
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @Column(name = "UPDATED_AT")
-    private LocalDateTime updatedAt;
-
-    @OneToMany(mappedBy = "item")
-    @ToString.Exclude
-    @JsonIgnore
-    private Set<OrderItem> orderItems = new LinkedHashSet<>();
+    private Instant updatedAt;
 
 }

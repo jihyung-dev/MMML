@@ -9,23 +9,24 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "GROUP_MEMBER")
-public class GroupMember {
+@Table(name = "PAYMENT_TRANSACTION")
+public class PaymentTransaction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "GROUP_MEMBER_ID", nullable = false)
+    @Column(name = "TXN_ID", nullable = false)
     private Long id;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.RESTRICT)
-    @JoinColumn(name = "GROUP_ID", nullable = false)
-    private BudgetGroup group;
+    @JoinColumn(name = "ORDER_ID", nullable = false)
+    private OrderMain order;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -33,16 +34,32 @@ public class GroupMember {
     @JoinColumn(name = "MEMBER_ID", nullable = false)
     private Member member;
 
+    @Size(max = 100)
+    @Column(name = "PG_TID", length = 100)
+    private String pgTid;
+
+    @NotNull
+    @Column(name = "AMOUNT", nullable = false, precision = 15, scale = 2)
+    private BigDecimal amount;
+
     @Size(max = 20)
     @NotNull
-    @Column(name = "ROLE", nullable = false, length = 20)
-    private String role;
+    @Column(name = "TXN_STATUS", nullable = false, length = 20)
+    private String txnStatus;
+
+    @Size(max = 20)
+    @Column(name = "PAY_METHOD", length = 20)
+    private String payMethod;
 
     @ColumnDefault("SYSTIMESTAMP")
-    @Column(name = "CREATED_AT")
-    private Instant createdAt;
+    @Column(name = "REQUEST_TIME")
+    private Instant requestTime;
 
-    @Column(name = "UPDATED_AT")
-    private Instant updatedAt;
+    @Column(name = "RESPONSE_TIME")
+    private Instant responseTime;
+
+    @Lob
+    @Column(name = "RAW_DATA")
+    private String rawData;
 
 }

@@ -8,7 +8,7 @@ import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.Instant;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -52,14 +52,14 @@ public class Member {
 
     @ColumnDefault("'Y'")
     @Column(name = "ENABLED")
-    private Boolean enabled;
+    private String enabled;
 
     @ColumnDefault("SYSTIMESTAMP")
     @Column(name = "CREATED_AT")
-    private OffsetDateTime createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "UPDATED_AT")
-    private OffsetDateTime updatedAt;
+    private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "writer")
     private Set<BoardComment> boardComments = new LinkedHashSet<>();
@@ -77,12 +77,18 @@ public class Member {
     private Set<GroupMember> groupMembers = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "member")
+    private Set<ItemWish> itemWishes = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "member")
     private Set<LedgerEntry> ledgerEntries = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "buyer")
-    private Set<com.smu.householdaccount.entity.OrderMain> orderMains = new LinkedHashSet<>();
+    private Set<OrderMain> orderMains = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "member")
-    private Set<com.smu.householdaccount.entity.Seller> sellers = new LinkedHashSet<>();
+    private Set<PaymentTransaction> paymentTransactions = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "member")
+    private Set<Seller> sellers = new LinkedHashSet<>();
 
 }
