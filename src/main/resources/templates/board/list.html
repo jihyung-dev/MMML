@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>게시판 목록</title>
+</head>
+<body>
+
+<h2>가게부 게시판 목록</h2>
+
+
+<a href="/board/write">글쓰기</a>
+<br/><br/>
+
+<table border="1" width="800">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>카테고리</th>
+        <th>제목</th>
+        <th>작성자</th>
+        <th>작성일</th>
+        <th>조회수</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr th:each="p : ${posts}">
+        <td th:text="${p.id}"></td>
+        <td th:text="${p.category}"></td>
+        <td>
+            <a th:href="@{'/board/' + ${p.id}}" th:text="${p.postTitle}"></a>
+        </td>
+        <td th:text="${p.writer != null ? p.writer.memberNickname : '작성자 없음'}"></td>
+        <td th:text="${p.createdAt}"></td>
+        <td th:text="${p.viewCnt}"></td>
+    </tr>
+    </tbody>
+</table>
+<br><br>
+<form th:action="@{/board}" method="get" style="margin-bottom: 20px;">
+    <input type="text" name="keyword" th:value="${keyword}" placeholder="검색어를 입력하세요 (제목+내용)">
+    <button type="submit">검색</button>
+</form>
+
+<br/>
+
+<!-- Pagination -->
+<div>
+    <a th:if="${posts.hasPrevious()}"
+       th:href="@{/board(page=${posts.number - 1}, keyword=${keyword})}">이전</a>
+
+    <span th:text="${posts.number + 1}"></span> /
+    <span th:text="${posts.totalPages}"></span>
+
+    <a th:if="${posts.hasNext()}"
+       th:href="@{/board(page=${posts.number + 1}, keyword=${keyword})}">다음</a>
+</div>
+
+
+
+
+</body>
+</html>

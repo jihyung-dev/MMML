@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -55,10 +56,10 @@ public class Member {
 
     @ColumnDefault("SYSTIMESTAMP")
     @Column(name = "CREATED_AT")
-    private Instant createdAt;
+    private OffsetDateTime createdAt;
 
     @Column(name = "UPDATED_AT")
-    private Instant updatedAt;
+    private OffsetDateTime updatedAt;
 
     @OneToMany(mappedBy = "writer")
     private Set<BoardComment> boardComments = new LinkedHashSet<>();
