@@ -11,7 +11,7 @@ public enum PathList {
     ERROR_ALL("/error/**"),
     FAVICON("/favicon.ico"),
     SIGNUP("/signup"),
-    AI("/ai/"),
+    AI("/ai/**"),
     KAKAO("/user/kakao/**"),
     NAVER("/user/naver/**"),
     OAUTH2_1("/oauth2/**"),

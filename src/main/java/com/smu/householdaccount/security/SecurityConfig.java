@@ -25,6 +25,8 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers(AI.getPath()))
                 .formLogin(form -> form
                         .loginPage("/user/login")
                         .permitAll()

@@ -82,7 +82,7 @@ public class KakaoApiService {
                 "&code=" + code;
 
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Type", "application/x-www-form-urlencoded");
+        headers.add("Content-Type", "application/json");
 
         String result = http.post(kauthHost + "/oauth/token", headers, body);
 
