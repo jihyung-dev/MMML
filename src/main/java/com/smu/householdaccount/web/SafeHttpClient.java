@@ -33,6 +33,25 @@ public class SafeHttpClient {
         return execute(HttpMethod.POST, url, headers, body);
     }
 
+    public <T> T post(String url, HttpHeaders headers, String body, Class<T> responseType) {
+        try {
+            RestClient.RequestBodySpec req = client.method(HttpMethod.POST)
+                    .uri(url)
+                    .headers(h -> h.addAll(headers))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(body);
+
+            return req.retrieve().body(responseType);
+
+        } catch (RestClientResponseException e) {
+            log.error("❗ API ERROR [{}] {}: {}", e.getRawStatusCode(), url, e.getResponseBodyAsString());
+            return null;
+        } catch (Exception e) {
+            log.error("❗ API CONNECTION FAILED {}: {}", url, e.getMessage());
+            return null;
+        }
+    }
+
     private String execute(HttpMethod method, String url, HttpHeaders headers, String body) {
         try {
             RestClient.RequestBodySpec req = client.method(method)
@@ -40,7 +59,7 @@ public class SafeHttpClient {
                     .headers(h -> h.addAll(headers));
 
             if (body != null) {
-                req = req.contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                req = req.contentType(MediaType.APPLICATION_JSON)
                         .body(body);
             }
 
