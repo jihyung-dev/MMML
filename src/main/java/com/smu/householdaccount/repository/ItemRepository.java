@@ -8,6 +8,10 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ItemRepository extends JpaRepository<Item,Long> {
+
+
+
+    //핫딜페이지 관련 레퍼지토리
     @Override
     Page<Item> findAll(Pageable pageable);
 
