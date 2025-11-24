@@ -1,5 +1,6 @@
 package com.smu.householdaccount.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -14,10 +15,11 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
-@ToString(exclude = {"writer", "boardComments", "boardLikes"})
+//@ToString(exclude = {"writer", "boardComments", "boardLikes"})
 @Getter
 @Setter
 @Entity
+@ToString
 @Table(name = "BOARD_POST")
 public class BoardPost {
     @Id
@@ -39,10 +41,15 @@ public class BoardPost {
     @Column(name = "POST_CONTENT", nullable = false)
     private String postContent;
 
+    @Column(name = "WRITER_ID",length = 50,insertable = false,updatable = false)
+    private String writerId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.RESTRICT)
     @JoinColumn(name = "WRITER_ID")
-    private com.smu.householdaccount.entity.Member writer;
+    @ToString.Exclude
+    @JsonIgnore
+    private Member writer;
 
     @ColumnDefault("0")
     @Column(name = "VIEW_CNT")
@@ -56,9 +63,13 @@ public class BoardPost {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "post")
+    @ToString.Exclude
+    @JsonIgnore
     private Set<BoardComment> boardComments = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "post")
+    @ToString.Exclude
+    @JsonIgnore
     private Set<BoardLike> boardLikes = new LinkedHashSet<>();
 
 }

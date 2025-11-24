@@ -2,7 +2,6 @@
 --  DUMMY DATA: smaccount.MEMBER
 --  총 100개의 회원 데이터를 삽입합니다. (member_name은 유지, member_nickname을 창의적인 이름으로 변경)
 -- =============================
-
 -- 관리자 (ADMIN): ID U001 ~ U005
 INSERT INTO smaccount.MEMBER (member_id, password, role, member_name, member_nickname, address, phone, enabled)
 VALUES ('U001', 'hashed_admin_pass', 'ADMIN', '김민준', '샛별', '서울시 종로구 세종대로 1', '010-1111-0001', 'Y');
@@ -318,24 +317,24 @@ INSERT INTO smaccount.SUB_CATEGORY (sub_id, sub_category_name, category_id) VALU
 -- =============================
 
 -- 1. 가족 가계부 (소유자: U016 - 커피잔)
-INSERT INTO smaccount.BUDGET_GROUP (group_id, group_name, owner_id)
-VALUES (smaccount.SEQ_GROUP.NEXTVAL, '행복한 우리 가족 가계부', 'U016');
+INSERT INTO smaccount.BUDGET_GROUP (group_name, owner_id)
+VALUES ('행복한 우리 가족 가계부', 'U016');
 
 -- 2. 신혼부부 가계부 (소유자: U017 - 연필심)
-INSERT INTO smaccount.BUDGET_GROUP (group_id, group_name, owner_id)
-VALUES (smaccount.SEQ_GROUP.NEXTVAL, '연필심&그림자 신혼 지출', 'U017');
+INSERT INTO smaccount.BUDGET_GROUP (group_name, owner_id)
+VALUES ('연필심&그림자 신혼 지출', 'U017');
 
 -- 3. 자취생 생활비 (소유자: U020 - 푸른숲)
-INSERT INTO smaccount.BUDGET_GROUP (group_id, group_name, owner_id)
-VALUES (smaccount.SEQ_GROUP.NEXTVAL, '푸른숲의 알뜰 자취 생활', 'U020');
+INSERT INTO smaccount.BUDGET_GROUP (group_name, owner_id)
+VALUES ('푸른숲의 알뜰 자취 생활', 'U020');
 
 -- 4. 직장 동료 점심 그룹 (소유자: U021 - 고양이발)
-INSERT INTO smaccount.BUDGET_GROUP (group_id, group_name, owner_id)
-VALUES (smaccount.SEQ_GROUP.NEXTVAL, '판교 직장인 공동 식비', 'U021');
+INSERT INTO smaccount.BUDGET_GROUP (group_name, owner_id)
+VALUES ('판교 직장인 공동 식비', 'U021');
 
 -- 5. 비상금 관리 그룹 (소유자: U025 - 별똥별)
-INSERT INTO smaccount.BUDGET_GROUP (group_id, group_name, owner_id)
-VALUES (smaccount.SEQ_GROUP.NEXTVAL, '별똥별 비상금 및 저축', 'U025');
+INSERT INTO smaccount.BUDGET_GROUP (group_name, owner_id)
+VALUES  ('별똥별 비상금 및 저축', 'U025');
 
 -- =============================
 --  DUMMY DATA: smaccount.GROUP_MEMBER
@@ -1479,3 +1478,4 @@ VALUES (smaccount.SEQ_SHIPMENT.NEXTVAL, 8, 'TRK10008', '등기우편', 'SHIPPING
 INSERT INTO smaccount.SHIPMENT (shipment_id, order_id, tracking_no, carrier, shipment_status)
 VALUES (smaccount.SEQ_SHIPMENT.NEXTVAL, 10, 'TRK10010', 'CJ대한통운', 'PREPARING');
 
+commit;

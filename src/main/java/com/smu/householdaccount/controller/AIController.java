@@ -15,7 +15,7 @@ public class AIController {
         this.aiService = aiService;
     }
 
-    @GetMapping("/")
+    @GetMapping("/") 
     @ResponseBody
     public String aiTest() throws Exception{
         aiService.getAuthUrl();
