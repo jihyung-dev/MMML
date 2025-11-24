@@ -17,4 +17,6 @@ public class Utility {
         PasswordEncoder encoder = new Argon2PasswordEncoder(16, 32, 1, 4096, 3);
         return encoder.encode(password);
     }
+
+
 }
