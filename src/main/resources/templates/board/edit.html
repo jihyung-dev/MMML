@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>게시글 수정</title>
+    <link rel="stylesheet" th:href="@{/css/edit.css}">
+</head>
+<body>
+
+<div class="edit-container">
+
+    <h2>게시글 수정</h2>
+
+    <form th:action="@{'/board/' + ${post.id} + '/edit'}" method="post">
+
+        <label>카테고리:</label>
+        <input type="text" name="category" th:value="${post.category}" required>
+
+        <label>제목:</label>
+        <input type="text" name="postTitle" th:value="${post.postTitle}" required>
+
+        <label>내용:</label>
+        <textarea name="postContent" rows="10"
+                  th:text="${post.postContent}" required></textarea>
+
+        <button type="submit">수정 완료</button>
+
+    </form>
+
+    <a class="back-btn" th:href="@{'/board/' + ${post.id}}">← 돌아가기</a>
+
+</div>
+
+</body>
+</html>

@@ -10,7 +10,6 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -20,6 +19,7 @@ import java.util.Set;
 @Table(name = "BUDGET_GROUP")
 public class BudgetGroup {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "GROUP_ID", nullable = false)
     private Long id;
 
@@ -32,19 +32,19 @@ public class BudgetGroup {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.RESTRICT)
     @JoinColumn(name = "OWNER_ID", nullable = false)
-    private com.smu.householdaccount.entity.Member owner;
+    private Member owner;
 
     @ColumnDefault("SYSTIMESTAMP")
     @Column(name = "CREATED_AT")
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @Column(name = "UPDATED_AT")
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     @OneToMany(mappedBy = "group")
-    private Set<com.smu.householdaccount.entity.GroupMember> groupMembers = new LinkedHashSet<>();
+    private Set<GroupMember> groupMembers = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "group")
-    private Set<com.smu.householdaccount.entity.LedgerEntry> ledgerEntries = new LinkedHashSet<>();
+    private Set<LedgerEntry> ledgerEntries = new LinkedHashSet<>();
 
 }

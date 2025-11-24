@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="'게시글 - ' + ${post.postTitle}"></title>
+    <link rel="stylesheet" th:href="@{/css/detail.css}">
+</head>
+<body>
+
+<div class="detail-container">
+
+    <div>
+        ❤️ <b th:text="${post.boardLikes.size()}"></b> 명이 좋아합니다
+    </div>
+
+    <!-- 좋아요 -->
+    <form th:action="@{/like/add}" method="post" style="display:inline;">
+        <input type="hidden" name="postId" th:value="${post.id}">
+        <input type="text" name="memberId" required>
+        <button>좋아요 👍</button>
+    </form>
+
+    <form th:action="@{/like/remove}" method="post" style="display:inline;">
+        <input type="hidden" name="postId" th:value="${post.id}">
+        <input type="text" name="memberId" required>
+        <button>취소 💔</button>
+    </form>
+
+    <h2 th:text="${post.postTitle}"></h2>
+
+    <div class="detail-meta">
+        <span>카테고리: <b th:text="${post.category}"></b></span>
+        <span>작성자: <b th:text="${post.writer.memberNickname}"></b></span>
+        <span>작성일:
+            <b th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}"></b>
+        </span>
+        <span>조회수: <b th:text="${post.viewCnt}"></b></span>
+    </div>
+
+    <div class="detail-content" th:text="${post.postContent}"></div>
+
+    <hr/>
+
+    <a class="button" th:href="@{'/board/' + ${post.id} + '/edit'}">수정</a>
+
+    <form th:action="@{'/board/' + ${post.id} + '/delete'}"
+          method="post" style="display:inline;">
+        <button class="comment-delete-btn">삭제</button>
+    </form>
+
+    <a class="button" href="/board">목록으로</a>
+
+    <div class="comment-box">
+        <h4>댓글</h4>
+
+        <div th:each="c : ${post.boardComments}"
+             th:class="'comment-item ' + (${c.parentComment != null} ? 'reply' : '')">
+
+            <div>
+                <span class="comment-author"
+                      th:text="${c.writer.memberNickname}"></span>
+                <span th:text="${#temporals.format(c.createdAt,'yyyy-MM-dd HH:mm')}"></span>
+            </div>
+
+            <div th:text="${c.commentContent}"></div>
+
+            <form th:action="@{'/comment/' + ${c.id} + '/delete'}"
+                  method="post" style="display:inline;">
+                <input type="hidden" name="postId" th:value="${post.id}">
+                <button class="comment-delete-btn">삭제</button>
+            </form>
+
+            <details>
+                <summary>답글 달기</summary>
+
+                <form th:action="@{/comment/write}" method="post">
+                    <input type="hidden" name="postId" th:value="${post.id}">
+                    <input type="hidden" name="parentId" th:value="${c.id}">
+                    <input type="text" name="writerId" required>
+                    <textarea name="content" required></textarea>
+                    <button>등록</button>
+                </form>
+
+            </details>
+        </div>
+
+        <h4>댓글 작성</h4>
+        <form th:action="@{/comment/write}" method="post">
+            <input type="hidden" name="postId" th:value="${post.id}">
+            <input type="text" name="writerId" required>
+            <textarea name="content" required></textarea>
+            <button>등록하기</button>
+        </form>
+
+    </div>
+
+</div>
+
+</body>
+</html>

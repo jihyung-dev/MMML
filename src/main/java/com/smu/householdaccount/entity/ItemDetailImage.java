@@ -2,6 +2,7 @@ package com.smu.householdaccount.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
@@ -10,23 +11,26 @@ import org.hibernate.annotations.OnDeleteAction;
 @Getter
 @Setter
 @Entity
-@Table(name = "BOARD_LIKE")
-public class BoardLike {
+@Table(name = "ITEM_DETAIL_IMAGE")
+public class ItemDetailImage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "BOARD_LIKE_ID", nullable = false)
+    @Column(name = "DETAIL_IMAGE_ID", nullable = false)
     private Long id;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "POST_ID", nullable = false)
-    private BoardPost post;
+    @JoinColumn(name = "ITEM_ID", nullable = false)
+    private Item item;
+
+    @Size(max = 500)
+    @NotNull
+    @Column(name = "IMAGE_URL", nullable = false, length = 500)
+    private String imageUrl;
 
     @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "MEMBER_ID", nullable = false)
-    private Member member;
+    @Column(name = "DISPLAY_ORDER", nullable = false)
+    private Long displayOrder;
 
 }

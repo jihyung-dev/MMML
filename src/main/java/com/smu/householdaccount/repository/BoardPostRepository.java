@@ -1,32 +1,25 @@
 package com.smu.householdaccount.repository;
 
-
 import com.smu.householdaccount.entity.BoardPost;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Repository
-public interface BoardPostRepository extends JpaRepository<BoardPost,Integer> {
-    //게시판 전체 조회(BOARD_POST 테이블)
-    @Override
-    List<BoardPost> findAll();
+public interface BoardPostRepository extends JpaRepository<BoardPost, Long> {
 
-    //게시판 날짜 조회(BOARD_POST 테이블)
+    // 날짜 기반 검색
     List<BoardPost> findByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
 
+    // 카테고리별 조회
+    List<BoardPost> findByCategory(String category);
 
-    //게시판 생성(BOARD_POST 테이블)
-    BoardPost save(BoardPost boardPost);
-
-    //게시판 삭제(BOARD_POST 테이블)
-    BoardPost deleteById(int id);
-
-
-
+    // 제목 또는 내용 검색
+    Page<BoardPost> findByPostTitleContainingOrPostContentContaining(
+            String titleKeyword,
+            String contentKeyword,
+            Pageable pageable
+    );
 }
-
-

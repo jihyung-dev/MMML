@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>게시판 목록</title>
+    <link rel="stylesheet" th:href="@{/css/list.css}">
+</head>
+<body>
+<img th:src="@{/img/게시판 이미지.jpg}" alt="게시판 이미지" style="width:100%; max-height:150px; object-fit:cover; margin-bottom:20px; border-radius: 5px">
+<h2>가계부 게시판 목록</h2>
+
+<a class="write-btn" href="/board/write">글쓰기</a>
+<br/><br/>
+
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>카테고리</th>
+        <th>제목</th>
+        <th>작성자</th>
+        <th>작성일</th>
+        <th>조회수</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr th:each="p : ${posts}">
+        <td th:text="${p.id}"></td>
+        <td th:text="${p.category}"></td>
+        <td>
+            <a th:href="@{'/board/' + ${p.id}}" th:text="${p.postTitle}"></a>
+        </td>
+        <td th:text="${p.writer != null ? p.writer.memberNickname : '작성자 없음'}"></td>
+        <td th:text="${#temporals.format(p.createdAt,'yyyy-MM-dd HH:mm')}"></td>
+        <td th:text="${p.viewCnt}"></td>
+    </tr>
+    </tbody>
+</table>
+
+<br><br>
+
+<form class="board-search-box" th:action="@{/board}" method="get">
+    <input type="text" name="keyword" th:value="${keyword}" placeholder="검색어를 입력하세요 (제목+내용)">
+    <button type="submit">검색</button>
+</form>
+
+<br/>
+
+<div class="pagination">
+    <a th:if="${posts.hasPrevious()}"
+       th:href="@{/board(page=${posts.number - 1}, keyword=${keyword})}">이전</a>
+
+    <span th:text="${posts.number + 1}"></span> /
+    <span th:text="${posts.totalPages}"></span>
+
+    <a th:if="${posts.hasNext()}"
+       th:href="@{/board(page=${posts.number + 1}, keyword=${keyword})}">다음</a>
+</div>
+
+</body>
+</html>

@@ -2,12 +2,14 @@ package com.smu.householdaccount.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 
 import static com.smu.householdaccount.security.PathList.*;
 
 @Configuration
+@Profile("prod")
 public class SecurityConfig {
 
     // CSRF 방지용 보안, 웹 보안 설정

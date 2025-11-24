@@ -1,12 +1,10 @@
 package com.smu.householdaccount.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.Instant;
@@ -17,7 +15,6 @@ import java.util.Set;
 @Getter
 @Setter
 @Entity
-@ToString
 @Table(name = "MEMBER")
 public class Member {
     @Id
@@ -55,7 +52,7 @@ public class Member {
 
     @ColumnDefault("'Y'")
     @Column(name = "ENABLED")
-    private Boolean enabled;
+    private String enabled;
 
     @ColumnDefault("SYSTIMESTAMP")
     @Column(name = "CREATED_AT")
@@ -65,8 +62,6 @@ public class Member {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "writer")
-    @ToString.Exclude
-    @JsonIgnore
     private Set<BoardComment> boardComments = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "member")
@@ -82,12 +77,18 @@ public class Member {
     private Set<GroupMember> groupMembers = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "member")
+    private Set<ItemWish> itemWishes = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "member")
     private Set<LedgerEntry> ledgerEntries = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "buyer")
-    private Set<com.smu.householdaccount.entity.OrderMain> orderMains = new LinkedHashSet<>();
+    private Set<OrderMain> orderMains = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "member")
-    private Set<com.smu.householdaccount.entity.Seller> sellers = new LinkedHashSet<>();
+    private Set<PaymentTransaction> paymentTransactions = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "member")
+    private Set<Seller> sellers = new LinkedHashSet<>();
 
 }

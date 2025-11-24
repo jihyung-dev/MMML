@@ -2,6 +2,7 @@ spring:
   application:
     name: HouseholdAccount
   profiles:
+    active: dev       # ← 테스트용 프로필 활성화 실제적용시 지우거나 prod 로 바꾸면됨
     include: API-KEY
   datasource:
 #    url: jdbc:oracle:thin:@//localhost:2345/XEPDB1

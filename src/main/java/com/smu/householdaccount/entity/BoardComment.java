@@ -20,6 +20,7 @@ import java.util.Set;
 @Table(name = "BOARD_COMMENT")
 public class BoardComment {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "COMMENT_ID", nullable = false)
     private Long id;
 
@@ -27,12 +28,12 @@ public class BoardComment {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "POST_ID", nullable = false)
-    private com.smu.householdaccount.entity.BoardPost post;
+    private BoardPost post;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.RESTRICT)
     @JoinColumn(name = "WRITER_ID")
-    private com.smu.householdaccount.entity.Member writer;
+    private Member writer;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.RESTRICT)
