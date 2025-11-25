@@ -41,6 +41,13 @@ button:hover {
     background: #1258a0;
 }
 
+/* 좋아요 창너비 조정 */
+input[name="memberId"] {
+    width: 80px;   /* 원하는 너비 */
+}
+
+
+
 /* 댓글 */
 .comment-box {
     margin-top: 30px;
