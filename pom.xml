@@ -125,6 +125,19 @@
             <artifactId>spring-boot-devtools</artifactId>
             <scope>runtime</scope>
         </dependency>
+        <!-- mySQL -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.33</version>
+        </dependency>
+
+        <!-- portOne -->
+        <dependency>
+            <groupId>io.portone</groupId>
+            <artifactId>portone-java</artifactId>
+            <version>0.0.1-RC03</version>
+        </dependency>
     </dependencies>
 
 	<build>

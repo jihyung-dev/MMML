@@ -62,4 +62,6 @@ public class PaymentTransaction {
     @Column(name = "RAW_DATA")
     private String rawData;
 
+    @Column(name = "IMP_UID")
+    private String impUid;
 }

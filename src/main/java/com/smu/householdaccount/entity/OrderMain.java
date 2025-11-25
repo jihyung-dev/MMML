@@ -55,4 +55,6 @@ public class OrderMain {
     @OneToMany(mappedBy = "order")
     private Set<Shipment> shipments = new LinkedHashSet<>();
 
+    @Column(name = "MERCHANT_UID")
+    private String merchantUid;
 }
