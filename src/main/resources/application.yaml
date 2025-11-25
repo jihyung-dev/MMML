@@ -7,6 +7,7 @@ spring:
   datasource:
 #    url: jdbc:oracle:thin:@//localhost:2345/XEPDB1
     url: jdbc:oracle:thin:@//localhost:1521/XEPDB1
+#    url: jdbc:mysql://smaccount.ck5e46820f6v.us-east-1.rds.amazonaws.com:3306/smaccount
     username: smaccount
     password: smaccountpw
   jpa:
