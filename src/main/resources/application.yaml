@@ -26,3 +26,6 @@ render:
 
 portone:
   api-host: https://api.iamport.kr
+
+exchangerate:
+  api-host: https://api.frankfurter.app
