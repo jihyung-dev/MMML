@@ -16,17 +16,17 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "ITEM")
-@ToString(exclude = {"seller", "category"})
+@ToString(exclude = {"seller", "category","hotdealOptions"})
 public class Item {
     @Id
-//    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @SequenceGenerator(name = "item_seq", sequenceName = "item_seq", allocationSize = 1)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "item_seq")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ITEM_ID", nullable = false)
     private Long id;
 
@@ -108,5 +108,9 @@ public class Item {
     @UpdateTimestamp
     @Column(name = "UPDATED_AT")
     private LocalDateTime updatedAt;
+
+
+    @OneToMany(mappedBy = "item")
+    Set<HotdealOption> hotdealOptions=new LinkedHashSet<>();
 
 }

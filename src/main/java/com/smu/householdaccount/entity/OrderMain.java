@@ -19,22 +19,28 @@ import java.util.Set;
 @Setter
 @Entity
 @Table(name = "ORDER_MAIN")
-public class OrderMain {
+public class    OrderMain {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ORDER_ID", nullable = false)
     private Long id;
+    @Column(name = "BUYER_ID", nullable = false, length = 50)
+    private String buyerId;
 
-    @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.RESTRICT)
-    @JoinColumn(name = "BUYER_ID", nullable = false)
+    @JoinColumn(name = "BUYER_ID", insertable = false, updatable = false)
     private Member buyer;
 
     @NotNull
     @Column(name = "TOTAL_AMOUNT", nullable = false, precision = 15, scale = 2)
-    private BigDecimal totalAmount;
-
+    private Long totalAmount;
+    /* BASKET: 장바구니
+  PENDING : 결제창에서 사용자 입력 진행중
+  SUCCESS : PGTK 승인 완료 (돈 나감)
+  FAILED : 잔액부족, 비밀번호 오류 등 실패
+  CANCELED : 결제 후 환불/취소됨
+*/
     @Size(max = 20)
     @NotNull
     @Column(name = "ORDER_STATUS", nullable = false, length = 20)

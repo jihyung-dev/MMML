@@ -5,18 +5,22 @@ spring:
     active: dev       # ← 테스트용 프로필 활성화 실제적용시 지우거나 prod 로 바꾸면됨
     include: API-KEY
   datasource:
-    url: jdbc:oracle:thin:@//localhost:1521/XEPDB1
+#    url: jdbc:oracle:thin:@//localhost:1521/XEPDB1
 #   url: jdbc:oracle:thin:@//localhost:2345/XEPDB1
-#   url: jdbc:mysql://mmml-db.cjikkg0es4uk.ap-northeast-2.rds.amazonaws.com:3306/MMML?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+    url: jdbc:mysql://mmml-db.cjikkg0es4uk.ap-northeast-2.rds.amazonaws.com:3306/MMML?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
     username: smaccount
     password: smaccountpw
   jpa:
-        show-sql: true
-        properties:
-          hibernate:
-            format_sql: true
-            highlight_sql: true
-
+    show-sql: true
+    hibernate:
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
+    properties:
+      hibernate:
+        format_sql: true
+        highlight_sql: true
+        use_sql_comments: true   # SQL 주석도 출력됨
 server:
   port: 7004
 
