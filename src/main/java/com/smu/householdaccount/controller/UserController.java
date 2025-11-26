@@ -56,7 +56,7 @@ public class UserController{
      2. 로그인 성공 후 콜백으로 code + state 리턴
      3. 서버에서 POST 방식으로 AccessToken 요청
      4. 토큰 저장후 해당 토큰으로 유저 정보 획득
-     */
+     **/
     // 네이버 로그인 요청
     @GetMapping("/naver/authorize")
     public RedirectView naverLogin() {

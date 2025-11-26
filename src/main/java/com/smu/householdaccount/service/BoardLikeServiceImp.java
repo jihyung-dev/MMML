@@ -16,19 +16,29 @@ import org.springframework.transaction.annotation.Transactional;
 public class BoardLikeServiceImp implements BoardLikeService {
 
     private final BoardLikeRepository boardLikeRepository;
-    private final BoardPostRepository postRepository;
+    private final BoardPostRepository boardPostRepository;
     private final MemberRepository memberRepository;
 
+    /**
+     * 좋아요 추가 (중복 방지)
+     */
     @Override
-    public void like(Long postId, String memberId) {
+    public void like(Long postId, String loginUserId) {
 
-        if (isLiked(postId, memberId)) return;
+        BoardPost post = boardPostRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("게시글을 찾을 수 없습니다."));
 
-        BoardPost post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("게시글 없음"));
+        Member member = memberRepository.findById(loginUserId)
+                .orElseThrow(() -> new RuntimeException("로그인된 사용자를 찾을 수 없습니다."));
 
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new RuntimeException("회원 없음"));
+        // 중복 좋아요 방지
+        boolean alreadyLiked = boardLikeRepository
+                .findByPost_IdAndMember_MemberId(postId, loginUserId)
+                .isPresent();
+
+        if (alreadyLiked) {
+            return; // 이미 눌렀으면 무시
+        }
 
         BoardLike like = new BoardLike();
         like.setPost(post);
@@ -37,18 +47,37 @@ public class BoardLikeServiceImp implements BoardLikeService {
         boardLikeRepository.save(like);
     }
 
+    /**
+     * 좋아요 취소
+     */
     @Override
-    public void unlike(Long postId, String memberId) {
-        boardLikeRepository.findByPost_IdAndMember_MemberId(postId, memberId)
-                .ifPresent(boardLikeRepository::delete);
+    public void unlike(Long postId, String loginUserId) {
+
+        BoardLike like = boardLikeRepository
+                .findByPost_IdAndMember_MemberId(postId, loginUserId)
+                .orElse(null);
+
+        if (like != null) {
+            boardLikeRepository.delete(like);
+        }
     }
 
+    /**
+     * 특정 글을 로그인한 유저가 좋아요 눌렀는지 확인
+     */
     @Override
-    public boolean isLiked(Long postId, String memberId) {
-        return boardLikeRepository.findByPost_IdAndMember_MemberId(postId, memberId).isPresent();
+    @Transactional(readOnly = true)
+    public boolean isLiked(Long postId, String loginUserId) {
+        return boardLikeRepository
+                .findByPost_IdAndMember_MemberId(postId, loginUserId)
+                .isPresent();
     }
 
+    /**
+     * 좋아요 수 조회
+     */
     @Override
+    @Transactional(readOnly = true)
     public long countLikes(Long postId) {
         return boardLikeRepository.countByPost_Id(postId);
     }

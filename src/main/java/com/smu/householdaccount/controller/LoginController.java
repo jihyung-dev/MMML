@@ -2,11 +2,11 @@ package com.smu.householdaccount.controller;
 
 import com.smu.householdaccount.entity.Member;
 import com.smu.householdaccount.service.MemberService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import jakarta.servlet.http.HttpSession;
 
 @Controller
 @RequiredArgsConstructor
@@ -18,8 +18,8 @@ public class LoginController {
      * 로그인 페이지
      */
     @GetMapping("/login")
-    public String loginForm(Model model) {
-        return "auth/login";  // templates/auth/login.html
+    public String loginForm() {
+        return "auth/login";
     }
 
     /**
@@ -38,8 +38,9 @@ public class LoginController {
             return "auth/login";
         }
 
-        // 세션 저장
-        session.setAttribute("loginMember", loginMember);
+        // 🔥 로그인 성공 시 세션 저장
+        session.setAttribute("loginMember", loginMember);            // Member 객체
+        session.setAttribute("loginUserId", loginMember.getMemberId()); // BoardPostController용
 
         return "redirect:/";  // 홈으로 이동
     }
@@ -49,7 +50,7 @@ public class LoginController {
      */
     @GetMapping("/logout")
     public String logout(HttpSession session) {
-        session.invalidate(); // 세션 삭제
+        session.invalidate();   // 세션 전체 삭제
         return "redirect:/login";
     }
 }

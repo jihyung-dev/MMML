@@ -10,7 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -21,36 +21,51 @@ public class BoardCommentServiceImp implements BoardCommentService {
     private final BoardPostRepository postRepository;
     private final MemberRepository memberRepository;
 
+    /**
+     * 댓글 / 대댓글 생성
+     */
     @Override
-    public BoardComment write(Long postId, String writerId, String content, Long parentId) {
+    public BoardComment create(Long postId,
+                               String content,
+                               Long parentCommentId,
+                               String loginUserId) {
 
         BoardPost post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("게시글 없음"));
+                .orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
 
-        Member writer = memberRepository.findById(writerId)
-                .orElseThrow(() -> new RuntimeException("작성자 없음"));
+        Member writer = memberRepository.findById(loginUserId)
+                .orElseThrow(() -> new RuntimeException("로그인 사용자를 찾을 수 없습니다."));
 
         BoardComment comment = new BoardComment();
         comment.setPost(post);
         comment.setWriter(writer);
         comment.setCommentContent(content);
+        comment.setCreatedAt(LocalDateTime.now());
+        comment.setUpdatedAt(LocalDateTime.now());
 
-        if (parentId != null) {
-            BoardComment parent = commentRepository.findById(parentId)
-                    .orElseThrow(() -> new RuntimeException("부모 댓글 없음"));
+        // 대댓글이면 parent 설정
+        if (parentCommentId != null) {
+            BoardComment parent = commentRepository.findById(parentCommentId)
+                    .orElseThrow(() -> new RuntimeException("부모 댓글이 존재하지 않습니다."));
             comment.setParentComment(parent);
         }
 
         return commentRepository.save(comment);
     }
 
+    /**
+     * 댓글 삭제 (본인만 가능)
+     */
     @Override
-    public List<BoardComment> findByPost(Long postId) {
-        return commentRepository.findByPost_IdOrderByCreatedAtAsc(postId);
-    }
+    public void delete(Long commentId, String loginUserId) {
 
-    @Override
-    public void delete(Long id) {
-        commentRepository.deleteById(id);
+        BoardComment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new RuntimeException("댓글이 존재하지 않습니다."));
+
+        if (!comment.getWriter().getMemberId().equals(loginUserId)) {
+            throw new RuntimeException("본인 댓글만 삭제할 수 있습니다.");
+        }
+
+        commentRepository.delete(comment);
     }
 }

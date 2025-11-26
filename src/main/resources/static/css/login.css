@@ -58,3 +58,30 @@ button:hover {
     margin-top: 15px;
     text-align: center;
 }
+
+/* 소셜 로그인 박스 */
+.social-login-box {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+
+/* 소셜 버튼 고정 크기 */
+.social-btn {
+    width: 180px;
+    height: 45px;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+/* 소셜 이미지 크기 고정 */
+.social-btn img {
+    width: 180px;
+    height: 45px;
+    object-fit: contain;
+    display: block;
+}
