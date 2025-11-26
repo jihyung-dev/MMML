@@ -82,3 +82,22 @@ a:hover {
     margin-right: 10px;
     font-size: 14px;
 }
+/* 홈페이지 바로가기 내돈내삶 클릭 */
+.nav-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-decoration: none;
+    color: black;
+}
+
+/*로그아웃버튼*/
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+/*로그인 유저 닉네임*/
+.nav-user-info {
+    font-weight: 600;
+    color: #333;
+}
