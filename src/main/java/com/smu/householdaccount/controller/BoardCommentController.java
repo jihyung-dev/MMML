@@ -19,10 +19,9 @@ public class BoardCommentController {
     public String write(@RequestParam Long postId,
                         @RequestParam String content,
                         @RequestParam(required = false) Long parentId,
-                        HttpSession session) {
+                        @SessionAttribute(required = false) Member loginUser  // 🔥 로그인 사용자 가져오기
 
-        // 🔥 로그인 사용자 가져오기
-        Member loginUser = (Member) session.getAttribute("loginUser");
+    ) {
 
         if (loginUser == null) {
             return "redirect:/login";  // 로그인 안 되어 있으면 로그인 페이지로

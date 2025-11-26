@@ -1,11 +1,15 @@
 package com.smu.householdaccount.service;
 
 import com.smu.householdaccount.entity.Member;
+import com.smu.householdaccount.entity.Seller;
 import com.smu.householdaccount.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -36,12 +40,28 @@ public class MemberServiceImp implements MemberService {
     /**
      * 로그인
      */
+    @Transactional(readOnly = true)
     @Override
     public Member login(String memberId, String rawPassword) {
-
         return memberRepository.findById(memberId)
                 .filter(m -> passwordEncoder.matches(rawPassword, m.getPassword()))
                 .orElse(null);
+    }
+ @Transactional(readOnly = true)
+
+    public Seller sellerLogin(String memberId, String rawPassword,String bizNo) {
+        Seller seller = null;
+         Optional<Member> member=memberRepository.findById(memberId);
+         Set<Seller> sellers=member.get().getSellers();
+         if(sellers.size()>0){
+             for(Seller s: sellers){
+                 if(s.getBizNo().equals(bizNo)){
+                     seller=s;
+                 }
+             }
+
+         }
+         return seller;
     }
 
     /**

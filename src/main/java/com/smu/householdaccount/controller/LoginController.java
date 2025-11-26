@@ -26,21 +26,22 @@ public class LoginController {
      * 로그인 처리
      */
     @PostMapping("/login")
-    public String login(@RequestParam String memberId,
+    public String login(
+                        @RequestParam String memberId,
                         @RequestParam String password,
                         HttpSession session,
                         Model model) {
 
-        Member loginMember = memberService.login(memberId, password);
+        Member loginUser = memberService.login(memberId, password);
 
-        if (loginMember == null) {
+        if (loginUser == null) {
             model.addAttribute("error", "아이디 또는 비밀번호가 올바르지 않습니다.");
             return "auth/login";
         }
 
         // 🔥 로그인 성공 시 세션 저장
-        session.setAttribute("loginMember", loginMember);            // Member 객체
-        session.setAttribute("loginUserId", loginMember.getMemberId()); // BoardPostController용
+        session.setAttribute("loginUser", loginUser);            // Member 객체
+        session.setAttribute("loginUserId", loginUser.getMemberId()); // BoardPostController용
 
         return "redirect:/";  // 홈으로 이동
     }
