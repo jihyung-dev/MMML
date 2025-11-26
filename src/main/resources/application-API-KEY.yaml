@@ -11,3 +11,7 @@ naver:
   redirect_uri: http://localhost:7003/user/naver/naverCallback
   nauth-host: https://nid.naver.com
   napi-host: https://openapi.naver.com
+
+portone:
+  api-key: ${PORTONE_API_KEY:5014357720785836}
+  api-secret: ${PORTONE_API_SECRET:SPr43WRyb2SQ8whuWs20tSr54WH14kr2pxTUIpMGa6EdJddgGhdjS826zQVP97s0XqWEUXxcajFhCKIc}

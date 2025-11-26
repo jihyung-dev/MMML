@@ -11,6 +11,7 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -53,13 +54,15 @@ public class PaymentTransaction {
 
     @ColumnDefault("SYSTIMESTAMP")
     @Column(name = "REQUEST_TIME")
-    private Instant requestTime;
+    private LocalDateTime requestTime;
 
     @Column(name = "RESPONSE_TIME")
-    private Instant responseTime;
+    private LocalDateTime responseTime;
 
     @Lob
     @Column(name = "RAW_DATA")
     private String rawData;
 
+    @Column(name = "IMP_UID")
+    private String impUid;
 }

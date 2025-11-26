@@ -73,4 +73,22 @@ public class SafeHttpClient {
             return null;
         }
     }
+
+    public <T> T get(String url, HttpHeaders headers, Class<T> responseType) {
+        try {
+
+            RestClient.RequestHeadersSpec<?> req = client.method(HttpMethod.GET)
+                    .uri(url)
+                    .headers(h -> h.addAll(headers));
+
+            return req.retrieve().body(responseType);
+
+        } catch (RestClientResponseException e) {
+            log.error("❗ API ERROR [{}] {}: {}", e.getRawStatusCode(), url, e.getResponseBodyAsString());
+            return null;
+        } catch (Exception e) {
+            log.error("❗ API CONNECTION FAILED {}: {}", url, e.getMessage());
+            return null;
+        }
+    }
 }
