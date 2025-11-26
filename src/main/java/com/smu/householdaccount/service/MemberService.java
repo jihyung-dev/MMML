@@ -1,8 +1,10 @@
 package com.smu.householdaccount.service;
 
 import com.smu.householdaccount.entity.Member;
+import com.smu.householdaccount.entity.Seller;
 
 public interface MemberService {
+    Seller sellerLogin(String memberId, String rawPassword, String bizNo);
 
     // 🔹 일반 회원가입
     Member registerUser(Member member);

@@ -88,10 +88,7 @@ public class UserController{
     }
 
 
-    @GetMapping("/main_hm")
-    public String mainHm() {
-        return "user/main_hm";
-    }
+
 
 
 

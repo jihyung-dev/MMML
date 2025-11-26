@@ -47,19 +47,28 @@ public class MemberServiceImp implements MemberService {
                 .filter(m -> passwordEncoder.matches(rawPassword, m.getPassword()))
                 .orElse(null);
     }
- @Transactional(readOnly = true)
 
-    public Seller sellerLogin(String memberId, String rawPassword,String bizNo) {
+    @Transactional(readOnly = true)
+    public Seller sellerLogin(String memberId, String rawPassword,String bizNo) throws IllegalStateException ,IllegalArgumentException{
         Seller seller = null;
-         Optional<Member> member=memberRepository.findById(memberId);
-         Set<Seller> sellers=member.get().getSellers();
+         Optional<Member> memberOpt=memberRepository.findById(memberId);
+         Member member=memberOpt
+                 .filter(m -> passwordEncoder.matches(rawPassword, m.getPassword()))
+                 .orElseThrow(()->new IllegalArgumentException("아이디 또는 비밀번호가 올바르지 않습니다."));
+
+
+         Set<Seller> sellers=member.getSellers();
          if(sellers.size()>0){
              for(Seller s: sellers){
                  if(s.getBizNo().equals(bizNo)){
                      seller=s;
+                     break;
                  }
              }
 
+         }
+         if(seller==null){
+             throw new IllegalStateException("해당 사업자번호로 등록된 판매자 계정이 없습니다.");
          }
          return seller;
     }
