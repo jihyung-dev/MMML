@@ -1,11 +1,13 @@
 package com.smu.householdaccount.controller;
 
+import com.smu.householdaccount.dto.ledger.LedgerSummaryDto;
 import com.smu.householdaccount.service.LedgerService;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequestMapping("/ledger")
@@ -44,12 +46,28 @@ public class LedgerController {
      */
     @GetMapping("/request/userLedger/month")
     public ResponseEntity<?> getMonthlyGroupLedger(
-            @Param("start_year") int start_year,
-            @Param("start_month") int start_month,
-            @Param("end_year") int end_year,
-            @Param("end_month") int end_month
+            @RequestParam("start_year") int start_year,
+            @RequestParam("start_month") int start_month,
+            @RequestParam("end_year") int end_year,
+            @RequestParam("end_month") int end_month
             ){
         ledgerService.getMonthLedger(start_year, start_month, end_year, end_month);
         return ResponseEntity.ok("success");
+    }
+
+    @GetMapping("/chart")
+    public ResponseEntity<?> getMonthlyChart(
+            @RequestParam("year") int start_year,
+            @RequestParam("month") int start_month
+    ) {
+        LedgerSummaryDto dto = ledgerService.getMonthlyChart(start_year, start_month);
+        return ResponseEntity.ok(
+                dto
+        );
+    }
+
+    @GetMapping("")
+    public String home(){
+        return "household/blank";
     }
 }

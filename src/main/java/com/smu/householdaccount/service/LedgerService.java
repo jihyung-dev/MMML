@@ -3,7 +3,10 @@ package com.smu.householdaccount.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.smu.householdaccount.dto.ledger.LedgerSummaryDto;
+import com.smu.householdaccount.dto.ledger.LedgerSummaryDto.*;
 import com.smu.householdaccount.entity.BudgetGroup;
+import com.smu.householdaccount.entity.LedgerEntry;
 import com.smu.householdaccount.repository.BudgetGroupRepository;
 import com.smu.householdaccount.repository.LedgerRepository;
 import com.smu.householdaccount.util.Log;
@@ -13,7 +16,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class LedgerService {
@@ -50,22 +58,75 @@ public class LedgerService {
     /**
      * 사용자의 모든 거래 내역
      */
-    public void getLedgerAll(){
+    public List<LedgerEntry> getLedgerAll(){
         BudgetGroup group = budgetGroupRepository.findById(1l).orElseThrow();
         LocalDate start = LocalDate.of(2025, 8, 1);
         LocalDate end   = LocalDate.of(2025, 8, 31);
         Log.d("데이터 확인", group.toString());
         Log.d("그룹 : " , ledgerRepository.findByGroupAndDateRange(group, start, end).toString());
+        return null;
     }
 
     /**
      * 월별 사용자의 거래 내역
      */
-    public void getMonthLedger(int start_year, int start_month, int end_year, int end_month){
+    public List<LedgerEntry> getMonthLedger(int start_year, int start_month, int end_year, int end_month){
         BudgetGroup group = budgetGroupRepository.findById(1l).orElseThrow();
         LocalDate date_start = LocalDate.of(start_year, start_month, 1);
         LocalDate date_end   = LocalDate.of(end_year, end_month, Utility.endOfMonth(end_year, end_month));
         Log.d("데이터 확인", group.toString());
-        Log.d("그룹 : " , ledgerRepository.findByGroupAndDateRange(group, date_start, date_end).toString());
+        return ledgerRepository.findByGroupAndDateRange(group, date_start, date_end);
+    }
+
+    public LedgerSummaryDto getMonthlyChart(int year, int month){
+        BudgetGroup group = budgetGroupRepository.findById(1l).orElseThrow();
+        LocalDate date_start = LocalDate.of(year, month, 1);
+        LocalDate date_end   = LocalDate.of(year, month, Utility.endOfMonth(year, month));
+        List<LedgerEntry> entries = ledgerRepository.findByGroupAndDateRange(group, date_start, date_end);
+
+        BigDecimal totalExpense = BigDecimal.ZERO;
+        BigDecimal totalIncome = BigDecimal.ZERO;
+
+        Map<String, BigDecimal> categoryMap = new HashMap<>();
+        Map<LocalDate, DailySummary> dailyMap  = new HashMap<>();
+
+        for(LedgerEntry entry : entries){
+            LocalDate date = entry.getOccurredAt();
+            dailyMap.putIfAbsent(date, LedgerSummaryDto.DailySummary.builder()
+                            .date(date)
+                            .expense(BigDecimal.ZERO)
+                            .income(BigDecimal.ZERO).build());
+            // 전체 지출 더하기
+            if(entry.getEntryType().equals("EXPENSE")){
+                totalExpense = totalExpense.add(entry.getEntryAmount());
+
+                // 카테고리
+                String category = entry.getCategory().getCategoryName();
+                // map에 없으면 새로 생성해서 더하기
+                categoryMap.put(category, categoryMap.getOrDefault(category, BigDecimal.ZERO).add(entry.getEntryAmount()));
+                // 데일리
+                dailyMap.get(date).setExpense(dailyMap.get(date).getExpense().add(entry.getEntryAmount()));
+            } else if(entry.getEntryType().equals("INCOME")){
+                totalIncome = totalIncome.add(entry.getEntryAmount());
+
+                dailyMap.get(date).setIncome(dailyMap.get(date).getIncome().add(entry.getEntryAmount()));
+            }
+        }
+        return LedgerSummaryDto.builder()
+                .totalExpense(totalExpense)
+                .totalIncome(totalIncome)
+                .categories(
+                        categoryMap.entrySet().stream()
+                                .map(e -> LedgerSummaryDto.CategorySummary.builder()
+                                        .categoryName(e.getKey())
+                                        .amount(e.getValue())
+                                        .build()).toList()
+                )
+                .daily(
+                        dailyMap.values().stream()
+                                .sorted(Comparator.comparing(LedgerSummaryDto.DailySummary::getDate))
+                                .toList()
+                )
+                .build();
     }
 }
