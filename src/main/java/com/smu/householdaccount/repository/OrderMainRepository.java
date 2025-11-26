@@ -11,4 +11,7 @@ public interface OrderMainRepository extends JpaRepository<OrderMain, Long> {
     // merchant_uid로 주문 조회
     Optional<OrderMain> findByMerchantUid(String merchantUid);
     boolean existsByMerchantUid(String merchantUid); // 중복 방지용
+
+    @Override
+    <S extends OrderMain> S save(S entity);
 }

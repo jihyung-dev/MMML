@@ -13,6 +13,8 @@ import java.util.List;
 
 @Repository
 public interface ItemRepository extends JpaRepository<Item, Long>, JpaSpecificationExecutor<Item> {
+    @Override
+    List<Item> findAllById(Iterable<Long> longs);
 
     // sellerId로 조회 (페이징)
     @EntityGraph(attributePaths = {"seller","category"})

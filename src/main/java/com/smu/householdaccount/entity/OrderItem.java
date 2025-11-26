@@ -19,21 +19,28 @@ public class OrderItem {
     @Column(name = "ORDER_ITEM_ID", nullable = false)
     private Long id;
 
-    @NotNull
+    @Column(name = "ORDER_ID", nullable = false)
+    private Long orderId;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "ORDER_ID", nullable = false)
+    @JoinColumn(name = "ORDER_ID",insertable = false, updatable = false)
     private OrderMain order;
 
-    @NotNull
+    @Column(name = "ITEM_ID", nullable = false)
+    private Long itemId;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.RESTRICT)
-    @JoinColumn(name = "ITEM_ID", nullable = false)
+    @JoinColumn(name = "ITEM_ID", insertable = false, updatable = false)
     private Item item;
+
+    @Column(name = "OPTION_ID")
+    private Long otionId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.RESTRICT)
-    @JoinColumn(name = "OPTION_ID")
+    @JoinColumn(name = "OPTION_ID",insertable = false, updatable = false)
     private HotdealOption option;
 
     @NotNull
