@@ -78,6 +78,14 @@ public class LedgerService {
         return ledgerRepository.findByGroupAndDateRange(group, date_start, date_end);
     }
 
+    public List<DailySummary> getCalendarDailyStats(int year, int month) {
+        LedgerSummaryDto summary = getMonthlyChart(year, month);
+
+        // 캘린더가 요구하는 DailySummary 리스트만 반환
+        return summary.getDaily();
+    }
+
+
     public LedgerSummaryDto getMonthlyChart(int year, int month){
         BudgetGroup group = budgetGroupRepository.findById(1l).orElseThrow();
         LocalDate date_start = LocalDate.of(year, month, 1);
