@@ -43,6 +43,12 @@ public class LoginController {
         session.setAttribute("loginUser", loginUser);            // Member 객체
         session.setAttribute("loginUserId", loginUser.getMemberId()); // BoardPostController용
 
+        // 🔥 역할에 따라 이동 경로 분기
+        if ("ADMIN".equalsIgnoreCase(loginUser.getRole())) {
+            return "redirect:/admin";   // 관리자 전용 페이지로
+        }
+
+
         return "redirect:/";  // 홈으로 이동
     }
 
