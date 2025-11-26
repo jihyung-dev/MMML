@@ -28,7 +28,7 @@ public class LedgerEntry {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.RESTRICT)
     @JoinColumn(name = "GROUP_ID", nullable = false)
-    private BudgetGroup group;
+    private BudgetGroup groupId;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -87,4 +87,24 @@ public class LedgerEntry {
     @Column(name = "UPDATED_AT")
     private LocalDateTime updatedAt;
 
+    @Override
+    public String toString() {
+        return "LedgerEntry{" +
+                "id=" + id +
+                ", groupId=" + groupId +
+                ", member=" + member +
+                ", entryType='" + entryType + '\'' +
+                ", payType='" + payType + '\'' +
+                ", cardType='" + cardType + '\'' +
+                ", category=" + category +
+                ", entryAmount=" + entryAmount +
+                ", currency='" + currency + '\'' +
+                ", occurredAt=" + occurredAt +
+                ", placeOfUse='" + placeOfUse + '\'' +
+                ", memo='" + memo + '\'' +
+                ", extSrc='" + extSrc + '\'' +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
+    }
 }

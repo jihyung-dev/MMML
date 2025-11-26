@@ -45,7 +45,7 @@ public class BudgetGroup {
     @OneToMany(mappedBy = "group")
     private Set<GroupMember> groupMembers = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "group")
+    @OneToMany(mappedBy = "groupId")
     private Set<LedgerEntry> ledgerEntries = new LinkedHashSet<>();
 
 }
