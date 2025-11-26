@@ -1,6 +1,6 @@
 /* 전체 기본 스타일 */
 body {
-    font-family: 'Noto Sans KR', sans-serif;
+    font-family: 'Manrope', sans-serif;
     margin: 30px;
     background: #f5f5f5;
     font-size: 13px;
@@ -79,6 +79,94 @@ a:hover {
 
 /* 페이징 */
 .pagination a, .pagination span {
-    margin-right: 10px;
-    font-size: 14px;
+    /*margin-right: 10px;
+    font-size: 14px;*/
+    display: block;
+    padding: 5px 10px;
+    text-decoration: none;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    color: #007bff;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    padding-left: 0;
+    margin-top: 20px;
+}
+
+.pagination li {
+    margin: 0 3px;
+}
+
+.pagination .active a {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.pagination .disabled a {
+    color: #6c757d;
+    pointer-events: none;
+    background-color: #fff;
+}
+
+/* 이미지 없어서 카드 높이 줄어드는거 방지*/
+.card-img-top {
+    width: 100%;
+    height: 150px; /* 기본 높이 */
+    object-fit: cover; /* 비율 맞춤 */
+    background-color: #f0f0f0; /* 이미지 없을 때 배경색 */
+}
+
+/* 카드 내부 padding, 그림자 등 */
+.card.item-card {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    overflow: hidden;
+    transition: transform 0.2s;
+}
+
+.card.item-card:hover {
+    transform: scale(1.02);
+}
+
+
+/* 메뉴(핫딜 등) 전용 스타일 */
+.menu-link {
+    color: #929292;           /* 평상시 색 (예시: 어두운 회색) */
+    text-decoration: none;    /* 밑줄 제거 */
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+
+/* hover */
+.menu-link:hover,
+.menu-link:focus {
+    color: #000000;           /* hover/포커스 색 */
+    text-decoration: underline; /* 필요하면 밑줄 추가 */
+}
+
+/* active (현재 페이지인 경우) */
+.menu-link.active {
+    color: #000000;           /* 강조 색 (예: 브랜드 컬러) */
+    font-weight: 700;
+}
+
+
+/* 툴바 간격/작은 버튼 조정 */
+.d-flex.gap-2 .btn {
+    min-width: 70px;
+}
+
+/* input-group-sm 높이 조정 (더 타이트하게) */
+.input-group-sm .form-control {
+    padding: .25rem .5rem;
+    font-size: .875rem;
+}
+.input-group-sm .btn {
+    padding: .25rem .5rem;
+    font-size: .875rem;
 }

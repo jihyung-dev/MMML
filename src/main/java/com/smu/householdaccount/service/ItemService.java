@@ -18,6 +18,18 @@ public interface ItemService {
                            LocalDate activeOn,
                            Pageable pageable);
 
+//    필요없으면 삭제할 예정
+    /*Page<Item> searchHotdeal(Long sellerId,
+                           String categoryId,
+                           String keyword,
+                           BigDecimal minPrice,
+                           BigDecimal maxPrice,
+                           String saleStatus,
+                           LocalDate activeOn,
+                           Pageable pageable);*/
+
+
+
     Page<Item> findBySeller(Long sellerId, Pageable pageable);
 
     Page<Item> findByCategory(String categoryId, Pageable pageable);

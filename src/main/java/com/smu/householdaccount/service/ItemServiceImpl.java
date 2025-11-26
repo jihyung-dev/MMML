@@ -58,6 +58,12 @@ public class ItemServiceImpl implements ItemService {
         return page;
     }
 
+//    필요없으면 삭제할 예정
+    /*@Override
+    public Page<Item> searchHotdeal(Long sellerId, String categoryId, String keyword, BigDecimal minPrice, BigDecimal maxPrice, String saleStatus, LocalDate activeOn, Pageable pageable) {
+        return null;
+    }*/
+
     @Override
     @Transactional(readOnly = true)
     public Page<Item> findBySeller(Long sellerId, Pageable pageable) {
