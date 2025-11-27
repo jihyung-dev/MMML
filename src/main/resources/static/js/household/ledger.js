@@ -1,35 +1,41 @@
+// Highcharts 전역 설정: 모든 차트에서 햄버거 메뉴 + 워터마크 제거
+Highcharts.setOptions({
+    exporting: {
+        enabled: false
+    },
+    credits: {
+        enabled: false
+    }
+});
+
 // 전역 상태
 let currentYear = 2025;
 let currentMonth = 10;
 let modalJustOpened = false; // 모달 팝업 플래그
 let modalChartInstance = null;
 
-//LRU 캐싱 사용, 가장 최근에 사용하지 않은 데이터 제거.
+//LRU 캐싱 사용, 가장 최근에 사용하지 않은 데이터 제거.현재 달과 전 달의 2개월치 데이터를 3개까지 보관(총 6개)
 const ledgerCache = new Map();
 let loaded3MonthCache = {};
 
 async function loadLedgerChart({ year, month }) {
-    // 캐싱용 키 설정
     const key = `${year}-${month}`;
 
-    // 캐싱 작업
-    const cached = getCache(key);
+    // 캐시 확인
+    let cached = getCache(key);
     if (cached) {
-        console.log("캐시 데이터 사용")
-        drawCategoryPieChart(cached.categories);
-        drawDailyLineChart(cached.daily);
-        return;
+        drawCategoryPieChart(cached.current.categories);
+        drawDailyLineChart(cached.current.daily, cached.prev1.daily);
+        return cached;
     }
 
-    const url = `/ledger/chart?year=${year}&month=${month}`;
-    fetch(url)
-        .then(res => res.json())
-        .then(data => {
-            setCache(key, data);
+    // 캐시 없으면 새로 생성
+    const bundle = await setCache(key, year, month);
 
-            drawCategoryPieChart(data.categories);
-            drawDailyLineChart(data.daily);
-        });
+    drawCategoryPieChart(bundle.current.categories);
+    drawDailyLineChart(bundle.current.daily, bundle.prev1.daily);
+
+    return bundle;
 }
 
 function drawCategoryPieChart(categories) {
@@ -69,7 +75,6 @@ function drawModalComparePieChart(currentAmount, avgAmount, categoryName) {
     Highcharts.chart('modalCategoryChart', {
         chart: { type: 'pie' },
         title: { text: `${categoryName} - 이번 달 / 3개월 평균` },
-        credits: { enabled: false },
         plotOptions: {
             pie: {
                 size: '70%',                // 파이 반지름 고정
@@ -99,25 +104,41 @@ function drawModalComparePieChart(currentAmount, avgAmount, categoryName) {
     });
 }
 
-function drawDailyLineChart(daily) {
+function drawDailyLineChart(currentDaily, prevDaily) {
+    // prevDaily가 일수 다를 수 있으니 날짜 기준 맞추기
+    const prevExpenseAligned = currentDaily.map(d => {
+        const day = d.date.split("-")[2];
+        const found = prevDaily.find(p => p.date.endsWith(day));
+        return found ? found.expense : 0;
+    });
+
     Highcharts.chart('dailyChart', {
         chart: { type: 'line' },
         title: { text: '일별 지출/수입 추이' },
-        xAxis: {
-            categories: daily.map(d => d.date)
-        },
-        yAxis: {
-            title: { text: '금액(원)' }
-        },
-        series: [{
-            name: '지출',
-            data: daily.map(d => d.expense)
-        }, {
-            name: '수입',
-            data: daily.map(d => d.income)
-        }]
+        xAxis: { categories: currentDaily.map(d => d.date) },
+        yAxis: { title: { text: '금액(원)' } },
+        legend: { enabled: true },
+        series: [
+            {
+                name: '지출(이번 달)',
+                data: currentDaily.map(d => d.expense),
+                color: '#00a8ff'
+            },
+            {
+                name: '지출(지난달)',
+                data: prevExpenseAligned,
+                color: '#9e9e9e',
+                dashStyle: 'ShortDash'
+            },
+            {
+                name: '수입(이번 달)',
+                data: currentDaily.map(d => d.income),
+                color: '#8e44ad'
+            }
+        ]
     });
 }
+
 
 // 월 표시 업데이트
 function updateMonthLabel() {
@@ -247,34 +268,54 @@ document.addEventListener("keydown", (e) => {
 });
 
 // 3개월간 데이터 캐싱(LRU 방식 사용)
-function setCache(key, data, maxSize = 3) {
-    // 이미 존재하면 제거 후 다시 넣어서 “가장 최근”으로 만들기(중요)
+async function setCache(key, year, month, maxSize = 3) {
+    // 이미 존재하면 최신으로 갱신
     if (ledgerCache.has(key)) {
+        const old = ledgerCache.get(key);
         ledgerCache.delete(key);
+        ledgerCache.set(key, old);
+        return old;
     }
 
-    // 신규 데이터 삽입
-    ledgerCache.set(key, data);
+    // 현재 달 데이터
+    const current = await fetch(`/ledger/chart?year=${year}&month=${month}`)
+        .then(res => res.json());
 
-    // 사이즈 초과 시 가장 오래된 항목 삭제(LRU)
+    // 지난달 계산
+    let prev1Year = year;
+    let prev1Month = month - 1;
+    if (prev1Month === 0) {
+        prev1Month = 12;
+        prev1Year--;
+    }
+
+    const prev1 = await fetch(`/ledger/chart?year=${prev1Year}&month=${prev1Month}`)
+        .then(res => res.json());
+
+    const bundle = { current, prev1 };
+
+    // LRU 저장
+    ledgerCache.set(key, bundle);
+
     if (ledgerCache.size > maxSize) {
         const oldestKey = ledgerCache.keys().next().value;
         ledgerCache.delete(oldestKey);
     }
+
+    return bundle;
 }
 
 function getCache(key) {
-    if (!ledgerCache.has(key)) {
-        return null;
-    }
+    if (!ledgerCache.has(key)) return null;
 
-    // 사용했으므로 최신으로 갱신
+    // LRU : 사용된 항목 최신으로 이동
     const value = ledgerCache.get(key);
     ledgerCache.delete(key);
     ledgerCache.set(key, value);
 
-    return value;
+    return value;   // { current: {...}, prev1: {...} }
 }
+
 
 function get3MonthAverage(categoryName, key) {
     const data = loaded3MonthCache[key];
@@ -300,12 +341,12 @@ function updateModalComparisonView(curr, avg) {
 
 // 특정 카테고리 금액 가져오기
 function getCategoryFromLedgerCache(key, categoryName) {
-    const data = ledgerCache.get(key);  // 또는 ledgerCache[key]
+    const bundle = ledgerCache.get(key);
+    if (!bundle || !bundle.current) return null;
 
-    if (!data || !data.categories) {
-        return null;
-    }
+    const found = bundle.current.categories.find(
+        c => c.categoryName === categoryName
+    );
 
-    const found = data.categories.find(c => c.categoryName === categoryName);
     return found ? Number(found.amount) : null;
 }
