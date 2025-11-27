@@ -38,24 +38,47 @@ body {
     box-sizing: border-box;
 }
 
-.summary-info {
-    text-align: right;
-    margin-left: auto; /* 오른쪽 정렬 */
-}
-
-.amount-group h2 { margin: 0; font-size: 24px; color: #333; }
-.amount-group h3 { margin: 5px 0 0 0; font-size: 18px; color: #28a745; }
-
-.analyze-btn {
-    padding: 8px 20px;
-    background-color: #343a40;
-    color: white;
+/* 뉴모피즘 버튼 */
+.neo-btn {
+    width: 48px;
+    height: 48px;
     border: none;
-    border-radius: 6px;
+    background: #e8e9ec;
+    border-radius: 50%;
+    font-size: 20px;
     cursor: pointer;
-    margin-left: 15px;
+    transition: all 0.2s ease;
+    box-shadow:
+            6px 6px 12px rgba(0,0,0,0.1),
+            -6px -6px 12px rgba(255,255,255,0.8);
 }
 
+.neo-btn:hover {
+    box-shadow:
+            3px 3px 8px rgba(0,0,0,0.12),
+            -3px -3px 8px rgba(255,255,255,0.95);
+    transform: translateY(-2px);
+}
+
+.neo-btn:active {
+    box-shadow:
+            inset 3px 3px 6px rgba(0,0,0,0.15),
+            inset -3px -3px 6px rgba(255,255,255,0.9);
+    transform: translateY(0);
+}
+
+
+/* 가운데 월 표시 라벨 */
+.neo-label {
+    padding: 8px 22px;
+    background: #e8e9ec;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: 600;
+    box-shadow:
+            6px 6px 12px rgba(0,0,0,0.1),
+            -6px -6px 12px rgba(255,255,255,0.8);
+}
 /* 메인 대시보드 (Flexbox) */
 .dashboard-container {
     display: flex;
@@ -66,7 +89,6 @@ body {
     flex-wrap: wrap;
 }
 
-/* 차트 및 캘린더 공통 박스 스타일 */
 .chart-wrapper, .calendar-wrapper {
     flex: 1;
     background: #fff;
@@ -77,7 +99,6 @@ body {
     height: 600px;    /* 높이 조금 더 확보 */
     box-sizing: border-box;
 }
-
 /* FullCalendar 내부 스타일 */
 #calendar {
     width: 100%;
@@ -115,28 +136,51 @@ body {
     color: #721c24; /* 진한 빨강 글씨 */
 }
 
-/* 모달 */
+/* 모달 팝업 */
 .modal-overlay {
     display: none;
     position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100%;
-    background: rgba(0,0,0,0.5);
-    z-index: 9999;
+    background: rgba(0,0,0,0.45);
     justify-content: center;
     align-items: center;
+    z-index: 99;
+    opacity: 0;
+    transition: opacity 0.25s ease;
 }
+
+.modal-overlay.show {
+    display: flex;
+    opacity: 1;
+}
+
 .modal-content {
     background: white;
-    padding: 25px;
-    border-radius: 10px;
-    width: 400px;
-    max-width: 90%;
-    position: relative;
+    padding: 20px 25px;
+    border-radius: 12px;
+    width: 350px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.25);
+    animation: popup 0.2s ease-out;
 }
+
+@keyframes popup {
+    from { transform: scale(0.8); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+}
+
 .close-btn {
-    position: absolute;
-    top: 10px; right: 15px;
-    font-size: 24px;
+    float: right;
     cursor: pointer;
+    font-size: 24px;
+}
+
+.chart-container {
+    width: 100%;
+    height: 400px;
+}
+
+#modalCategoryChart {
+    width: 100%;
+    height: 260px;   /* 원하는 고정 높이 */
 }

@@ -48,15 +48,18 @@ public class LedgerController {
      */
     @GetMapping("/request/userLedger/month")
     public ResponseEntity<?> getMonthlyGroupLedger(
-            @RequestParam("start_year") int start_year,
-            @RequestParam("start_month") int start_month,
-            @RequestParam("end_year") int end_year,
-            @RequestParam("end_month") int end_month
+            @RequestParam("year") int start_year,
+            @RequestParam("month") int start_month
             ){
-        ledgerService.getMonthLedger(start_year, start_month, end_year, end_month);
-        return ResponseEntity.ok("success");
+        return ResponseEntity.ok(ledgerService.getMonthLedger(start_year, start_month));
     }
 
+    /**
+     * 1개월치 차트를 그리기 위한 데이터 요청 API
+     * @param start_year
+     * @param start_month
+     * @return
+     */
     @GetMapping("/chart")
     public ResponseEntity<?> getMonthlyChart(
             @RequestParam("year") int start_year,

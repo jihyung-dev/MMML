@@ -22,22 +22,15 @@
 
 <!-- 상단 헤더 (네비게이션 + 요약) -->
 <div class="header-container">
-    <!-- 1. 월 이동 네비게이션 (기존 디자인 유지) -->
+    <!-- 1. 월 이동 네비게이션  -->
     <div id="monthNav" class="month-nav">
-        <button id="prevBtn" class="neo-btn" onclick="prevMonth()">&#9664;</button>
-        <span id="currentMonthLabel" class="neo-label">2025년 10월</span>
-        <button id="nextBtn" class="neo-btn" onclick="nextMonth()">&#9654;</button>
-    </div>
+        <button class="neo-btn" onclick="prevMonth()">&#9664;</button>
 
-    <!-- 2. 월 소계 -->
-    <div class="summary-info">
-        <div class="amount-group">
-            <h2></h2>
-            <h3></h3>
-        </div>
+        <span id="currentMonthLabel" class="neo-label">2025년 10월</span>
+
+        <button class="neo-btn" onclick="nextMonth()">&#9654;</button>
     </div>
 </div>
-
 <!-- 메인 대시보드 (차트 + 캘린더 가로 배치) -->
 <div class="dashboard-container">
     <!-- 왼쪽: 카테고리 차트 -->
@@ -50,19 +43,42 @@
         <div id="calendar"></div>
     </div>
 </div>
-
-<!-- 하단: 일별 차트 (기존 유지) -->
+<!-- 하단: 일별 차트 -->
 <div id="dailyChart" style="width: 100%; height: 400px; max-width: 1200px; margin: 30px auto;"></div>
 
-<!-- 모달 (기존 유지) -->
-<div id="chartModal" class="modal-overlay">
-    <div class="modal-content">
-        <span class="close-btn" onclick="closeModal()">&times;</span>
-        <h2 id="modalTitle">상세 내역</h2>
-        <div id="modalBody">내용 로딩 중...</div>
-    </div>
-</div>
+    <!-- 모달 -->
+    <div id="chartModal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
 
+            <!-- 제목 -->
+            <h2 id="modalTitle"></h2>
+
+            <div id="modalBody">
+                <!-- 기존 카테고리 파이 차트 -->
+                <div id="modalCategoryChart" class="chart-container"></div>
+
+                <!-- 비교 섹션 -->
+                <div id="modalCompareSection" class="compare-section">
+                    <!-- 금액 비교 -->
+                    <div class="compare-values">
+                        <div class="value-box">
+                            <span class="label">이번 달</span>
+                            <span id="modalCurrentValue" class="value">0</span>
+                        </div>
+
+                        <div class="value-box">
+                            <span class="label">최근 3개월 평균</span>
+                            <span id="modalAverageValue" class="value">0</span>
+                        </div>
+                    </div>
+
+                    <!-- 비교 차트 (막대) -->
+                    <div id="modalCompareChart" class="chart-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 <!-- 스크립트: 캘린더 초기화 -->
 <!-- 스크립트 -->
 <script>

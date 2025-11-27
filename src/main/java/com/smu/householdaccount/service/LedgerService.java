@@ -70,12 +70,28 @@ public class LedgerService {
     /**
      * 월별 사용자의 거래 내역
      */
-    public List<LedgerEntry> getMonthLedger(int start_year, int start_month, int end_year, int end_month){
-        BudgetGroup group = budgetGroupRepository.findById(1l).orElseThrow();
-        LocalDate date_start = LocalDate.of(start_year, start_month, 1);
-        LocalDate date_end   = LocalDate.of(end_year, end_month, Utility.endOfMonth(end_year, end_month));
-        Log.d("데이터 확인", group.toString());
-        return ledgerRepository.findByGroupAndDateRange(group, date_start, date_end);
+    public LedgerSummaryDto getMonthLedger(int year, int month){
+        BudgetGroup group = budgetGroupRepository.findById(1l).orElseThrow(); // 수정 필요.하드코딩
+        LocalDate date = LocalDate.of(year, month, 1);
+        // 기준이 되는 달의 1일
+        LocalDate targetMonth = LocalDate.of(year, month, 1);
+
+        // 3개월 전 1일
+        LocalDate startDate = targetMonth.minusMonths(3).withDayOfMonth(1);
+
+        // 기준달의 마지막날
+        LocalDate endDate = targetMonth.withDayOfMonth(targetMonth.lengthOfMonth());
+        List<LedgerEntry> entries = ledgerRepository.findByGroupAndDateRange(group, startDate, endDate);
+        return getLedgerSummary(entries);
+    }
+
+    public LedgerSummaryDto getMonthlyChart(int year, int month) {
+        BudgetGroup group = budgetGroupRepository.findById(1l).orElseThrow(); // 수정 필요.하드코딩
+        LocalDate date_start = LocalDate.of(year, month, 1);
+        LocalDate date_end = LocalDate.of(year, month, Utility.endOfMonth(year, month));
+        List<LedgerEntry> entries = ledgerRepository.findByGroupAndDateRange(group, date_start, date_end);
+
+        return getLedgerSummary(entries);
     }
 
     public List<DailySummary> getCalendarDailyStats(int year, int month) {
@@ -85,13 +101,7 @@ public class LedgerService {
         return summary.getDaily();
     }
 
-
-    public LedgerSummaryDto getMonthlyChart(int year, int month){
-        BudgetGroup group = budgetGroupRepository.findById(1l).orElseThrow();
-        LocalDate date_start = LocalDate.of(year, month, 1);
-        LocalDate date_end   = LocalDate.of(year, month, Utility.endOfMonth(year, month));
-        List<LedgerEntry> entries = ledgerRepository.findByGroupAndDateRange(group, date_start, date_end);
-
+    public LedgerSummaryDto getLedgerSummary(List<LedgerEntry> entries){
         BigDecimal totalExpense = BigDecimal.ZERO;
         BigDecimal totalIncome = BigDecimal.ZERO;
 
@@ -101,9 +111,9 @@ public class LedgerService {
         for(LedgerEntry entry : entries){
             LocalDate date = entry.getOccurredAt();
             dailyMap.putIfAbsent(date, LedgerSummaryDto.DailySummary.builder()
-                            .date(date)
-                            .expense(BigDecimal.ZERO)
-                            .income(BigDecimal.ZERO).build());
+                    .date(date)
+                    .expense(BigDecimal.ZERO)
+                    .income(BigDecimal.ZERO).build());
             // 전체 지출 더하기
             if(entry.getEntryType().equals("EXPENSE")){
                 totalExpense = totalExpense.add(entry.getEntryAmount());
