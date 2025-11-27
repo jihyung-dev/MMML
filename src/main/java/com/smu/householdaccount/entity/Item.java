@@ -30,11 +30,13 @@ public class Item {
     @Column(name = "ITEM_ID", nullable = false)
     private Long id;
 
-    @NotNull
+    @Column(name = "SELLER_ID", nullable = false)
+    private Long sellerId;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
 //    @OnDelete(action = OnDeleteAction.RESTRICT) //⇒ @OnDelete가 Hibernate 전용이지만, RESTRICT를 항상 지원하는건 아니고 @ManyToOne 쪽에서 사용하는건 의미가 불명확함.
     @OnDelete(action = OnDeleteAction.CASCADE) //제거하거나 CASCADE로 변경
-    @JoinColumn(name = "SELLER_ID", nullable = false)
+    @JoinColumn(name = "SELLER_ID", insertable = false, updatable = false)
     private Seller seller;
 
     @Size(max = 200)

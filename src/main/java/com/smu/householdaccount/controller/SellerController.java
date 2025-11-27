@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequiredArgsConstructor
@@ -15,6 +16,21 @@ import org.springframework.web.bind.annotation.*;
 public class SellerController {
 
     private final MemberService memberService;
+    @GetMapping
+    public String sellerHome(
+            //@SessionAttribute("sellerBizNo") String bizNo,
+            @SessionAttribute(value = "sellerUser",required = false) Seller seller,
+            RedirectAttributes redirectAttributes,
+            Model model
+    ) {
+        if(seller == null){
+            redirectAttributes.addFlashAttribute("error","판매자로 로그인 해야합니다.");
+            return "redirect:/seller/login";
+        }
+        model.addAttribute("seller", seller);
+        return "seller/home";
+    }
+
 
     @GetMapping("/login")
     public String sellerLoginForm() {
@@ -38,7 +54,11 @@ public class SellerController {
             model.addAttribute("error", e.getMessage());
             return "auth/seller-login";
         }
-
-        return "redirect:/";
+        return "redirect:/seller";
     }
+    @GetMapping("/order")
+    public String order(){
+        return "seller/orders";
+    }
+
 }
