@@ -20,14 +20,41 @@
 
 
     <div id="categoryChart" style="width: 600px; height: 400px;"></div>
+
     <!-- 모달 -->
     <div id="chartModal" class="modal-overlay">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>
+
+            <!-- 제목 -->
             <h2 id="modalTitle"></h2>
-            <div id="modalBody"></div>
+
+            <div id="modalBody">
+                <!-- 기존 카테고리 파이 차트 -->
+                <div id="modalCategoryChart" class="chart-container"></div>
+
+                <!-- 비교 섹션 -->
+                <div id="modalCompareSection" class="compare-section">
+                    <!-- 금액 비교 -->
+                    <div class="compare-values">
+                        <div class="value-box">
+                            <span class="label">이번 달</span>
+                            <span id="modalCurrentValue" class="value">0</span>
+                        </div>
+
+                        <div class="value-box">
+                            <span class="label">최근 3개월 평균</span>
+                            <span id="modalAverageValue" class="value">0</span>
+                        </div>
+                    </div>
+
+                    <!-- 비교 차트 (막대) -->
+                    <div id="modalCompareChart" class="chart-container"></div>
+                </div>
+            </div>
         </div>
     </div>
+
     <div id="dailyChart" style="width: 600px; height: 400px; margin-top: 30px;"></div>
 </body>
 </html>
