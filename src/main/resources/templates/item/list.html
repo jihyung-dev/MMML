@@ -57,9 +57,21 @@
 </div>
 
 
+        <!--        검색창-->
+        <form th:action="@{/hotdeal}" method="get" class="d-flex justify-content-end mb-3">
+            <input type="text" name="q"
+                   th:value="${param.q}"
+                   class="form-control form-control-sm me-2 w-25"
+                   placeholder="검색어를 입력하세요"
+                   />
+            <button type="submit" class="btn btn-primary">검색</button>
+        </form>
+
+
+
         <!-- 정렬(드롭다운) -->
         <!-- 서버로는 ?sort=NEWEST, PRICE_ASC, PRICE_DESC, POPULAR 등으로 전달 -->
-        <div class="dropdown">
+        <div class="dropdown d-flex justify-content-end">
             <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                 정렬: <span th:text="${currentSortLabel != null ? currentSortLabel : '최신순'}">최신순</span>
             </button>
@@ -74,14 +86,13 @@
 
 
 
-<div class="container py-4">
 
-<!--    <div class="d-flex justify-content-between align-items-center mb-3">-->
-<!--        <h1 class="h3">Hotdeal</h1>-->
-        <div  class="d-flex justify-content-end">
+<!--        등록된 상품 전체 갯수 작은글씨로 보여주기-->
+        <!--<div class="container py-4">-->
+        <div  class="d-flex justify-content-end py-2">
             <small th:text="'총 ' + ${itemPage.totalElements} + '개'">총 0개</small>
         </div>
-    </div>
+    <!--</div>-->
 
     <div class="row g-3">
         <div class="col-12 col-sm-6 col-md-4 col-lg-3" th:each="item : ${itemPage.content}">
