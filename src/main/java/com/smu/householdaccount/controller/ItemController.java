@@ -4,7 +4,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 
+import com.smu.householdaccount.entity.Category;
 import com.smu.householdaccount.entity.Item;
+import com.smu.householdaccount.repository.CategoryRepository;
 import com.smu.householdaccount.service.ItemService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.text.DecimalFormat;
+import java.util.List;
 
 @Controller
 @RequestMapping("/hotdeal")
@@ -27,6 +30,7 @@ import java.text.DecimalFormat;
 @Slf4j
 public class ItemController {    // 명시적 생성자 주입 (Lombok 없이 안전)
     private final ItemService itemService;
+    private final CategoryRepository categoryRepository;
 
     /*@GetMapping
     public String list(Model model,@PageableDefault(size = 10,page = 0,sort = "createdAt",direction = Sort.Direction.DESC) Pageable pageable){
@@ -53,6 +57,12 @@ public class ItemController {    // 명시적 생성자 주입 (Lombok 없이 �
         Page<Item> itemPage = itemService.searchItems(sellerId, categoryId, q, minPrice, maxPrice, status, date, pageable);
         model.addAttribute("itemPage", itemPage);
         log.info("itemPage.content : {}", itemPage.getContent());
+
+        // 카테고리 목록 조회
+        List<Category> categories = categoryRepository.findByCategoryIdStartingWith("H"); // Service에서 DB 조회
+        log.info("categories : {}", categories);
+        model.addAttribute("categories", categories);
+
         // 뷰: src/main/resources/templates/hotdeal/list.html (Thymeleaf 등)
         return "item/list";
     }
