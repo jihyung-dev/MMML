@@ -21,6 +21,7 @@ public interface LedgerRepository extends JpaRepository<LedgerEntry, Long> {
     WHERE l.occurredAt BETWEEN :startDate AND :endDate
       AND l.groupId = :group
 """)
+
     List<LedgerEntry> findByGroupAndDateRange(
             @Param("group") BudgetGroup group,
             @Param("startDate") LocalDate startDate,

@@ -12,7 +12,7 @@
     <script src="https://code.highcharts.com/modules/accessibility.js"></script>
 
     <!-- FullCalendar -->
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+    <script defer src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/index.global.min.js'></script>
 
     <!-- CSS 및 JS 로드 -->
     <link rel="stylesheet" href="/css/ledger.css">
@@ -89,7 +89,7 @@
             },
 
             // ★ 데이터 가져오기 및 색상 처리 ★
-            events: function(info, successCallback, failureCallback) {
+            events:async function(info, successCallback, failureCallback) {
                 // 현재 월 계산
                 var viewMidDate = new Date((info.start.getTime() + info.end.getTime()) / 2);
                 var year = viewMidDate.getFullYear();
@@ -98,81 +98,73 @@
                 console.log(`[캘린더] 데이터 요청: ${year}년 ${month}월`);
 
                 // 서버 API 호출
-                fetch(`/ledger/calendar?year=${year}&month=${month}`)
-                    .then(response => {
-                        if (!response.ok) throw new Error('Network response was not ok');
-                        return response.json();
-                    })
-                    .then(data => {
-                        var events = [];
-                        var totalIncome = 0;
-                        var totalExpense = 0;
+                const response = await fetch(`/ledger/calendar?year=${year}&month=${month}`)
+                if (!response.ok) throw new Error('Network response was not ok');
+                const data = await response.json();
+                var events = [];
+                var totalIncome = 0;
+                var totalExpense = 0;
 
-                        // 1. 색상 농도를 위해 이번 달의 최대 수입/지출 금액 찾기
-                        let maxIncome = 0;
-                        let maxExpense = 0;
+                // 1. 색상 농도를 위해 이번 달의 최대 수입/지출 금액 찾기
+                let maxIncome = 0;
+                let maxExpense = 0;
 
-                        data.forEach(day => {
-                            if (day.income > maxIncome) maxIncome = day.income;
-                            if (day.expense > maxExpense) maxExpense = day.expense;
+                data.forEach(day => {
+                    if (day.income > maxIncome) maxIncome = day.income;
+                    if (day.expense > maxExpense) maxExpense = day.expense;
+                });
+
+                // 2. 이벤트 생성
+                data.forEach(function (day) {
+                    // (1) 수입 이벤트 (파란색 계열)
+                    if (day.income > 0) {
+                        // 농도 계산 (최소 0.1 ~ 최대 0.8)
+                        let alpha = 0.1;
+                        if (maxIncome > 0) {
+                            alpha = 0.1 + (day.income / maxIncome) * 0.7;
+                        }
+
+                        events.push({
+                            title: '+' + Math.floor(day.income).toLocaleString(),
+                            start: day.date,
+                            classNames: ['income-event'],
+                            backgroundColor: `rgba(13, 110, 253, ${alpha})`, // Bootstrap Primary Blue 계열
+                            borderColor: `rgba(13, 110, 253, ${alpha})`,
+                            textColor: alpha > 0.5 ? '#fff' : '#004085', // 배경 진하면 흰 글씨
+                            display: 'block',
+                            extendedProps: {order: 1} // 정렬 순서 1 (상단)
                         });
+                        totalIncome += day.income;
+                    }
 
-                        // 2. 이벤트 생성
-                        data.forEach(function(day) {
-                            // (1) 수입 이벤트 (파란색 계열)
-                            if (day.income > 0) {
-                                // 농도 계산 (최소 0.1 ~ 최대 0.8)
-                                let alpha = 0.1;
-                                if (maxIncome > 0) {
-                                    alpha = 0.1 + (day.income / maxIncome) * 0.7;
-                                }
+                    // (2) 지출 이벤트 (빨간색 계열)
+                    if (day.expense > 0) {
+                        // 농도 계산
+                        let alpha = 0.1;
+                        if (maxExpense > 0) {
+                            alpha = 0.1 + (day.expense / maxExpense) * 0.7;
+                        }
 
-                                events.push({
-                                    title: '+' + Math.floor(day.income).toLocaleString(),
-                                    start: day.date,
-                                    classNames: ['income-event'],
-                                    backgroundColor: `rgba(13, 110, 253, ${alpha})`, // Bootstrap Primary Blue 계열
-                                    borderColor: `rgba(13, 110, 253, ${alpha})`,
-                                    textColor: alpha > 0.5 ? '#fff' : '#004085', // 배경 진하면 흰 글씨
-                                    display: 'block',
-                                    extendedProps: { order: 1 } // 정렬 순서 1 (상단)
-                                });
-                                totalIncome += day.income;
-                            }
-
-                            // (2) 지출 이벤트 (빨간색 계열)
-                            if (day.expense > 0) {
-                                // 농도 계산
-                                let alpha = 0.1;
-                                if (maxExpense > 0) {
-                                    alpha = 0.1 + (day.expense / maxExpense) * 0.7;
-                                }
-
-                                events.push({
-                                    title: '-' + Math.floor(day.expense).toLocaleString(),
-                                    start: day.date,
-                                    classNames: ['expense-event'],
-                                    backgroundColor: `rgba(220, 53, 69, ${alpha})`, // Bootstrap Danger Red 계열
-                                    borderColor: `rgba(220, 53, 69, ${alpha})`,
-                                    textColor: alpha > 0.5 ? '#fff' : '#721c24', // 배경 진하면 흰 글씨
-                                    display: 'block',
-                                    extendedProps: { order: 2 } // 정렬 순서 2 (하단)
-                                });
-                                totalExpense += day.expense;
-                            }
+                        events.push({
+                            title: '-' + Math.floor(day.expense).toLocaleString(),
+                            start: day.date,
+                            classNames: ['expense-event'],
+                            backgroundColor: `rgba(220, 53, 69, ${alpha})`, // Bootstrap Danger Red 계열
+                            borderColor: `rgba(220, 53, 69, ${alpha})`,
+                            textColor: alpha > 0.5 ? '#fff' : '#721c24', // 배경 진하면 흰 글씨
+                            display: 'block',
+                            extendedProps: {order: 2} // 정렬 순서 2 (하단)
                         });
+                        totalExpense += day.expense;
+                    }
+                });
 
-                        // 상단 요약 업데이트
-                        updateSummary(totalIncome, totalExpense);
+                // 상단 요약 업데이트
+                updateSummary(totalIncome, totalExpense);
 
-                        successCallback(events);
-                    })
-                    .catch(error => {
-                        console.error('캘린더 데이터 로딩 실패:', error);
-                        failureCallback(error);
-                    });
+                successCallback(events);
+
             },
-
             dateClick: function(info) {
                 document.getElementById('modalTitle').innerText = info.dateStr + " 상세 내역";
                 document.getElementById('modalBody').innerHTML = "<p>데이터 조회 중...</p>";
