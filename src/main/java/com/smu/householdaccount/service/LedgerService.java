@@ -94,6 +94,15 @@ public class LedgerService {
         return getLedgerSummary(entries);
     }
 
+    public List<LedgerEntry> getMonthlyToExcel(int year, int month) {
+        BudgetGroup group = budgetGroupRepository.findById(1l).orElseThrow(); // 수정 필요.하드코딩
+        LocalDate date_start = LocalDate.of(year, month, 1);
+        LocalDate date_end = LocalDate.of(year, month, Utility.endOfMonth(year, month));
+        List<LedgerEntry> entries = ledgerRepository.findByGroupAndDateRange(group, date_start, date_end);
+
+        return entries;
+    }
+
     public List<DailySummary> getCalendarDailyStats(int year, int month) {
         LedgerSummaryDto summary = getMonthlyChart(year, month);
 

@@ -34,6 +34,7 @@ async function loadLedgerChart({ year, month }) {
 
     drawCategoryPieChart(bundle.current.categories);
     drawDailyLineChart(bundle.current.daily, bundle.prev1.daily);
+    await renderFullCategoryChart();
 
     return bundle;
 }
@@ -70,6 +71,40 @@ function drawCategoryPieChart(categories) {
         }]
     });
 }
+
+// 3개월 평균 데이터와 이번 달 지출 막대 차트로 출력
+function drawCategoryComparisonBarChart(categoryList) {
+    Highcharts.chart('threeMonthBarChart', {
+        chart: { type: 'column' },
+        title: {
+            text: '이번 달 vs 최근 3개월 평균 (카테고리별)'
+        },
+        xAxis: {
+            categories: categoryList.map(c => c.name),
+            crosshair: true
+        },
+        yAxis: {
+            title: { text: '금액(원)' }
+        },
+        plotOptions: {
+            column: {
+                grouping: true,
+                pointPadding: 0.1,
+                borderWidth: 0
+            }
+        },
+        series: [{
+            name: '이번 달',
+            data: categoryList.map(c => c.current),
+            color: '#1976d2'
+        }, {
+            name: '3개월 평균',
+            data: categoryList.map(c => c.average),
+            color: '#90caf9'
+        }]
+    });
+}
+
 // 모달 팝업 내 차트
 function drawModalComparePieChart(currentAmount, avgAmount, categoryName) {
     Highcharts.chart('modalCategoryChart', {
@@ -349,4 +384,54 @@ function getCategoryFromLedgerCache(key, categoryName) {
     );
 
     return found ? Number(found.amount) : null;
+}
+
+// 3개월간 데이터 + 이번 달 데이터 합쳐서 리턴
+async function renderFullCategoryChart() {
+    const key = `${currentYear}-${currentMonth}`;
+
+    const cache = ledgerCache.get(key);
+    const current = cache.current.categories;
+
+    const threeMonthData = await load3MonthData(key);
+    const threeMonth = threeMonthData.categories;
+
+    const list = buildCategoryComparisonList(current, threeMonth);
+
+    drawCategoryComparisonBarChart(list);
+}
+
+// 3개월간 데이터의 평균치(모든 카테고리)
+function buildCategoryComparisonList(currentCategories, threeMonthCategories) {
+    const result = [];
+
+    currentCategories.forEach(cur => {
+        const avgData = threeMonthCategories.find(t => t.categoryName === cur.categoryName);
+        const avg = avgData ? Number(avgData.amount) / 3 : 0;
+
+        result.push({
+            name: cur.categoryName,
+            current: Number(cur.amount),
+            average: avg
+        });
+    });
+
+    return result;
+}
+
+async function exportExcel() {
+    const url = `/excel/export?year=${currentYear}&month=${currentMonth}`;
+
+    const res = await fetch(url, { method: "GET" });
+
+    if (!res.ok) {
+        alert("엑셀 생성 실패");
+        return;
+    }
+
+    const blob = await res.blob();
+    const a = document.createElement("a");
+    a.href = window.URL.createObjectURL(blob);
+    a.download = `ledger_${currentYear}-${currentMonth}.xlsx`;
+    a.click();
 }
