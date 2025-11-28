@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <h1>상세</h1>
+    <p th:text="${item}"></p>
+
+    <ul>
+        <li th:each="img : ${item.images}"  >
+            <img th:src="${img.getImageUrl()}" th:alt="${img.getImageUrl()}">
+        </li>
+    </ul>
+    <ul>
+        <li th:each="opt : ${item.hotdealOptions}"  >
+            <span th:text="${opt.getOptionValue()}"></span> |
+            <span th:text="${opt.getOptionType()}"></span>
+        </li>
+    </ul>
+    <ul>
+        <li >
+            <span th:text="${item.seller.getBizNo()}"></span> |
+            <span th:text="${item.seller.getBizType()}"></span>
+        </li>
+    </ul>
+
+</body>
+</html>
