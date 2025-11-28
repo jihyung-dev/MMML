@@ -42,7 +42,9 @@
 
             <!-- 판매자 로그인 -->
             <div th:if="${session.sellerUser != null}" class="nav-user-info">
-                <span th:text="${session.sellerUser.member.memberNickname + '님(판매자) 환영합니다!'}"></span>
+                <a href="/seller">
+                    <span th:text="${session.sellerUser.member.memberNickname + '님(판매자) 환영합니다!'}"></span>
+                </a>
                 &nbsp; | &nbsp;
                 <a href="/logout" class="nav-logout-btn">로그아웃</a>
             </div>
