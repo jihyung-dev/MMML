@@ -1724,3 +1724,136 @@ INSERT INTO MMML.SHIPMENT (order_id, tracking_no, carrier, shipment_status)
 VALUES (10, 'TRK000000010', '로젠택배', 'PREPARING');
 
 COMMIT;
+
+-- ============================================================
+--  DUMMY DATA: MMML.ORDER_MAIN (총 10건, ID 9번 포함)
+--  [수정 사항]
+--  1. merchant_uid (주문번호) 추가
+--  2. PAYMENT_TRANSACTION 데이터와 buyer_id, total_amount 일치
+--  3. seller_id (1~10) 랜덤 매핑
+--  4. order_id 컬럼 제외 (AUTO_INCREMENT 자동 생성)
+-- ============================================================
+
+-- 1. ORDER_MAIN 테이블 초기화 (필요시)
+-- DELETE FROM MMML.ORDER_MAIN;
+-- ALTER TABLE MMML.ORDER_MAIN AUTO_INCREMENT = 1;
+
+-- Order 1: U016 (99,000원) - 매칭: Payment Transaction 1
+INSERT INTO MMML.ORDER_MAIN (buyer_id, seller_id, total_amount, order_status, merchant_uid, created_at)
+VALUES ('U016', 1, 99000.00, 'DELIVERED', 'ORD20250120-000001', '2025-01-20 10:00:00');
+
+-- Order 2: U020 (18,900원) - 매칭: Payment Transaction 2
+INSERT INTO MMML.ORDER_MAIN (buyer_id, seller_id, total_amount, order_status, merchant_uid, created_at)
+VALUES ('U020', 6, 18900.00, 'SHIPPED', 'ORD20250121-000002', '2025-01-21 14:15:00');
+
+-- Order 3: U030 (999,000원) - 매칭: Payment Transaction 3
+INSERT INTO MMML.ORDER_MAIN (buyer_id, seller_id, total_amount, order_status, merchant_uid, created_at)
+VALUES ('U030', 4, 999000.00, 'PAID', 'ORD20250122-000003', '2025-01-22 09:25:00');
+
+-- Order 4: U045 (19,000원) - 매칭: Payment Transaction 4
+INSERT INTO MMML.ORDER_MAIN (buyer_id, seller_id, total_amount, order_status, merchant_uid, created_at)
+VALUES ('U045', 8, 19000.00, 'DELIVERED', 'ORD20250123-000004', '2025-01-23 11:10:00');
+
+-- Order 5: U070 (119,000원) - 매칭: Payment Transaction 5
+INSERT INTO MMML.ORDER_MAIN (buyer_id, seller_id, total_amount, order_status, merchant_uid, created_at)
+VALUES ('U070', 7, 119000.00, 'SHIPPED', 'ORD20250123-000005', '2025-01-23 15:40:00');
+
+-- Order 6: U088 (299,000원) - 매칭: Payment Transaction 6
+INSERT INTO MMML.ORDER_MAIN (buyer_id, seller_id, total_amount, order_status, merchant_uid, created_at)
+VALUES ('U088', 9, 299000.00, 'PAID', 'ORD20250124-000006', '2025-01-24 08:55:00');
+
+-- Order 7: U019 (59,000원) - 매칭: Payment Transaction 7
+INSERT INTO MMML.ORDER_MAIN (buyer_id, seller_id, total_amount, order_status, merchant_uid, created_at)
+VALUES ('U019', 2, 59000.00, 'DELIVERED', 'ORD20250124-000007', '2025-01-24 13:50:00');
+
+-- Order 8: U091 (300,000원) - 매칭: Payment Transaction 8
+INSERT INTO MMML.ORDER_MAIN (buyer_id, seller_id, total_amount, order_status, merchant_uid, created_at)
+VALUES ('U091', 5, 300000.00, 'PAID', 'ORD20250124-000008', '2025-01-24 16:05:00');
+
+-- Order 9: U023 (49,900원) - CANCELED (결제 내역에는 없지만 주문 번호 연속성을 위해 추가)
+INSERT INTO MMML.ORDER_MAIN (buyer_id, seller_id, total_amount, order_status, merchant_uid, created_at)
+VALUES ('U023', 2, 49900.00, 'CANCELED', 'ORD20250124-000009', '2025-01-24 16:30:00');
+
+-- Order 10: U004 (163,900원) - 매칭: Payment Transaction 10
+INSERT INTO MMML.ORDER_MAIN (buyer_id, seller_id, total_amount, order_status, merchant_uid, created_at)
+VALUES ('U004', 4, 163900.00, 'PAID', 'ORD20250124-000010', '2025-01-24 17:25:00');
+
+COMMIT;
+
+-- ============================================================
+--  DUMMY DATA UPDATE: MMML.SELLER
+--  목적: 이미 존재하는 SELLER 데이터에 추가된 컬럼(주소, 전화, 이메일) 값 업데이트
+--  주의: SELLER 테이블에 U006 ~ U015 멤버에 해당하는 데이터가 이미 존재해야 합니다.
+-- ============================================================
+
+-- U006: 황금손
+UPDATE MMML.SELLER
+SET seller_address = '제주특별자치도 제주시 애월읍 1길',
+    seller_phone = '010-2222-0006',
+    seller_email = 'goldhand@seller.com'
+WHERE member_id = 'U006';
+
+-- U007: 장바구니
+UPDATE MMML.SELLER
+SET seller_address = '서울시 동대문구 패션거리 2길',
+    seller_phone = '010-2222-0007',
+    seller_email = 'cart_fashion@seller.com'
+WHERE member_id = 'U007';
+
+-- U008: 보따리
+UPDATE MMML.SELLER
+SET seller_address = '경기도 성남시 분당구 판교로 8',
+    seller_phone = '010-2222-0008',
+    seller_email = 'bottari_beauty@seller.com'
+WHERE member_id = 'U008';
+
+-- U009: 꿀단지
+UPDATE MMML.SELLER
+SET seller_address = '서울시 용산구 전자상가로 9',
+    seller_phone = '010-2222-0009',
+    seller_email = 'honey_tech@seller.com'
+WHERE member_id = 'U009';
+
+-- U010: 대박점
+UPDATE MMML.SELLER
+SET seller_address = '강원도 강릉시 해안로 10',
+    seller_phone = '010-2222-0010',
+    seller_email = 'jackpot_tour@seller.com'
+WHERE member_id = 'U010';
+
+-- U011: 득템요정
+UPDATE MMML.SELLER
+SET seller_address = '서울시 마포구 망원동 11',
+    seller_phone = '010-2222-0011',
+    seller_email = 'fairy_food@seller.com'
+WHERE member_id = 'U011';
+
+-- U012: 현금부자
+UPDATE MMML.SELLER
+SET seller_address = '서울시 강남구 청담동 12',
+    seller_phone = '010-2222-0012',
+    seller_email = 'cash_rich@seller.com'
+WHERE member_id = 'U012';
+
+-- U013: 미소상점
+UPDATE MMML.SELLER
+SET seller_address = '경기도 고양시 일산동구 13',
+    seller_phone = '010-2222-0013',
+    seller_email = 'smile_shop@seller.com'
+WHERE member_id = 'U013';
+
+-- U014: 새벽시장
+UPDATE MMML.SELLER
+SET seller_address = '인천광역시 남동구 공단로 14',
+    seller_phone = '010-2222-0014',
+    seller_email = 'dawn_market@seller.com'
+WHERE member_id = 'U014';
+
+-- U015: 완판녀
+UPDATE MMML.SELLER
+SET seller_address = '부산광역시 해운대구 센텀로 15',
+    seller_phone = '010-2222-0015',
+    seller_email = 'soldout_girl@seller.com'
+WHERE member_id = 'U015';
+
+COMMIT;
