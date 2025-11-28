@@ -13,6 +13,8 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -112,5 +114,22 @@ public class Item {
 
     @OneToMany(mappedBy = "item")
     Set<HotdealOption> hotdealOptions=new LinkedHashSet<>();
+
+
+    /**
+     * 템플릿에서 사용할 포맷된 가격 문자열을 제공한다.
+     * @return "1,234원" 형태의 문자열 (소수점 반올림, 천단위 콤마)
+     */
+    @Transient
+    public String getFormattedPrice() {
+        if (this.getItemSaleprice() == null) {
+            return "0원";
+        }
+        // DecimalFormat은 인스턴스 생성 비용이 작으니 호출마다 새로 만듭니다(스레드 안전).
+        DecimalFormat df = new DecimalFormat("#,###");
+        BigDecimal scaled = this.getItemSaleprice().setScale(0, RoundingMode.HALF_UP); //setScale(0, RoundingMode.HALF_UP) ⇒ 소수점 반올림 처리
+        // longValue() 사용 — 필요하면 toBigIntegerString() 등으로 안전하게 처리 가능
+        return df.format(scaled.longValue()) + "원";
+    }
 
 }

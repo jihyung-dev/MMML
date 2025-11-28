@@ -1,5 +1,6 @@
 package com.smu.householdaccount.service;
 
+import com.smu.householdaccount.entity.Category;
 import com.smu.householdaccount.entity.Item;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -7,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 public interface ItemService {
     Page<Item> searchItems(Long sellerId,
@@ -39,4 +41,6 @@ public interface ItemService {
     void incrementViewCount(Long id);
 
     void addPopularityScore(Long id, long delta);
+
+    List<Category> findAllCategories();
 }
