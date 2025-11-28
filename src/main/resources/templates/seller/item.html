@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>판매자 대시보드</title>
+</head>
+<body>
+<h1>ITEM 정보</h1>
+<table border="1">
+    <tr>
+        <th>ID</th>
+        <th>상품명</th>
+        <th>원가</th>
+        <th>판매가</th>
+        <th>카테고리</th>
+        <th>조회수</th>
+        <th>인기점수</th>
+        <th>판매 시작일</th>
+        <th>판매 종료일</th>
+        <th>상태</th>
+    </tr>
+    <tr>
+        <td th:text="${item.id}"></td>
+        <td th:text="${item.itemName}"></td>
+        <td th:text="${item.originalPrice}"></td>
+        <td th:text="${item.itemSaleprice}"></td>
+        <td th:text="${item.categoryId}"></td>
+        <td th:text="${item.viewCount}"></td>
+        <td th:text="${item.popularityScore}"></td>
+        <td th:text="${item.saleStartAt}"></td>
+        <td th:text="${item.saleEndAt}"></td>
+        <td th:text="${item.saleStatus}"></td>
+    </tr>
+</table>
+
+<h2>옵션 정보</h2>
+<table border="1">
+    <tr>
+        <th>옵션 ID</th>
+        <th>타입</th>
+        <th>값</th>
+        <th>추가 가격</th>
+        <th>재고</th>
+    </tr>
+    <tr th:each="option : ${item.hotdealOptions}">
+        <td th:text="${option.id}"></td>
+        <td th:text="${option.optionType}"></td>
+        <td th:text="${option.optionValue}"></td>
+        <td th:text="${option.additionalPrice}"></td>
+        <td th:text="${option.stock}"></td>
+    </tr>
+</table>
+</body>
+</html>

@@ -17,15 +17,16 @@ public class ItemSpecifications {
     // sellerId 조건 (null이면 null 반환)
     public static Specification<Item> hasSellerId(Long sellerId) {
         if (sellerId == null) return null;
-        return (Root<Item> root, CriteriaQuery<?> query, CriteriaBuilder cb) ->
+        return (root, query, cb) ->
                 cb.equal(root.get("seller").get("id"), sellerId);
     }
 
     // categoryId 조건 (null이면 null 반환)
+    // **수정됨**: Item 엔티티는 categoryId 필드를 가지고 있으므로 직접 검색
     public static Specification<Item> hasCategoryId(String categoryId) {
         if (categoryId == null || categoryId.isBlank()) return null;
         return (root, query, cb) ->
-                cb.equal(root.get("category").get("id"), categoryId);
+                cb.equal(root.get("categoryId"), categoryId);
     }
 
     // 이름에 키워드 포함 (null 또는 빈값이면 null)

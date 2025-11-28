@@ -48,8 +48,8 @@ public class OrderMainService {
         String merchantUid = "order-" + UUID.randomUUID();
 
         OrderMain order = new OrderMain();
-        //order.setMerchantUid(merchantUid);
-        order.setTotalAmount(BigDecimal.valueOf(req.getAmount()));
+        order.setMerchantUid(merchantUid);
+        order.setTotalAmount(100000L);
         order.setOrderStatus("READY");
         //order.setBuyer(req.getBuyerId());
         return orderMainRepository.save(order);

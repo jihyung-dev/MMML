@@ -1,5 +1,6 @@
 package com.smu.householdaccount.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -10,7 +11,6 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -27,6 +27,7 @@ public class LedgerEntry {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.RESTRICT)
+    @JsonIgnore
     @JoinColumn(name = "GROUP_ID", nullable = false)
     private BudgetGroup groupId;
 
@@ -34,6 +35,7 @@ public class LedgerEntry {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.RESTRICT)
     @JoinColumn(name = "MEMBER_ID", nullable = false)
+    @JsonIgnore
     private Member member;
 
     @Size(max = 10)
@@ -53,6 +55,7 @@ public class LedgerEntry {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.RESTRICT)
     @JoinColumn(name = "CATEGORY_ID", nullable = false)
+    @JsonIgnore
     private Category category;
 
     @NotNull
@@ -86,25 +89,4 @@ public class LedgerEntry {
 
     @Column(name = "UPDATED_AT")
     private LocalDateTime updatedAt;
-
-    @Override
-    public String toString() {
-        return "LedgerEntry{" +
-                "id=" + id +
-                ", groupId=" + groupId +
-                ", member=" + member +
-                ", entryType='" + entryType + '\'' +
-                ", payType='" + payType + '\'' +
-                ", cardType='" + cardType + '\'' +
-                ", category=" + category +
-                ", entryAmount=" + entryAmount +
-                ", currency='" + currency + '\'' +
-                ", occurredAt=" + occurredAt +
-                ", placeOfUse='" + placeOfUse + '\'' +
-                ", memo='" + memo + '\'' +
-                ", extSrc='" + extSrc + '\'' +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
-    }
 }

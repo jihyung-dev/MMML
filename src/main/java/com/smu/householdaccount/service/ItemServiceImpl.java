@@ -1,5 +1,6 @@
 package com.smu.householdaccount.service;
 
+import com.smu.householdaccount.entity.Category;
 import com.smu.householdaccount.entity.Item;
 import com.smu.householdaccount.repository.ItemRepository;
 import com.smu.householdaccount.specification.ItemSpecifications;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -58,6 +60,12 @@ public class ItemServiceImpl implements ItemService {
         return page;
     }
 
+//    필요없으면 삭제할 예정
+    /*@Override
+    public Page<Item> searchHotdeal(Long sellerId, String categoryId, String keyword, BigDecimal minPrice, BigDecimal maxPrice, String saleStatus, LocalDate activeOn, Pageable pageable) {
+        return null;
+    }*/
+
     @Override
     @Transactional(readOnly = true)
     public Page<Item> findBySeller(Long sellerId, Pageable pageable) {
@@ -101,5 +109,10 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     public void addPopularityScore(Long id, long delta) {
         itemRepository.addPopularityScore(id, delta);
+    }
+
+    @Override
+    public List<Category> findAllCategories() {
+        return List.of();
     }
 }

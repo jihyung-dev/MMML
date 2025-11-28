@@ -1,13 +1,41 @@
+/* ========================================= */
+/* 1. 기본 설정 및 기존 스타일 유지          */
+/* ========================================= */
+/* --- 레이아웃 스타일 (ledger.css 내용을 덮어쓰거나 여기에 둡니다) --- */
 body {
-    background: #f2f3f7;
+    font-family: 'Noto Sans KR', sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f8f9fa;
 }
 
+/* 상단 정보 영역 */
+.header-container {
+    max-width: 1200px;
+    margin: 0 auto 20px auto;
+    display: flex;
+    flex-direction: column; /* 세로 배치로 변경하여 네비게이션을 중앙으로 */
+    align-items: center;    /* 가로 중앙 정렬 */
+    gap: 15px;
+    position: relative;     /* 요약 정보를 절대 위치로 잡기 위해 */
+}
+
+/* 월 이동 네비게이션 (중앙 정렬) */
 .month-nav {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 22px;
-    margin-bottom: 20px;
+    justify-content: center; /* 중앙 정렬 */
+    gap: 20px;
+}
+
+/* 요약 정보 (우측 하단 배치 또는 별도 배치) */
+.summary-container {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 0 20px;
+    box-sizing: border-box;
 }
 
 /* 뉴모피즘 버튼 */
@@ -39,6 +67,7 @@ body {
     transform: translateY(0);
 }
 
+
 /* 가운데 월 표시 라벨 */
 .neo-label {
     padding: 8px 22px;
@@ -50,6 +79,63 @@ body {
             6px 6px 12px rgba(0,0,0,0.1),
             -6px -6px 12px rgba(255,255,255,0.8);
 }
+/* 메인 대시보드 (Flexbox) */
+.dashboard-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto 30px auto;
+    flex-wrap: wrap;
+}
+
+.chart-wrapper, .calendar-wrapper {
+    flex: 1;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    padding: 20px;
+    min-width: 300px;
+    height: 600px;    /* 높이 조금 더 확보 */
+    box-sizing: border-box;
+}
+/* FullCalendar 내부 스타일 */
+#calendar {
+    width: 100%;
+    height: 100%;
+    min-height: 550px;
+    font-size: 0.85em;
+    --fc-border-color: #eee;
+    --fc-today-bg-color: rgba(0,0,0,0.02);
+}
+.fc-header-toolbar { display: none !important; }
+.fc-col-header-cell { padding-bottom: 10px; color: #666; font-weight: normal; }
+.fc-daygrid-day-top { justify-content: center; }
+.fc-daygrid-day-number { color: #333; text-decoration: none; font-size: 14px; z-index: 2;}
+
+/* 캘린더 이벤트 스타일 (히트맵 효과) */
+.fc-event {
+    border: none !important;
+    box-shadow: none !important;
+    margin: 1px 0 !important;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 4px;
+    color: #333; /* 기본 글자색 */
+    font-size: 11px;
+    padding: 2px 0;
+}
+
+/* 수입 이벤트 (파랑) */
+.income-event {
+    color: #004085; /* 진한 파랑 글씨 */
+}
+
+/* 지출 이벤트 (빨강) */
+.expense-event {
+    color: #721c24; /* 진한 빨강 글씨 */
+}
+
 /* 모달 팝업 */
 .modal-overlay {
     display: none;
@@ -57,10 +143,16 @@ body {
     top: 0; left: 0;
     width: 100%; height: 100%;
     background: rgba(0,0,0,0.45);
-    display: flex;
     justify-content: center;
     align-items: center;
     z-index: 99;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.modal-overlay.show {
+    display: flex;
+    opacity: 1;
 }
 
 .modal-content {
@@ -81,4 +173,14 @@ body {
     float: right;
     cursor: pointer;
     font-size: 24px;
+}
+
+.chart-container {
+    width: 100%;
+    height: 400px;
+}
+
+#modalCategoryChart {
+    width: 100%;
+    height: 260px;   /* 원하는 고정 높이 */
 }

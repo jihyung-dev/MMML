@@ -1,15 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>가계부 대시보드</title>
+
+    <!-- Highcharts -->
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/modules/exporting.js"></script>
     <script src="https://code.highcharts.com/modules/export-data.js"></script>
     <script src="https://code.highcharts.com/modules/accessibility.js"></script>
-    <script src="/js/household/ledger.js"></script>
+
+    <!-- FullCalendar -->
+    <script defer src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/index.global.min.js'></script>
+
+    <!-- CSS 및 JS 로드 -->
     <link rel="stylesheet" href="/css/ledger.css">
-    <title></title>
+    <script src="/js/household/ledger.js"></script>
 </head>
 <body>
+
+<!-- 상단 헤더 (네비게이션 + 요약) -->
+<div class="header-container">
+    <!-- 1. 월 이동 네비게이션  -->
     <div id="monthNav" class="month-nav">
         <button class="neo-btn" onclick="prevMonth()">&#9664;</button>
 
@@ -17,17 +30,196 @@
 
         <button class="neo-btn" onclick="nextMonth()">&#9654;</button>
     </div>
+</div>
+<!-- 메인 대시보드 (차트 + 캘린더 가로 배치) -->
+<div class="dashboard-container">
+    <!-- 왼쪽: 카테고리 차트 -->
+    <div class="chart-wrapper">
+        <div id="categoryChart" style="width: 100%; height: 100%;"></div>
+    </div>
 
-
-    <div id="categoryChart" style="width: 600px; height: 400px;"></div>
+    <!-- 오른쪽: 캘린더 -->
+    <div class="calendar-wrapper">
+        <div id="calendar"></div>
+    </div>
+</div>
+<!-- 하단: 일별 차트 -->
+<div id="dailyChart" style="width: 100%; height: 400px; max-width: 1200px; margin: 30px auto;"></div>
+<!-- 비교 차트 (막대) -->
+<div id="threeMonthBarChart" style="width: 100%; height: 400px; max-width: 1200px; margin: 30px auto;"></div>
+<button onclick="exportExcel()">엑셀 테스트</button>
     <!-- 모달 -->
     <div id="chartModal" class="modal-overlay">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>
+
+            <!-- 제목 -->
             <h2 id="modalTitle"></h2>
-            <div id="modalBody"></div>
+
+            <div id="modalBody">
+                <!-- 기존 카테고리 파이 차트 -->
+                <div id="modalCategoryChart" class="chart-container"></div>
+
+                <!-- 비교 섹션 -->
+                <div id="modalCompareSection" class="compare-section">
+                    <!-- 금액 비교 -->
+                    <div class="compare-values">
+                        <div class="value-box">
+                            <span class="label">이번 달</span>
+                            <span id="modalCurrentValue" class="value">0</span>
+                        </div>
+
+                        <div class="value-box">
+                            <span class="label">최근 3개월 평균</span>
+                            <span id="modalAverageValue" class="value">0</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
         </div>
     </div>
-    <div id="dailyChart" style="width: 600px; height: 400px; margin-top: 30px;"></div>
+<!-- 스크립트: 캘린더 초기화 -->
+<!-- 스크립트 -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        var currentMonthLabel = document.getElementById('currentMonthLabel');
+
+        var initialDate = '2025-10-01';
+
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            locale: 'ko',
+            initialDate: initialDate,
+            height: '100%',
+            contentHeight: 'auto',
+
+            // ★ 중요: 이벤트 정렬 순서 (수입 -> 지출)
+            eventOrder: 'order',
+
+            // 날짜 숫자 처리
+            dayCellContent: function(arg) {
+                var text = arg.dayNumberText || '';
+                return { html: text.replace('일', '') };
+            },
+
+            // ★ 데이터 가져오기 및 색상 처리 ★
+            events:async function(info, successCallback, failureCallback) {
+                // 현재 월 계산
+                var viewMidDate = new Date((info.start.getTime() + info.end.getTime()) / 2);
+                var year = viewMidDate.getFullYear();
+                var month = viewMidDate.getMonth() + 1;
+
+                console.log(`[캘린더] 데이터 요청: ${year}년 ${month}월`);
+
+                // 서버 API 호출
+                const response = await fetch(`/ledger/calendar?year=${year}&month=${month}`)
+                if (!response.ok) throw new Error('Network response was not ok');
+                const data = await response.json();
+                var events = [];
+                var totalIncome = 0;
+                var totalExpense = 0;
+
+                // 1. 색상 농도를 위해 이번 달의 최대 수입/지출 금액 찾기
+                let maxIncome = 0;
+                let maxExpense = 0;
+
+                data.forEach(day => {
+                    if (day.income > maxIncome) maxIncome = day.income;
+                    if (day.expense > maxExpense) maxExpense = day.expense;
+                });
+
+                // 2. 이벤트 생성
+                data.forEach(function (day) {
+                    // (1) 수입 이벤트 (파란색 계열)
+                    if (day.income > 0) {
+                        // 농도 계산 (최소 0.1 ~ 최대 0.8)
+                        let alpha = 0.1;
+                        if (maxIncome > 0) {
+                            alpha = 0.1 + (day.income / maxIncome) * 0.7;
+                        }
+
+                        events.push({
+                            title: '+' + Math.floor(day.income).toLocaleString(),
+                            start: day.date,
+                            classNames: ['income-event'],
+                            backgroundColor: `rgba(13, 110, 253, ${alpha})`, // Bootstrap Primary Blue 계열
+                            borderColor: `rgba(13, 110, 253, ${alpha})`,
+                            textColor: alpha > 0.5 ? '#fff' : '#004085', // 배경 진하면 흰 글씨
+                            display: 'block',
+                            extendedProps: {order: 1} // 정렬 순서 1 (상단)
+                        });
+                        totalIncome += day.income;
+                    }
+
+                    // (2) 지출 이벤트 (빨간색 계열)
+                    if (day.expense > 0) {
+                        // 농도 계산
+                        let alpha = 0.1;
+                        if (maxExpense > 0) {
+                            alpha = 0.1 + (day.expense / maxExpense) * 0.7;
+                        }
+
+                        events.push({
+                            title: '-' + Math.floor(day.expense).toLocaleString(),
+                            start: day.date,
+                            classNames: ['expense-event'],
+                            backgroundColor: `rgba(220, 53, 69, ${alpha})`, // Bootstrap Danger Red 계열
+                            borderColor: `rgba(220, 53, 69, ${alpha})`,
+                            textColor: alpha > 0.5 ? '#fff' : '#721c24', // 배경 진하면 흰 글씨
+                            display: 'block',
+                            extendedProps: {order: 2} // 정렬 순서 2 (하단)
+                        });
+                        totalExpense += day.expense;
+                    }
+                });
+
+                // 상단 요약 업데이트
+                updateSummary(totalIncome, totalExpense);
+
+                successCallback(events);
+
+            },
+            dateClick: function(info) {
+                document.getElementById('modalTitle').innerText = info.dateStr + " 상세 내역";
+                document.getElementById('modalBody').innerHTML = "<p>데이터 조회 중...</p>";
+                document.getElementById('chartModal').style.display = 'flex';
+            }
+        });
+
+        calendar.render();
+
+        document.getElementById('prevBtn').addEventListener('click', function() {
+            calendar.prev();
+            updateLabel();
+        });
+
+        document.getElementById('nextBtn').addEventListener('click', function() {
+            calendar.next();
+            updateLabel();
+        });
+
+        function updateLabel() {
+            var date = calendar.getDate();
+            var year = date.getFullYear();
+            var month = date.getMonth() + 1;
+            document.getElementById('currentMonthLabel').innerText = year + "년 " + month + "월";
+        }
+
+        function updateSummary(income, expense) {
+            var incomeEl = document.getElementById('totalIncomeLabel');
+            var expenseEl = document.getElementById('totalExpenseLabel');
+            if(incomeEl) incomeEl.innerText = '수입 ' + Math.floor(income).toLocaleString() + '원';
+            if(expenseEl) expenseEl.innerText = '지출 ' + Math.floor(expense).toLocaleString() + '원';
+        }
+
+        updateLabel();
+    });
+
+    function closeModal() {
+        document.getElementById('chartModal').style.display = 'none';
+    }
+</script>
 </body>
 </html>
