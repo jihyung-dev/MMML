@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <div>
+        <div>
+        <div th:each="item : ${itemPage.content}">
+            <div style="border-bottom: 1px solid black; padding: 10px;">
+                <p>아이디 : <span th:text="${item.id}"></span></p>
+                <p>이름 : <span th:text="${item.itemName}"></span></p>
+                <p>가격 : <span th:text="${item.originalPrice}"></span></p>
+                <p>카테고리 아이디 : <span th:text="${item.category.categoryName}"></span></p>
+                <p>
+                    <a th:href="@{/seller/item/{id} (id=${item.id}) }">상세</a>
+                </p>
+                <hr>
+                <div>
+                    <h5>핫딜 옵션</h5>
+                    <div>
+                        <div th:each=" opt: ${item.hotdealOptions}">
+                            <p>
+                                옵션타입 : <span th:text="${opt.optionType}"></span> |
+                                옵션값 : <span th:text="${opt.optionValue}"></span> |
+                                옵션가격 : <span th:text="${opt.additionalPrice}"></span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+    </div>
+</body>
+</html>

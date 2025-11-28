@@ -1,6 +1,9 @@
 package com.smu.householdaccount.service;
 
+import com.smu.householdaccount.entity.Item;
 import com.smu.householdaccount.entity.Seller;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface SellerService {
 
@@ -12,4 +15,7 @@ public interface SellerService {
 
     // 🔹 판매자 상세 조회
     Seller getSellerByMemberId(String memberId);
+
+    // 🤑 (판매자 상세 페이지에 들어가는 내용) 페이징으로 판매자 상품 조회
+    Page<Item> getItemBySeller(Long sellerId, Pageable pageable);
 }
