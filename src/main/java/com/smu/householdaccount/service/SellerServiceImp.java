@@ -2,8 +2,10 @@
 package com.smu.householdaccount.service;
 
 import com.smu.householdaccount.entity.Item;
+import com.smu.householdaccount.entity.OrderMain;
 import com.smu.householdaccount.entity.Seller;
 import com.smu.householdaccount.repository.ItemRepository;
+import com.smu.householdaccount.repository.OrderMainRepository;
 import com.smu.householdaccount.repository.SellerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,6 +20,12 @@ public class SellerServiceImp implements SellerService {
 
     private final SellerRepository sellerRepository;
     private final ItemRepository itemRepository; // for 🤑 추가
+    private final OrderMainRepository orderMainRepository;
+
+    @Override
+    public Page<OrderMain> getOrderMainBySeller(Long sellerId, Pageable pageable) {
+        return orderMainRepository.findBySellerId(sellerId, pageable);
+    }
 
     /**
      * 판매자 정보 등록

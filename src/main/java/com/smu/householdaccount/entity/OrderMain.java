@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -19,7 +20,8 @@ import java.util.Set;
 @Setter
 @Entity
 @Table(name = "ORDER_MAIN")
-public class    OrderMain {
+@ToString(exclude = {"buyer", "seller","orderItems","paymentTransactions","shipments"})
+public class OrderMain {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ORDER_ID", nullable = false)
@@ -31,6 +33,14 @@ public class    OrderMain {
     @OnDelete(action = OnDeleteAction.RESTRICT)
     @JoinColumn(name = "BUYER_ID", insertable = false, updatable = false)
     private Member buyer;
+
+    @Column(name = "SELLER_ID")
+    private Long sellerId;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @OnDelete(action = OnDeleteAction.RESTRICT)
+    @JoinColumn(name = "SELLER_ID",insertable = false, updatable = false)
+    private Seller seller;
 
     @NotNull
     @Column(name = "TOTAL_AMOUNT", nullable = false, precision = 15, scale = 2)

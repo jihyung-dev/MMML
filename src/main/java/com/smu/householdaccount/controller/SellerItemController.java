@@ -1,8 +1,6 @@
 package com.smu.householdaccount.controller;
 
-import com.smu.householdaccount.entity.HotdealOption;
 import com.smu.householdaccount.entity.Item;
-import com.smu.householdaccount.entity.Member;
 import com.smu.householdaccount.entity.Seller;
 import com.smu.householdaccount.repository.HotdealOptionRepository;
 import com.smu.householdaccount.repository.ItemRepository;
@@ -18,12 +16,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.SessionAttribute;
 
-import java.util.List;
-
 @Controller
 @RequestMapping("/seller/item")
 @RequiredArgsConstructor
-public class SellerDashboardController {
+public class SellerItemController {
 
     private final ItemRepository itemRepository;
     private final HotdealOptionRepository hotdealOptionRepository;
@@ -43,14 +39,12 @@ public class SellerDashboardController {
     public String dashboard(
             @PathVariable Long itemId,
             Model model) {
-        // 1️⃣ 임의 item_id = 1로 ITEM 조회
+
         Item item = itemRepository.findWithCategoryWithHotdealOptionsById(itemId)
                 .orElseThrow(() -> new RuntimeException("Item not found"));
 
-        // 3️⃣ 뷰에 전달
         model.addAttribute("item", item);
 
-        // 4️⃣ 뷰 파일 경로 (templates/seller/dashboard.html)
         return "seller/item";
     }
 }
