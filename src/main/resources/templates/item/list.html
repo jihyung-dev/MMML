@@ -13,12 +13,6 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
 
-    <style>
-        .menu-link:hover {
-            color: black; /* 원하는 색 */
-            text-decoration: underline;
-        }
-    </style>
 
 </head>
 <body>
@@ -39,13 +33,13 @@
     <div class="row g-2 text-center">
 
         <div class="col-md-4">
-            <a href="/board" class="text-decoration-none fs-6 fw-bold d-block py-2 menu-link">
-                게시판
+            <a href="/ledger.html" class="text-decoration-none fs-6 fw-bold d-block py-2 menu-link">
+                가계부
             </a>
         </div>
         <div class="col-md-4">
-            <a href="/ledger.html" class="text-decoration-none fs-6 fw-bold d-block py-2 menu-link">
-                가계부
+            <a href="/board" class="text-decoration-none fs-6 fw-bold d-block py-2 menu-link">
+                게시판
             </a>
         </div>
         <div class="col-md-4">
@@ -83,14 +77,11 @@
         <input type="text" name="q"
                th:value="${param.q}"
                class=" form-control me-2 form-control-sm ms-2 search-input"
-               placeholder="검색어를 입력하세요"
+               placeholder="찾으시는 상품을 입력하세요"
         />
         <button type="submit" class="btn btn-sm btn-primary">검색</button>
 
     </div>
-    <!--             숨겨진 필드/⇒ 현재 선택된 카테고리 값 유지 -->
-
-    <!-- 카테고리 스크롤 컨테이너 -->
 </form>
 
 
