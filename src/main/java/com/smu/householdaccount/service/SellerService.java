@@ -16,6 +16,9 @@ public interface SellerService {
     // 🔹 판매자 상세 조회
     Seller getSellerByMemberId(String memberId);
 
+    // 🔹 사업자번호 찾기
+    String findBizNo(String memberId, String memberName, String phone);
+
     // 🤑 (판매자 상세 페이지에 들어가는 내용) 페이징으로 판매자 상품 조회
     Page<Item> getItemBySeller(Long sellerId, Pageable pageable);
 }

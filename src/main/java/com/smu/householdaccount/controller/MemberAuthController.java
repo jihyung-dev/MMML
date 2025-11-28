@@ -20,7 +20,7 @@ public class MemberAuthController {
     @GetMapping("/join/member")
     public String joinForm(Model model) {
         model.addAttribute("member", new Member());
-        return "auth/join-member";   // templates/auth/join-member.html
+        return "auth/join-member";
     }
 
     /**
@@ -34,27 +34,30 @@ public class MemberAuthController {
     ) {
         // 아이디 중복 체크
         if (memberService.existsByMemberId(member.getMemberId())) {
+            model.addAttribute("member", member);
             model.addAttribute("error", "이미 사용 중인 아이디입니다.");
             return "auth/join-member";
         }
 
         // 닉네임 중복 체크
         if (memberService.existsByNickname(member.getMemberNickname())) {
+            model.addAttribute("member", member);
             model.addAttribute("error", "이미 사용 중인 닉네임입니다.");
             return "auth/join-member";
         }
 
-        // 휴대폰 중복 체크 (선택)
+        // 휴대폰 중복 체크
         if (member.getPhone() != null && !member.getPhone().isBlank()
                 && memberService.existsByPhone(member.getPhone())) {
+            model.addAttribute("member", member);
             model.addAttribute("error", "이미 사용 중인 휴대폰 번호입니다.");
             return "auth/join-member";
         }
 
-        // 기본 ROLE 은 서비스에서 USER 로 세팅되도록 되어있음
+        // 기본 ROLE 은 서비스에서 USER 로 세팅
         memberService.registerUser(member);
 
-        // 가입 완료 후 로그인 페이지로
-        return "redirect:/";
+        // 가입 완료 후 로그인 페이지로 이동 (원하면 "/" 그대로 둬도 됨)
+        return "redirect:/login";
     }
 }
