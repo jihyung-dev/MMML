@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface LedgerRepository extends JpaRepository<LedgerEntry, Long> {
@@ -24,7 +25,19 @@ public interface LedgerRepository extends JpaRepository<LedgerEntry, Long> {
 
     List<LedgerEntry> findByGroupAndDateRange(
             @Param("group") BudgetGroup group,
-            @Param("startDate") LocalDate startDate,
-            @Param("endDate") LocalDate endDate
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate
     );
+    @Query(value = "SELECT " +
+            "  DATE_FORMAT(le.OCCURRED_AT, '%Y-%m-%d') AS summaryDate, " +
+            "  le.ENTRY_TYPE AS entryType, " +
+            "  SUM(le.ENTRY_AMOUNT) AS totalAmount " +
+            "FROM MMML.LEDGER_ENTRY le " +
+            "WHERE le.GROUP_ID = :groupId " +
+            "  AND le.OCCURRED_AT BETWEEN :startDate AND :endDate " +
+            "GROUP BY DATE_FORMAT(le.OCCURRED_AT, '%Y-%m-%d'), le.OCCURRED_AT, le.ENTRY_TYPE",
+            nativeQuery = true)
+    List<Object[]> findDailyStatsRaw(@Param("groupId") Long groupId,
+                                     @Param("startDate") LocalDateTime startDate,
+                                     @Param("endDate") LocalDateTime endDate);
 }
