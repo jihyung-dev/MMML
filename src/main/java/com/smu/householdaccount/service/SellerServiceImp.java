@@ -58,4 +58,19 @@ public class SellerServiceImp implements SellerService {
         // 2️⃣ 해당 seller 가 등록한 Item 들을 페이징으로 조회
         return itemRepository.findBySellerId(sellerId, pageable);
     }
+
+    @Transactional(readOnly = true)
+    @Override
+    public String findBizNo(String memberId, String memberName, String phone) {
+        return sellerRepository
+                .findByMember_MemberIdAndMember_MemberNameAndMember_Phone(memberId, memberName, phone)
+                .map(Seller::getBizNo)
+                .orElse(null);
+    }
+
+
+
+
+
+
 }
