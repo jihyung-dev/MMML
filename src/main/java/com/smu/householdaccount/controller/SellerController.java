@@ -56,7 +56,7 @@ public class SellerController {
         }
         return "redirect:/seller";
     }
-    @GetMapping("/order")
+    @GetMapping("/seller/order")
     public String order(){
         return "seller/orders";
     }

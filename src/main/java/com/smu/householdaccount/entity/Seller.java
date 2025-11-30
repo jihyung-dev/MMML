@@ -49,4 +49,7 @@ public class Seller {
     @OneToMany(mappedBy = "seller")
     private Set<Item> items = new LinkedHashSet<>();
 
+    @OneToMany(mappedBy = "seller")
+    private Set<OrderMain> orderMains = new LinkedHashSet<>();
+
 }
