@@ -69,7 +69,10 @@ public class ItemController {    // 명시적 생성자 주입 (Lombok 없이 �
 
     // 상세: 상세 페이지 로드 시 서버에서 조회수 증가 후 보여줌
     @GetMapping("/{id}")
-    public String detail(@PathVariable Long id, Model model, RedirectAttributes redirectAttrs) {
+    public String detail(
+            @PathVariable Long id,
+            Model model,
+            RedirectAttributes redirectAttrs) {
         // 조회수 증가 (원자적 업데이트)
         itemService.incrementViewCount(id);
 

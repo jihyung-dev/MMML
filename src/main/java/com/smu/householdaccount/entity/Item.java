@@ -18,7 +18,9 @@ import java.text.DecimalFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -116,6 +118,13 @@ public class Item {
 
     @OneToMany(mappedBy = "item")
     Set<HotdealOption> hotdealOptions=new LinkedHashSet<>();
+
+
+    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ItemDetailImage> images = new ArrayList<>();
+
+    @OneToMany(mappedBy = "item")
+    private Set<ItemWish> wishes = new LinkedHashSet<>();
 
 
     /**

@@ -44,8 +44,13 @@ public interface ItemRepository extends JpaRepository<Item, Long>, JpaSpecificat
     @Query("SELECT i FROM Item i WHERE (i.saleStartAt IS NULL OR i.saleStartAt <= :now) AND i.saleEndAt >= :now")
     Page<Item> findCurrentlyOnSale(@Param("now") LocalDate now, Pageable pageable);
 
+    // 옵션/이미지 함께 페치해서 단건 조회하고 싶다면 entity graph 사용
+    @EntityGraph(attributePaths = {"images", "hotdealOptions"})
+    Optional<Item> findWithImagesAndOptionsById(Long id);
+
+
     // 상세 조회 (단건) — fetch join 대신 사용; service에서 연관 초기화 수행
-    @EntityGraph(attributePaths = {"seller","category"})
+    @EntityGraph(attributePaths = {"seller","category","hotdealOptions","images","wishes"})
     @Override
     Optional<Item> findById(Long id);
     @EntityGraph(attributePaths = {"category","hotdealOptions"})
