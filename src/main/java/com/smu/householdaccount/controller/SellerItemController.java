@@ -1,8 +1,6 @@
 package com.smu.householdaccount.controller;
 
-import com.smu.householdaccount.entity.HotdealOption;
 import com.smu.householdaccount.entity.Item;
-import com.smu.householdaccount.entity.Member;
 import com.smu.householdaccount.entity.Seller;
 import com.smu.householdaccount.repository.HotdealOptionRepository;
 import com.smu.householdaccount.repository.ItemRepository;
@@ -18,12 +16,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.SessionAttribute;
 
-import java.util.List;
-
 @Controller
 @RequestMapping("/seller/item")
 @RequiredArgsConstructor
-public class SellerDashboardController {
+public class SellerItemController {
 
     private final ItemRepository itemRepository;
     private final HotdealOptionRepository hotdealOptionRepository;
