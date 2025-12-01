@@ -1,6 +1,7 @@
 package com.smu.householdaccount.controller;
 
 import com.smu.householdaccount.dto.ledger.LedgerSummaryDto;
+import com.smu.householdaccount.entity.LedgerEntry;
 import com.smu.householdaccount.service.LedgerService;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.List;
 
@@ -92,5 +94,20 @@ public class LedgerController {
     @GetMapping("")
     public String home(){
         return "household/blank";
+    }
+
+
+    /**
+     * [API] DataTables용 JSON 데이터 반환
+     * URL: /ledger/api/entries?year=2025&month=10
+     */
+    @GetMapping("/api/entries")
+    @ResponseBody // JSON으로 반환
+    public ResponseEntity<List<LedgerEntry>> getLedgerEntries(
+            @RequestParam int year,
+            @RequestParam int month
+    ) {
+        List<LedgerEntry> entries = (List<LedgerEntry>) ledgerService.getMonthLedger(year, month);
+        return ResponseEntity.ok(entries);
     }
 }

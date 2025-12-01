@@ -61,11 +61,11 @@ public class LedgerService {
      * 사용자의 모든 거래 내역
      */
     public List<LedgerEntry> getLedgerAll(){
-        BudgetGroup group = budgetGroupRepository.findById(1l).orElseThrow();
+        //BudgetGroup group = budgetGroupRepository.findById(1l).orElseThrow();
         LocalDateTime start = LocalDateTime.of(2025, 8, 1,0,0,0);
         LocalDateTime end   = start.plusMonths(1).minusSeconds(1);// 월말 23:59:59
-        Log.d("데이터 확인", group.toString());
-        Log.d("그룹 : " , ledgerRepository.findByGroupAndDateRange(group, start, end).toString());
+        //Log.d("데이터 확인", group.toString());
+        Log.d("그룹 : " , ledgerRepository.findByGroupAndDateRange(1L, start, end).toString());
         return null;
     }
 
@@ -73,7 +73,6 @@ public class LedgerService {
      * 월별 사용자의 거래 내역
      */
     public LedgerSummaryDto getMonthLedger(int year, int month){
-        BudgetGroup group = budgetGroupRepository.findById(1l).orElseThrow(); // 수정 필요.하드코딩
         LocalDateTime date = LocalDateTime.of(year, month, 1,0,0,0);
         // 기준이 되는 달의 1일
         LocalDate targetMonth = LocalDate.of(year, month, 1);
@@ -83,24 +82,22 @@ public class LedgerService {
 
         // 기준달의 마지막날
         LocalDateTime endDate = targetMonth.withDayOfMonth(targetMonth.lengthOfMonth()).atStartOfDay();
-        List<LedgerEntry> entries = ledgerRepository.findByGroupAndDateRange(group, startDate, endDate);
+        List<LedgerEntry> entries = ledgerRepository.findByGroupAndDateRange(1L, startDate, endDate);
         return getLedgerSummary(entries);
     }
-
+    //달력
     public LedgerSummaryDto getMonthlyChart(int year, int month) {
-        BudgetGroup group = budgetGroupRepository.findById(1l).orElseThrow(); // 수정 필요.하드코딩
         LocalDateTime date_start = LocalDateTime.of(year, month, 1,0,0,0);
         LocalDateTime date_end = date_start.plusMonths(1).minusSeconds(1);
-        List<LedgerEntry> entries = ledgerRepository.findByGroupAndDateRange(group, date_start, date_end);
+        List<LedgerEntry> entries = ledgerRepository.findByGroupAndDateRange(1L, date_start, date_end);
 
         return getLedgerSummary(entries);
     }
 
     public List<LedgerEntry> getMonthlyToExcel(int year, int month) {
-        BudgetGroup group = budgetGroupRepository.findById(1l).orElseThrow(); // 수정 필요.하드코딩
         LocalDateTime date_start = LocalDateTime.of(year, month, 1,0,0,0);
         LocalDateTime date_end = LocalDateTime.of(year, month, Utility.endOfMonth(year, month),0,0,0);
-        List<LedgerEntry> entries = ledgerRepository.findByGroupAndDateRange(group, date_start, date_end);
+        List<LedgerEntry> entries = ledgerRepository.findByGroupAndDateRange(1L, date_start, date_end);
 
         return entries;
     }
@@ -120,7 +117,7 @@ public class LedgerService {
         LocalDateTime start = LocalDateTime.of(year, month, 1, 0, 0, 0);
         LocalDateTime end = start.withDayOfMonth(start.toLocalDate().lengthOfMonth())
                 .withHour(23).withMinute(59).withSecond(59);
-        return ledgerRepository.findByGroupAndDateRange(group, start, end);
+        return ledgerRepository.findByGroupAndDateRange(group.getId(), start, end);
     }
 
     public LedgerSummaryDto getLedgerSummary(List<LedgerEntry> entries){
@@ -133,7 +130,7 @@ public class LedgerService {
         for(LedgerEntry entry : entries){
             LocalDateTime date = entry.getOccurredAt();
             dailyMap.putIfAbsent(date, LedgerSummaryDto.DailySummary.builder()
-                    .date(date)
+                    .date(LocalDate.from(date))
                     .expense(BigDecimal.ZERO)
                     .income(BigDecimal.ZERO).build());
             // 전체 지출 더하기

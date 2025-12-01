@@ -23,12 +23,14 @@ public class LedgerEntry {
     @Column(name = "ENTRY_ID", nullable = false)
     private Long id;
 
-    @NotNull
+    @Column(name = "GROUP_ID", nullable = false)
+    private Long groupId;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.RESTRICT)
     @JsonIgnore
-    @JoinColumn(name = "GROUP_ID", nullable = false)
-    private BudgetGroup groupId;
+    @JoinColumn(name = "GROUP_ID", insertable = false, updatable = false)
+    private BudgetGroup group;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

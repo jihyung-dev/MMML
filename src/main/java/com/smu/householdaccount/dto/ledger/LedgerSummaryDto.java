@@ -2,6 +2,7 @@ package com.smu.householdaccount.dto.ledger;
 
 import lombok.Builder;
 import lombok.Data;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -24,7 +25,7 @@ public class LedgerSummaryDto {
 
     @Data @Builder
     public static class DailySummary {
-        private LocalDateTime date;
+        private LocalDate date;
         private BigDecimal expense;
         private BigDecimal income;
     }
