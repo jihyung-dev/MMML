@@ -86,15 +86,15 @@ public class ItemController {    // 명시적 생성자 주입 (Lombok 없이 �
             return "redirect:/hotdeal";
         }
         model.addAttribute("item", item);
-
-        // 옵션 그룹 만들기 (예: 옵션 타입별로 그룹핑)
-        Map<String, List<HotdealOption>> optionGroups = item.getHotdealOptions().stream()
-                .collect(Collectors.groupingBy(
-                        HotdealOption::getOptionType, // key: 옵션 타입
-                        LinkedHashMap::new,           // 순서 유지
-                        Collectors.toList()           // value: 옵션 리스트
-                ));
-        model.addAttribute("optionGroups", optionGroups);
+//
+//        // 옵션 그룹 만들기 (예: 옵션 타입별로 그룹핑)
+//        Map<String, List<HotdealOption>> optionGroups = item.getHotdealOptions().stream()
+//                .collect(Collectors.groupingBy(
+//                        HotdealOption::getOptionType, // key: 옵션 타입
+//                        LinkedHashMap::new,           // 순서 유지
+//                        Collectors.toList()           // value: 옵션 리스트
+//                ));
+//        model.addAttribute("optionGroups", optionGroups);
 
         return "item/detail";
     }

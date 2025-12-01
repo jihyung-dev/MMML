@@ -150,7 +150,7 @@ public class Item {
         BigDecimal scaled = this.getOriginalPrice().setScale(0, RoundingMode.HALF_UP);
         return df.format(scaled.longValue()) + "원";
     }
-
+    @Transient
     @Size(max = 4000)
     @Column(name = "DESCRIPTION", length = 4000)
     private String description;
