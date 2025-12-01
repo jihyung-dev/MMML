@@ -7,16 +7,59 @@ Highcharts.setOptions({
         enabled: false
     }
 });
-
+const now = new Date();
 // 전역 상태
-let currentYear = 2025;
-let currentMonth = 10;
+let currentYear = 2025//now.getFullYear();
+let currentMonth = 10//now.getMonth() + 1;
+
 let modalJustOpened = false; // 모달 팝업 플래그
 let modalChartInstance = null;
 
 //LRU 캐싱 사용, 가장 최근에 사용하지 않은 데이터 제거.현재 달과 전 달의 2개월치 데이터를 3개까지 보관(총 6개)
 const ledgerCache = new Map();
 let loaded3MonthCache = {};
+// 6개월간 사용자 데이터, 페이지 로딩 시 한번만 호출
+let loaded6MonthCache = null;
+
+// 전체 사용자 평균 데이터, 페이지 로딩 시 한번만 호출
+let globalAvgLedger = null;
+// 전체 사용자 전달 데이터, 카테고리별, 페이지 로딩 시 한번만 호출
+let allCategoryStats = [];
+// 선택된 카테고리 리스트
+let selectedCategories = new Set();
+
+let genderChart = null;
+let ageChart = null;
+
+// 카테고리 별 연령대 배열
+let AGE_LABELS = [];
+
+function prepareAgeLabels() {
+    const ageSet = new Set();
+
+    allCategoryStats.forEach(s => {
+        const a = String(s.ageGroup);
+        ageSet.add(`${a}대`);
+    });
+
+    AGE_LABELS = Array.from(ageSet).sort();
+}
+
+function initCharts() {
+    genderChart = Highcharts.chart('genderChartContainer', {
+        chart: { type: 'column' },
+        title: { text: '성별 평균 지출 비교' },
+        xAxis: { categories: ['남성', '여성'] },
+        series: []
+    });
+
+    ageChart = Highcharts.chart('ageChartContainer', {
+        chart: { type: 'column' },
+        title: { text: '연령대 평균 지출 비교' },
+        xAxis: { categories: AGE_LABELS },
+        series: []
+    });
+}
 
 async function loadLedgerChart({ year, month }) {
     const key = `${year}-${month}`;
@@ -139,6 +182,59 @@ function drawModalComparePieChart(currentAmount, avgAmount, categoryName) {
     });
 }
 
+function drawTop3LineChart(containerId, category, history, overspend) {
+
+    const categories = history.map(h => h.month);
+    const data = history.map(h => h.total);
+
+    Highcharts.chart(containerId, {
+        chart: {
+            type: 'line',
+            height: 80,          // 🔥 최소 높이
+            backgroundColor: 'transparent',
+            margin: [10, 0, 10, 0]
+        },
+        title: { text: null },
+
+        // X축 완전 미니멀
+        xAxis: {
+            categories,
+            tickLength: 0,
+            lineWidth: 0,
+            labels: { enabled: false } // 글자 제거
+        },
+
+        // Y축 완전 미니멀
+        yAxis: {
+            title: { text: null },
+            gridLineWidth: 0,
+            labels: { enabled: false },
+            tickAmount: 2   // 혹시 모를 흔들림 방지
+        },
+
+        // 포인트 표시 제거
+        plotOptions: {
+            series: {
+                lineWidth: 2,
+                marker: { enabled: false },
+                enableMouseTracking: false // 마우스 오버 효과 제거
+            }
+        },
+
+        tooltip: { enabled: false }, // 툴팁 제거
+
+        legend: { enabled: false },
+        credits: { enabled: false },
+
+        series: [{
+            name: category,
+            data: data,
+            color: overspend ? '#ff4d4d' : '#4a90e2'
+        }]
+    });
+}
+
+
 function drawDailyLineChart(currentDaily, prevDaily) {
     // prevDaily가 일수 다를 수 있으니 날짜 기준 맞추기
     const prevExpenseAligned = currentDaily.map(d => {
@@ -205,15 +301,28 @@ function nextMonth() {
 
 
 // ✔ 차트 업데이트 → API 호출 + 화면 렌더링
+// 이번달 데이터 호출 -> 6개월 데이터 호출
 async function updateChart() {
     updateMonthLabel();
     await loadLedgerChart({ year: currentYear, month: currentMonth });
 }
 
+async function startDocu() {
+    // 1) 전체 평균 데이터 먼저 로드
+    globalAvgLedger = await loadGlobalAvgData();
+
+    // 2) 기존 로직들 실행
+    await loadLedgerChart({ year: currentYear, month: currentMonth });
+    await loadTopData(); // Top3 데이터
+    await loadAllCategoryStats(); // 성별 연령대 별 통계
+    buildCategorySelectList();
+    initCharts();
+    prepareAgeLabels();
+}
 
 // 초기 로딩
 document.addEventListener("DOMContentLoaded", () => {
-    updateChart(); // 첫 화면 렌더링
+    startDocu();
 });
 
 async function openModal(category) {
@@ -265,10 +374,26 @@ async function load3MonthData(key) {
     else // 3개월 비교데이터는 단 한개만 캐싱
         loaded3MonthCache = {};
     // 없으면 fetch 해서 가져오고 저장 후 return
-    const res = await fetch(`/ledger/request/userLedger/month?year=${currentYear}&month=${currentMonth}`);
+    const res = await fetch(`/ledger/request/userLedger/month?year=${currentYear}&month=${currentMonth}&period=3`);
     const data = await res.json();
 
     loaded3MonthCache[key] = data;
+    return data; // 반드시 return 해야함
+}
+
+// 이전 6개월 데이터 호출, 데이터 캐싱, 최초 한번만 호출
+async function load6MonthData() {
+    // 캐시 있으면 그대로 반환
+    if (loaded6MonthCache !== null) {
+        return loaded6MonthCache;
+    }
+
+    // 없으면 fetch 해서 가져오고 저장 후 return
+    const last6 = await fetch(`/ledger/request/userLedger/6month?year=${currentYear}&month=${currentMonth}&period=6`);
+    const data = await last6.json();
+    loaded6MonthCache = data;
+
+    console.log("📌 load6MonthData() 결과(last6):", data);
     return data; // 반드시 return 해야함
 }
 
@@ -429,9 +554,315 @@ async function exportExcel(mail) {
         return;
     }
 
-    const blob = await res.blob();
-    const a = document.createElement("a");
-    a.href = window.URL.createObjectURL(blob);
-    a.download = `ledger_${currentYear}-${currentMonth}.xlsx`;
-    a.click();
+}
+// top 데이터 관련
+/*
+ * 초기 로딩 시 6개월치 데이터를 로딩 -> 이번달 내역 중 가장 많은 비중을 차지 하는 3개의 카테고리의 데이터를 선형 차트로 노출
+ */
+
+// 6개월치 데이터 로드
+async function loadTopData() {
+    const last6 = await load6MonthData();  // 6개월 전체 데이터
+
+    const key = `${currentYear}-${currentMonth}`;
+    const monthObj = ledgerCache.get(key);
+
+    if (!monthObj || !monthObj.current?.categories) {
+        console.log("이번달 데이터 없음");
+        return;
+    }
+
+    // 1) 이번달 Top3
+    const top3 = getTop3FromCategories(monthObj.current.categories);
+    console.log("Top3:", top3);
+
+    // 2) 카드 + 차트 업데이트
+    updateTop3CardsAndCharts(top3, monthObj.current.categories, last6);
+}
+
+// top3 카테고리의 월, 사용 금액 분류
+function getHistoryForCategory(monthlyList, categoryName) {
+    return monthlyList.map(m => {
+        const match = m.summary.categories.find(c => c.categoryName === categoryName);
+        return {
+            month: m.month,
+            total: match ? Number(match.amount) : 0
+        };
+    });
+}
+
+// top3 카테고리 분류
+function getTop3FromCategories(entries) {
+
+    if (!Array.isArray(entries) || entries.length === 0) {
+        return [];
+    }
+
+    const sumByCategory = {};
+
+    entries.forEach(entry => {
+        const cat = entry.categoryName ?? entry.category;
+        const amount = Number(entry.entryAmount ?? entry.amount ?? 0);
+
+        if (!cat) return;
+
+        if (!sumByCategory[cat]) {
+            sumByCategory[cat] = 0;
+        }
+        sumByCategory[cat] += amount;
+    });
+
+    const sorted = Object.entries(sumByCategory)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3);
+
+    return sorted.map(([category]) => category);
+}
+
+// top 3 카테고리 선형 차트
+function updateTop3CardsAndCharts(top3, thisMonthCategories, last6) {
+
+    if (!globalAvgLedger) {
+        console.warn("globalAvg 데이터가 없음");
+        globalAvgLedger = [];
+    }
+
+    const cardIds = [
+        { cat: "top1-category", my: "top1-my", diff: "top1-diff", chart: "top1-chart" },
+        { cat: "top2-category", my: "top2-my", diff: "top2-diff", chart: "top2-chart" },
+        { cat: "top3-category", my: "top3-my", diff: "top3-diff", chart: "top3-chart" }
+    ];
+
+    top3.forEach((category, i) => {
+        const card = cardIds[i];
+
+        // 이번달 금액
+        const thisItem = thisMonthCategories.find(c => c.categoryName === category);
+        const thisMonthTotal = thisItem ? Number(thisItem.amount) : 0;
+
+        document.getElementById(card.cat).textContent = category;
+        document.getElementById(card.my).textContent = `${thisMonthTotal.toLocaleString()} 원`;
+
+        // 전체 평균 가져오기
+        const globalItem = globalAvgLedger.find(c => c.category  === category);
+        const globalValue = globalItem ? Number(globalItem.avg) : 0;
+
+        const diffPercent = globalValue > 0
+            ? (((thisMonthTotal - globalValue) / globalValue) * 100).toFixed(1)
+            : 0;
+
+        const overspend = globalValue > 0 && thisMonthTotal > globalValue * 1.2;  // 평균보다 20% 초과일 경우 빨간 색으로 차트 생성
+
+        document.getElementById(card.diff).textContent = `${diffPercent}%`;
+
+        // 6개월 라인 차트
+        const history = getHistoryForCategory(last6, category);
+        drawTop3LineChart(card.chart, category, history, overspend);
+    });
+}
+
+
+// 지난 달 사용자 데이터 호출
+async function loadGlobalAvgData() {
+    try {
+        const res = await fetch(`/stats/loadAll`);
+        const data = await res.json();
+        console.log("글로벌 평균 데이터 로드 완료:", data);
+        return data;
+    } catch (e) {
+        console.error("글로벌 평균 데이터 로드 실패:", e);
+        return [];
+    }
+}
+
+async function loadAllCategoryStats() {
+    const res = await fetch('/stats/loadAll_group');
+    allCategoryStats = await res.json();
+}
+
+function buildCategorySelectList() {
+    const categories = new Set();
+
+    allCategoryStats.forEach(stat => {
+        categories.add(stat.category);
+    });
+
+    const listEl = document.getElementById("categorySelectList");
+    listEl.innerHTML = "";
+
+    categories.forEach(cat => {
+        const btn = document.createElement("button");
+        btn.className = "category-btn";
+        btn.textContent = cat;
+
+        btn.addEventListener("click", () => {
+            btn.classList.toggle("active");
+            toggleCategory(cat);
+        });
+
+        listEl.appendChild(btn);
+    });
+}
+
+function toggleCategory(categoryName) {
+    const area = document.getElementById("categoryStatsCharts");
+
+    // 선택 토글 처리
+    if (selectedCategories.has(categoryName)) {
+        selectedCategories.delete(categoryName);
+        removeCategoryFromCharts(categoryName);
+    } else {
+        selectedCategories.add(categoryName);
+        addCategoryToCharts(categoryName);
+    }
+
+    // 선택된 카테고리가 하나라도 있으면 열기
+    if (selectedCategories.size > 0) {
+        openChartArea(area);
+    }
+    // 모두 해제되면 닫기
+    else {
+        closeChartArea(area);
+    }
+}
+
+let clearChartTimeout = null;
+
+function closeChartArea(area) {
+    area.classList.remove("open");
+
+    // 이미 예약된 series 제거 작업이 있으면 취소
+    if (clearChartTimeout) {
+        clearTimeout(clearChartTimeout);
+    }
+
+    // 애니메이션 끝난 뒤 시리즈 제거
+    clearChartTimeout = setTimeout(() => {
+        if (selectedCategories.size === 0) {
+            genderChart.series.slice().forEach(s => s.remove());
+            ageChart.series.slice().forEach(s => s.remove());
+        }
+    }, 350);
+}
+
+function openChartArea(area) {
+    if (!area.classList.contains("open")) {
+        area.classList.add("open");
+
+        // 레이아웃이 확정된 후 reflow
+        setTimeout(() => {
+            genderChart.reflow();
+            ageChart.reflow();
+        }, 350);
+    }
+}
+
+// 카테고리 추가 제거
+function addCategoryToCharts(categoryName) {
+    const stat = getStatForCategory(categoryName);
+    const color = colorFromCategory(categoryName);
+
+    stat.age = stat.age.map(v => ({
+        age: typeof v.age === "string" && v.age.includes("대")
+            ? v.age
+            : `${v.age}대`,
+        value: v.value
+    }));
+
+    // (ex: ["20대","30대","40대"])
+    const ages = stat.age.map(v => v.age);
+
+    // 숫자 혹은 이상값 필터링
+    const validAges = ages.filter(age => /^[0-9]+대$/.test(age));
+
+    // 이미 있는 AGE_LABELS와 합쳐서 순서 유지
+    validAges.forEach(age => {
+        if (!AGE_LABELS.includes(age)) AGE_LABELS.push(age);
+    });
+
+    AGE_LABELS.sort();
+
+    ageChart.xAxis[0].setCategories(AGE_LABELS);
+
+    const ageMap = {};
+    stat.age.forEach(v => {
+        ageMap[v.age] = v.value;
+    });
+
+    const finalAgeData = AGE_LABELS.map(label => {
+        return ageMap[label] ?? null;
+    });
+
+    genderChart.addSeries({
+        name: categoryName,
+        data: [
+            stat.gender.male ?? null,
+            stat.gender.female ?? null
+        ],
+        color: color
+    });
+
+    ageChart.addSeries({
+        name: categoryName,
+        data: finalAgeData,
+        color: color
+    });
+}
+
+function removeCategoryFromCharts(categoryName) {
+    // 성별 차트 제거
+    const series1 = genderChart.series.find(s => s.name === categoryName);
+    if (series1) series1.remove();
+
+    // 연령대 차트 제거
+    const series2 = ageChart.series.find(s => s.name === categoryName);
+    if (series2) series2.remove();
+}
+
+// 카테고리별 계산
+function getStatForCategory(categoryName) {
+    const filtered = allCategoryStats.filter(s => s.category === categoryName);
+
+    const genderMap = {};
+    const ageMap = {};
+
+    filtered.forEach(s => {
+        const g = s.gender;
+        const a = String(s.ageGroup); // 숫자 → 문자열 변환
+        const avg = Number(s.avg);
+        const c = Number(s.count);
+
+        if (!genderMap[g]) genderMap[g] = { sum: 0, count: 0 };
+        genderMap[g].sum += avg * c;
+        genderMap[g].count += c;
+
+        if (!ageMap[a]) ageMap[a] = { sum: 0, count: 0 };
+        ageMap[a].sum += avg * c;
+        ageMap[a].count += c;
+    });
+    return {
+        gender: {
+            male: genderMap["M"] ? Math.round(genderMap["M"].sum / genderMap["M"].count) : 0,
+            female: genderMap["F"] ? Math.round(genderMap["F"].sum / genderMap["F"].count) : 0
+        },
+        age: Object.entries(ageMap).map(([age, obj]) => ({
+            age: `${age}대`,
+            value: Math.round(obj.sum / obj.count)
+        }))
+    }
+}
+
+// 카테고리별 차트 색상 해시 기반으로 색 생성 함수
+function colorFromCategory(cat) {
+    let hash = 0;
+    for (let i = 0; i < cat.length; i++) {
+        hash = cat.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    let color = '#';
+    for (let i = 0; i < 3; i++) {
+        const value = (hash >> (i * 8)) & 0xFF;
+        color += ('00' + value.toString(16)).slice(-2);
+    }
+    return color;
 }

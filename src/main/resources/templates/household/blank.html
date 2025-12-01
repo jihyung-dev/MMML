@@ -51,13 +51,92 @@
         <div id="calendar"></div>
     </div>
 </div>
+
+<div class="container my-4">
+
+    <!-- 제목 -->
+    <h4 class="mb-3 fw-bold">이번 달 소비 요약</h4>
+
+    <div id="top3Container" class="top3-wrapper">
+
+        <!-- 카드 1 -->
+        <div class="top3-card">
+            <h6 class="card-label">카테고리</h6>
+            <h4 class="card-category" id="top1-category">-</h4>
+
+            <p class="small-text">내 지출</p>
+            <div class="card-money" id="top1-my">- 원</div>
+
+            <p class="small-text mt-3">전체 평균 대비</p>
+            <div class="card-diff" id="top1-diff">- %</div>
+
+            <!-- 🔥 차트 렌더링용 div 추가 -->
+            <div id="top1-chart" style="height:120px; margin-top:10px;"></div>
+        </div>
+
+        <!-- 카드 2 -->
+        <div class="top3-card">
+            <h6 class="card-label">카테고리</h6>
+            <h4 class="card-category" id="top2-category">-</h4>
+
+            <p class="small-text">내 지출</p>
+            <div class="card-money" id="top2-my">- 원</div>
+
+            <p class="small-text mt-3">전체 평균 대비</p>
+            <div class="card-diff" id="top2-diff">- %</div>
+
+            <!-- 🔥 차트 렌더링용 div 추가 -->
+            <div id="top2-chart" style="height:120px; margin-top:10px;"></div>
+        </div>
+
+        <!-- 카드 3 -->
+        <div class="top3-card">
+            <h6 class="card-label">카테고리</h6>
+            <h4 class="card-category" id="top3-category">-</h4>
+
+            <p class="small-text">내 지출</p>
+            <div class="card-money" id="top3-my">- 원</div>
+
+            <p class="small-text mt-3">전체 평균 대비</p>
+            <div class="card-diff" id="top3-diff">- %</div>
+
+            <!-- 🔥 차트 렌더링용 div 추가 -->
+            <div id="top3-chart" style="height:120px; margin-top:10px;"></div>
+        </div>
+    </div>
+
+    <!-- 지난 달 사용자 카테고리 평균 섹션 -->
+    <div id="lastMonthUserAvgContainer" class="last-month-box mt-4">
+
+        <h4 class="section-title">📊 지난 달 사용자들의 카테고리 평균</h4>
+        <div id="lastMonthAvgList" class="avg-list">
+            <!-- 카테고리/금액 리스트 -->
+        </div>
+        <p class="hint-text">※ 항목을 클릭하면 성별/연령대별 차트가 아래에 표시됩니다.</p>
+        <div id="categorySelectList"></div>
+    </div>
+
+    <!-- 🔻 카테고리 선택 시 나오는 상세 차트 영역 -->
+    <div id="categoryStatsCharts" class="last-month-box mt-3">
+        <h4 id="statsChartTitle" class="section-title"></h4>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div id="genderChartContainer" style="height:300px;"></div>
+            </div>
+            <div class="col-md-6">
+                <div id="ageChartContainer" style="height:300px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- 하단: 일별 차트 -->
 <div id="dailyChart" style="width: 100%; height: 400px; max-width: 1200px; margin: 30px auto;"></div>
 
     <!-- 비교 차트 (막대) -->
 <div id="threeMonthBarChart" style="width: 100%; height: 400px; max-width: 1200px; margin: 30px auto;"></div>
-<button onclick="exportExcel()">엑셀 테스트</button>
-
+<button onclick="exportExcel('you12zin345@gmail.com')">엑셀 테스트</button>
     <!-- 모달 -->
     <div id="chartModal" class="modal-overlay">
         <div class="modal-content">

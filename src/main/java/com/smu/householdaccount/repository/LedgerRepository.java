@@ -1,5 +1,6 @@
 package com.smu.householdaccount.repository;
 
+import com.smu.householdaccount.dto.ledger.CategoryStatsDto;
 import com.smu.householdaccount.entity.BudgetGroup;
 import com.smu.householdaccount.entity.LedgerEntry;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -28,4 +29,21 @@ public interface LedgerRepository extends JpaRepository<LedgerEntry, Long> {
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate
     );
+
+    @Query(value = """
+        SELECT 
+            m.gender AS gender,
+            FLOOR(m.age / 10) * 10 AS ageGroup,
+            c.category_name AS category,
+            SUM(l.entry_amount) AS total,
+            AVG(l.entry_amount) AS avgAmount,
+            COUNT(*) AS txnCount
+        FROM LEDGER_ENTRY l
+        JOIN MEMBER m ON l.member_id = m.member_id
+        JOIN CATEGORY c ON l.category_id = c.category_id
+        WHERE l.entry_type = 'EXPENSE'
+        GROUP BY m.gender, ageGroup, c.category_name
+        """,
+            nativeQuery = true)
+    List<CategoryStatsDto> getCategoryStats();
 }

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smu.householdaccount.dto.ledger.LedgerSummaryDto;
 import com.smu.householdaccount.dto.ledger.LedgerSummaryDto.*;
+import com.smu.householdaccount.dto.ledger.MonthlyLedgerDto;
 import com.smu.householdaccount.entity.BudgetGroup;
 import com.smu.householdaccount.entity.LedgerEntry;
 import com.smu.householdaccount.repository.BudgetGroupRepository;
@@ -23,6 +24,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.time.YearMonth;
+import java.util.*;
 
 @Service
 public class LedgerService {
@@ -71,19 +74,34 @@ public class LedgerService {
     /**
      * 월별 사용자의 거래 내역
      */
-    public LedgerSummaryDto getMonthLedger(int year, int month){
+    public LedgerSummaryDto getMonthLedger(int year, int month, int period){
         BudgetGroup group = budgetGroupRepository.findById(1l).orElseThrow(); // 수정 필요.하드코딩
         LocalDateTime date = LocalDateTime.of(year, month, 1,0,0,0);
         // 기준이 되는 달의 1일
         LocalDate targetMonth = LocalDate.of(year, month, 1);
 
         // 3개월 전 1일
-        LocalDateTime startDate = targetMonth.minusMonths(3).withDayOfMonth(1).atStartOfDay();
+        LocalDateTime startDate = targetMonth.minusMonths(period).withDayOfMonth(1).atStartOfDay();
 
         // 기준달의 마지막날
         LocalDateTime endDate = targetMonth.withDayOfMonth(targetMonth.lengthOfMonth()).atStartOfDay();
         List<LedgerEntry> entries = ledgerRepository.findByGroupAndDateRange(group, startDate, endDate);
         return getLedgerSummary(entries);
+    }
+
+    public List<MonthlyLedgerDto> get6MonthLedger(int year, int month, int period){
+        BudgetGroup group = budgetGroupRepository.findById(1l).orElseThrow(); // 수정 필요.하드코딩
+        LocalDateTime date = LocalDateTime.of(year, month, 1,0,0,0);
+        // 기준이 되는 달의 1일
+        LocalDate targetMonth = LocalDate.of(year, month, 1);
+
+        // n개월 전 1일
+        LocalDateTime startDate = targetMonth.minusMonths(period).withDayOfMonth(1).atStartOfDay();
+
+        // 기준달의 마지막날
+        LocalDateTime endDate = targetMonth.withDayOfMonth(targetMonth.lengthOfMonth()).atStartOfDay();
+        List<LedgerEntry> entries = ledgerRepository.findByGroupAndDateRange(group, startDate, endDate);
+        return getMonthlySummary(entries);
     }
 
     public LedgerSummaryDto getMonthlyChart(int year, int month) {
@@ -95,10 +113,17 @@ public class LedgerService {
         return getLedgerSummary(entries);
     }
 
-    public List<LedgerEntry> getMonthlyToExcel(int year, int month) {
+    /**
+     * 1년치 데이터(1월 ~ 현재)
+     * @param year
+     * @param month
+     * @return
+     */
+    public List<LedgerEntry> getYearDataToExcel(int year, int month) {
         BudgetGroup group = budgetGroupRepository.findById(1l).orElseThrow(); // 수정 필요.하드코딩
-        LocalDateTime date_start = LocalDateTime.of(year, month, 1,0,0,0);
+        LocalDateTime date_start = LocalDateTime.of(year, 1, 1,0,0,0);
         LocalDateTime date_end = LocalDateTime.of(year, month, Utility.endOfMonth(year, month),0,0,0);
+
         List<LedgerEntry> entries = ledgerRepository.findByGroupAndDateRange(group, date_start, date_end);
 
         return entries;
@@ -157,4 +182,37 @@ public class LedgerService {
                 )
                 .build();
     }
+
+    public List<MonthlyLedgerDto> getMonthlySummary(List<LedgerEntry> entries) {
+
+        // month → list<entry> 매핑
+        Map<YearMonth, List<LedgerEntry>> monthMap = new HashMap<>();
+
+        for (LedgerEntry entry : entries) {
+            LocalDateTime date = entry.getOccurredAt();
+            YearMonth ym = YearMonth.from(date);
+
+            monthMap.computeIfAbsent(ym, k -> new ArrayList<>()).add(entry);
+        }
+
+        // 그룹핑된 month별로 getLedgerSummary를 호출
+        List<MonthlyLedgerDto> result = new ArrayList<>();
+
+        monthMap.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey()) // 오래된 월부터 정렬
+                .forEach(entry -> {
+                    YearMonth ym = entry.getKey();
+                    List<LedgerEntry> monthEntries = entry.getValue();
+
+                    LedgerSummaryDto monthSummary = getLedgerSummary(monthEntries);
+
+                    result.add(MonthlyLedgerDto.builder()
+                            .month(ym.toString()) // "2025-10"
+                            .summary(monthSummary)
+                            .build());
+                });
+
+        return result;
+    }
+
 }
