@@ -184,3 +184,65 @@ body {
     width: 100%;
     height: 260px;   /* 원하는 고정 높이 */
 }
+
+/* top3 */
+/* 3카드 가로 배치용 래퍼 */
+.container{
+    max-width: 1200px;
+    margin: 0 auto 30px auto;
+}
+.top3-wrapper {
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+/* 카드 기본 스타일 */
+.top3-card {
+    flex: 1;
+    min-width: 280px;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #eee;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.04);
+    text-align: center;
+}
+
+/* 내부 텍스트 */
+.card-label {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 6px;
+}
+
+.card-category {
+    font-weight: 600;
+    font-size: 20px;
+    margin-bottom: 12px;
+}
+
+.small-text {
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 4px;
+}
+
+.card-money {
+    font-size: 24px;
+    font-weight: 600;
+    color: #333;
+}
+
+.card-diff {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+/* 반응형: 모바일에서는 세로 정렬 */
+@media (max-width: 768px) {
+    .top3-wrapper {
+        flex-direction: column;
+    }
+}

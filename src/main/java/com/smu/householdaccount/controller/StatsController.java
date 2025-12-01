@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequestMapping("/stats")
@@ -17,11 +18,22 @@ public class StatsController {
 
     @GetMapping("/save")
     public ResponseEntity<?> save(){
-        statsService.saveDummyStats();
+        statsService.updateCategoryStats();
         return ResponseEntity.ok("");
     }
+
     @GetMapping("/load")
-    public ResponseEntity<?> load(){
-        return ResponseEntity.ok(statsService.getDummyStats());
+    public ResponseEntity<?> load(
+            @RequestParam String gender,
+            @RequestParam int ageGroup,
+            @RequestParam String category
+    ){
+        return ResponseEntity.ok(statsService.getStatsFromRedis(gender, ageGroup, category));
+    }
+
+    @GetMapping("/loadAll")
+    public ResponseEntity<?> load(
+    ){
+        return ResponseEntity.ok(statsService.getGlobalCategoryStats());
     }
 }

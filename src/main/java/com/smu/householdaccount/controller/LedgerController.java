@@ -49,9 +49,23 @@ public class LedgerController {
     @GetMapping("/request/userLedger/month")
     public ResponseEntity<?> getMonthlyGroupLedger(
             @RequestParam("year") int start_year,
-            @RequestParam("month") int start_month
+            @RequestParam("month") int start_month,
+            @RequestParam("period") int period
             ){
-        return ResponseEntity.ok(ledgerService.getMonthLedger(start_year, start_month));
+        return ResponseEntity.ok(ledgerService.getMonthLedger(start_year, start_month, period));
+    }
+
+    /**
+     * 사용자의 계좌 내역을 받아오는 API(6개월)
+     * @return
+     */
+    @GetMapping("/request/userLedger/6month")
+    public ResponseEntity<?> getMonthlyLedgerList(
+            @RequestParam("year") int start_year,
+            @RequestParam("month") int start_month,
+            @RequestParam("period") int period
+    ){
+        return ResponseEntity.ok(ledgerService.get6MonthLedger(start_year, start_month, period));
     }
 
     /**
