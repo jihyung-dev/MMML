@@ -1,9 +1,11 @@
 package com.smu.householdaccount.controller;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.math.RoundingMode;
 
+import com.smu.householdaccount.entity.Category;
 import com.smu.householdaccount.entity.Item;
+import com.smu.householdaccount.repository.CategoryRepository;
 import com.smu.householdaccount.service.ItemService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,12 +20,17 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.text.DecimalFormat;
+import java.time.LocalDateTime;
+import java.util.List;
+
 @Controller
 @RequestMapping("/hotdeal")
 @AllArgsConstructor
 @Slf4j
 public class ItemController {    // 명시적 생성자 주입 (Lombok 없이 안전)
     private final ItemService itemService;
+    private final CategoryRepository categoryRepository;
 
     /*@GetMapping
     public String list(Model model,@PageableDefault(size = 10,page = 0,sort = "createdAt",direction = Sort.Direction.DESC) Pageable pageable){
@@ -43,20 +50,29 @@ public class ItemController {    // 명시적 생성자 주입 (Lombok 없이 �
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime date,
             @PageableDefault(page=0, size = 8, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
             Model model
     ) {
         Page<Item> itemPage = itemService.searchItems(sellerId, categoryId, q, minPrice, maxPrice, status, date, pageable);
         model.addAttribute("itemPage", itemPage);
         log.info("itemPage.content : {}", itemPage.getContent());
+
+        // 카테고리 목록 조회
+        List<Category> categories = categoryRepository.findByCategoryIdStartingWith("H"); // Service에서 DB 조회
+        log.info("categories : {}", categories);
+        model.addAttribute("categories", categories);
+
         // 뷰: src/main/resources/templates/hotdeal/list.html (Thymeleaf 등)
         return "item/list";
     }
 
     // 상세: 상세 페이지 로드 시 서버에서 조회수 증가 후 보여줌
     @GetMapping("/{id}")
-    public String detail(@PathVariable Long id, Model model, RedirectAttributes redirectAttrs) {
+    public String detail(
+            @PathVariable Long id,
+            Model model,
+            RedirectAttributes redirectAttrs) {
         // 조회수 증가 (원자적 업데이트)
         itemService.incrementViewCount(id);
 

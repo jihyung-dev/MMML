@@ -14,7 +14,8 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Table(name = "ITEM_WISH")
+@Table(name = "ITEM_WISH", uniqueConstraints = @UniqueConstraint(columnNames = {"ITEM_ID", "MEMBER_ID"}))
+//, uniqueConstraints = @UniqueConstraint(columnNames = {"ITEM_ID", "MEMBER_ID"}) ⇒ 에러 예방 및 명세 문서화
 public class ItemWish {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,10 +28,13 @@ public class ItemWish {
     @JoinColumn(name = "ITEM_ID", nullable = false)
     private Item item;
 
+    @Column(name = "MEMBER_ID", nullable = false, length = 50)
+    private String memberId;
+
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "MEMBER_ID", nullable = false)
+    @JoinColumn(name = "MEMBER_ID",insertable = false, updatable = false)
     private Member member;
 
     @ColumnDefault("SYSTIMESTAMP")

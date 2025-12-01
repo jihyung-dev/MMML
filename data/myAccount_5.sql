@@ -1,7 +1,7 @@
 -- ============================================================
 --  SM Account Project: MySQL Schema Definition (Migrated to MMML)
 --  Target DBMS: MySQL 8.0 / MariaDB
---  AUTHOR: 최종 DDL (V7.2 - SELLER 상세 정보 추가)
+--  AUTHOR: 최종 DDL + Merchant UID, IMP UID 추가
 -- ============================================================
 
 -- 외래 키 체크 비활성화 (테이블 삭제/생성 순서 문제 방지)
@@ -112,7 +112,7 @@ CREATE TABLE MMML.LEDGER_ENTRY (
                                    category_id     VARCHAR(50) NOT NULL,
                                    entry_amount    DECIMAL(15,2) NOT NULL,
                                    currency        VARCHAR(3) DEFAULT 'KRW',
-                                   occurred_at     DATETIME NOT NULL,
+                                   occurred_at     DATETIME NOT NULL, -- DATETIME으로 수정됨
                                    place_of_use    VARCHAR(200),
                                    memo            VARCHAR(500),
                                    ext_src         VARCHAR(20),
@@ -275,8 +275,8 @@ CREATE TABLE MMML.PAYMENT_TRANSACTION (
                                           txn_id          BIGINT NOT NULL AUTO_INCREMENT,
                                           order_id        BIGINT NOT NULL,
                                           member_id       VARCHAR(50) NOT NULL,
-                                          pg_tid          VARCHAR(100),
-                                          imp_uid         VARCHAR(100),
+                                          pg_tid          VARCHAR(100), -- PG사 거래 번호 (토스, 이니시스 등 자체 번호)
+                                          imp_uid         VARCHAR(100), -- 추가: 포트원(IMP) 거래 고유 번호
                                           amount          DECIMAL(15,2) NOT NULL,
                                           txn_status      VARCHAR(20) NOT NULL,
                                           pay_method      VARCHAR(20),
@@ -288,7 +288,7 @@ CREATE TABLE MMML.PAYMENT_TRANSACTION (
                                           FOREIGN KEY (order_id) REFERENCES MMML.ORDER_MAIN(order_id),
                                           FOREIGN KEY (member_id) REFERENCES MMML.MEMBER(member_id),
                                           UNIQUE KEY UQ_PG_TID (pg_tid),
-                                          UNIQUE KEY UQ_IMP_UID (imp_uid)
+                                          UNIQUE KEY UQ_IMP_UID (imp_uid) -- IMP_UID는 포트원 거래당 고유해야 함
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- === ORDER_ITEM (주문 상품 목록) ===
@@ -353,5 +353,26 @@ ALTER TABLE MMML.SELLER
 ALTER TABLE MMML.PAYMENT_TRANSACTION
     ADD COLUMN imp_uid VARCHAR(100) UNIQUE,
     ADD CONSTRAINT UQ_IMP_UID UNIQUE (imp_uid);
+
+COMMIT;
+
+-- ============================================================
+--  MySQL ALTER TABLE: MMML.MEMBER
+--  Goal: Add Gender, Age, and Email columns
+--  (Existing data will be preserved)
+-- ============================================================
+
+USE MMML;
+
+-- 1. MEMBER 테이블에 컬럼 추가
+ALTER TABLE MMML.MEMBER
+    -- 성별: CHAR(1) 사용 (M: 남성, F: 여성)
+    ADD COLUMN gender CHAR(1) NULL COMMENT '성별 (M/F)',
+
+    -- 나이: TINYINT 또는 SMALLINT 사용 (NULL 허용)
+    ADD COLUMN age SMALLINT NULL COMMENT '나이',
+
+    -- 개인 이메일: VARCHAR(100) 사용 (Unique 설정 가능하지만, 기존 DDL에 없었으므로 NULL 허용)
+    ADD COLUMN email VARCHAR(100) NULL COMMENT '개인 이메일';
 
 COMMIT;

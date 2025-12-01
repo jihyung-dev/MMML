@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.List;
 
@@ -19,6 +20,9 @@ public interface ItemRepository extends JpaRepository<Item, Long>, JpaSpecificat
     // sellerId로 조회 (페이징)
     @EntityGraph(attributePaths = {"seller","category"})
     Page<Item> findBySeller_Id(Long sellerId, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"category","hotdealOptions"})
+    Page<Item> findBySellerId(Long sellerId, Pageable pageable);
 
     // categoryId는 String (DDL 기준). 필요하면 타입 맞춰 변경.
     @EntityGraph(attributePaths = {"seller","category"})
@@ -39,14 +43,19 @@ public interface ItemRepository extends JpaRepository<Item, Long>, JpaSpecificat
 
     // 현재 세일 중 (예시 쿼리)
     @Query("SELECT i FROM Item i WHERE (i.saleStartAt IS NULL OR i.saleStartAt <= :now) AND i.saleEndAt >= :now")
-    Page<Item> findCurrentlyOnSale(@Param("now") LocalDate now, Pageable pageable);
+    Page<Item> findCurrentlyOnSale(@Param("now") LocalDateTime now, Pageable pageable);
+
+    // 옵션/이미지 함께 페치해서 단건 조회하고 싶다면 entity graph 사용
+    @EntityGraph(attributePaths = {"images", "hotdealOptions"})
+    Optional<Item> findWithImagesAndOptionsById(Long id);
+
 
     // 상세 조회 (단건) — fetch join 대신 사용; service에서 연관 초기화 수행
-    @EntityGraph(attributePaths = {"seller","category"})
+    @EntityGraph(attributePaths = {"seller","category","hotdealOptions","images","wishes"})
     @Override
     Optional<Item> findById(Long id);
-
-
+    @EntityGraph(attributePaths = {"category","hotdealOptions"})
+    Optional<Item> findWithCategoryWithHotdealOptionsById(Long id);
     // 1. 상품 단건 조회 ( 상품 하나 불러오기 => 결제 페이지에서 상세 정보 띄울 때 사용 )
 //    Optional<Item> findById(Long id);
 
@@ -62,8 +71,8 @@ public interface ItemRepository extends JpaRepository<Item, Long>, JpaSpecificat
     Optional<Item> findByIdAndSaleStatusAndSaleStartAtLessThanEqualAndSaleEndAtGreaterThanEqual(
             Long id,
             String saleStatus,
-            LocalDate saleStartAt,
-            LocalDate sateSaleEndAt
+            LocalDateTime saleStartAt,
+            LocalDateTime sateSaleEndAt
     );
 
     // 4. 카테고리별 상품 조회 (필요하면)

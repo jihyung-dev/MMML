@@ -21,15 +21,28 @@
 </head>
 <body>
 
-<!-- 3. 실제 본문 내용 영역 -->
+<!-- 상단 로고 & 로그인 정보 -->
 <div layout:fragment="content">
     <div class="container mt-4 board-container"> <!-- Bootstrap container로 여백 확보 -->
 
-        <!-- 상단 이미지 -->
-        <img th:src="@{/img/board_banner.jpg}"
-             alt="게시판 이미지"
-             class="img-fluid rounded mb-4"
-             style="width:100%; max-height:200px; object-fit:cover;">
+    <a href="/" class="nav-brand">내돈내삶</a>
+
+    <div class="nav-right">
+        <div th:if="${session.loginUser != null}" class="nav-user-info">
+            <span th:text="${session.loginUser.memberNickname + '님 환영합니다!'}"></span>
+            &nbsp; | &nbsp;
+            <a href="/logout" class="nav-logout-btn">로그아웃</a>
+        </div>
+
+        <div th:if="${session.loginUser == null}" class="nav-user-info">
+            <a href="/login">로그인</a>
+        </div>
+    </div>
+
+<!-- 상단 배너 이미지 -->
+<img th:src="@{/img/게시판 이미지.jpg}"
+     alt="게시판 이미지"
+     style="width:100%; max-height:150px; object-fit:cover; margin-bottom:20px; border-radius: 5px">
 
         <h2 class="fw-bold mb-4">가계부 게시판 목록</h2>
 
@@ -106,32 +119,49 @@
             <button type="submit" class="btn btn-outline-dark">검색</button>
         </form>
 
-        <!-- ===========================
-                   페이징
-        ============================= -->
-        <nav aria-label="Page navigation" th:if="${posts.totalPages > 0}">
-            <ul class="pagination justify-content-center">
-                <!-- 이전 페이지 -->
-                <li class="page-item" th:classappend="${!posts.hasPrevious()} ? 'disabled'">
-                    <a class="page-link" th:href="@{/board/list.do(page=${posts.number - 1}, keyword=${keyword})}">이전</a>
-                </li>
+<br/>
 
-                <!-- 페이지 번호 (현재 페이지 주변만 표시하는 로직은 추가 구현 필요, 여기선 단순화) -->
-                <li class="page-item disabled">
-                        <span class="page-link">
-                            <span th:text="${posts.number + 1}"></span> / <span th:text="${posts.totalPages}"></span>
-                        </span>
-                </li>
+<!-- 페이징 -->
+<!-- ===========================
+           페이징 (≪ 1 2 3 ≫)
+============================= -->
+<div th:with="page=${posts.number}, last=${posts.totalPages}, size=${posts.size}"
+     class="my-4 d-flex justify-content-center">
 
-                <!-- 다음 페이지 -->
-                <li class="page-item" th:classappend="${!posts.hasNext()} ? 'disabled'">
-                    <a class="page-link" th:href="@{/board/list.do(page=${posts.number + 1}, keyword=${keyword})}">다음</a>
-                </li>
-            </ul>
-        </nav>
+    <nav>
+        <ul class="pagination">
 
-    </div> <!-- container end -->
-</div> <!-- layout:fragment="content" end -->
+            <!-- 맨 처음 페이지로 (≪) -->
+            <li class="page-item"
+                th:classappend="${page == 0} ? ' disabled'">
+                <a class="page-link"
+                   th:href="@{/board(page=0, size=${size}, keyword=${keyword})}">
+                    ≪
+                </a>
+            </li>
+
+            <!-- 페이지 번호 목록 -->
+            <li class="page-item"
+                th:each="i : ${#numbers.sequence(1, last)}"
+                th:classappend="${(i - 1) == page} ? ' active'">
+                <a class="page-link"
+                   th:href="@{/board(page=${i - 1}, size=${size}, keyword=${keyword})}"
+                   th:text="${i}">
+                </a>
+            </li>
+
+            <!-- 맨 마지막 페이지로 (≫) -->
+            <li class="page-item"
+                th:classappend="${page == (last - 1)} ? ' disabled'">
+                <a class="page-link"
+                   th:href="@{/board(page=${last - 1}, size=${size}, keyword=${keyword})}">
+                    ≫
+                </a>
+            </li>
+
+        </ul>
+    </nav>
+</div>
 
 </body>
 </html>

@@ -13,10 +13,13 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.LocalDate;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -30,11 +33,13 @@ public class Item {
     @Column(name = "ITEM_ID", nullable = false)
     private Long id;
 
-    @NotNull
+    @Column(name = "SELLER_ID", nullable = false)
+    private Long sellerId;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
 //    @OnDelete(action = OnDeleteAction.RESTRICT) //⇒ @OnDelete가 Hibernate 전용이지만, RESTRICT를 항상 지원하는건 아니고 @ManyToOne 쪽에서 사용하는건 의미가 불명확함.
     @OnDelete(action = OnDeleteAction.CASCADE) //제거하거나 CASCADE로 변경
-    @JoinColumn(name = "SELLER_ID", nullable = false)
+    @JoinColumn(name = "SELLER_ID", insertable = false, updatable = false)
     private Seller seller;
 
     @Size(max = 200)
@@ -79,11 +84,11 @@ public class Item {
     private long popularityScore = 0;  // ← 기본값 0
 
     @Column(name = "SALE_START_AT")
-    private LocalDate saleStartAt;
+    private LocalDateTime saleStartAt;
 
     @NotNull
     @Column(name = "SALE_END_AT", nullable = false)
-    private LocalDate saleEndAt;
+    private LocalDateTime saleEndAt;
 
     /*@Size(max = 20)
     @ColumnDefault("'ON_SALE'")
@@ -112,5 +117,29 @@ public class Item {
 
     @OneToMany(mappedBy = "item")
     Set<HotdealOption> hotdealOptions=new LinkedHashSet<>();
+
+
+    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ItemDetailImage> images = new ArrayList<>();
+
+    @OneToMany(mappedBy = "item")
+    private Set<ItemWish> wishes = new LinkedHashSet<>();
+
+
+    /**
+     * 템플릿에서 사용할 포맷된 가격 문자열을 제공한다.
+     * @return "1,234원" 형태의 문자열 (소수점 반올림, 천단위 콤마)
+     */
+    @Transient
+    public String getFormattedPrice() {
+        if (this.getItemSaleprice() == null) {
+            return "0원";
+        }
+        // DecimalFormat은 인스턴스 생성 비용이 작으니 호출마다 새로 만듭니다(스레드 안전).
+        DecimalFormat df = new DecimalFormat("#,###");
+        BigDecimal scaled = this.getItemSaleprice().setScale(0, RoundingMode.HALF_UP); //setScale(0, RoundingMode.HALF_UP) ⇒ 소수점 반올림 처리
+        // longValue() 사용 — 필요하면 toBigIntegerString() 등으로 안전하게 처리 가능
+        return df.format(scaled.longValue()) + "원";
+    }
 
 }

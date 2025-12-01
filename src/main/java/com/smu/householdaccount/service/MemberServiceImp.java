@@ -30,8 +30,8 @@ public class MemberServiceImp implements MemberService {
         member.setPassword(encodedPw);
 
         // 기본 권한 설정
-        if (member.getRole() == null) {
-            member.setRole("USER");
+        if (member.getRole() == null || member.getRole().isBlank()) {
+            member.setRole("GENERAL");  // 기존 USER → GENERAL 로 변경
         }
 
         return memberRepository.save(member);

@@ -4,15 +4,32 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layouts/default_layout}">
 
-<style  layout:fragment="css">
-    .menu-link:hover {
-        color: black; /* 원하는 색 */
-        text-decoration: underline;
-    }
-</style>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Hotdeal</title>
+
+    <!-- Bootstrap CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+
+    <!-- 프로젝트 내부 CSS -->
+    <link th:href="@{/css/list.css}" rel="stylesheet"/>
+
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+    <style layout:fragment="css">
+        .menu-link:hover {
+            color: black; /* 원하는 색 */
+            text-decoration: underline;
+        }
+    </style>
+
+</head>
+<body>
 
 <div layout:fragment="content">
         <!-- 마이페이지 버튼 -->
+
     <div class="d-flex flex-wrap align-items-center gap-2 justify-content-end">
         <a th:href="@{/mypage}" class="btn btn-outline-secondary btn-sm" role="button" aria-label="마이페이지">
                 <!--└ 링크수정필요 -->
@@ -20,59 +37,65 @@
         </a>
     </div>
 
-    <!-- Feature Cards -->
-    <div class="container py-5">
-        <div class="row g-2 text-center">
+<!-- Feature Cards -->
+<div class="container py-5">
+    <div class="row g-2 text-center">
 
-            <div class="col-md-4">
-                <a href="/board" class="text-decoration-none fs-6 fw-bold d-block py-2 menu-link">
-                    게시판
-                </a>
-            </div>
-            <div class="col-md-4">
-                <a href="/ledger" class="text-decoration-none fs-6 fw-bold d-block py-2 menu-link">
-                    가계부
-                </a>
-            </div>
-            <div class="col-md-4">
-                <a href="/hotdeal" class="text-decoration-none fs-5 fw-bold d-block py-2 menu-link active">
-                    핫딜
-                </a>
-            </div>
+        <div class="col-md-4">
+            <a href="/board" class="text-decoration-none fs-6 fw-bold d-block py-2 menu-link">
+                게시판
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="/ledger" class="text-decoration-none fs-6 fw-bold d-block py-2 menu-link">
+                가계부
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="/hotdeal" class="text-decoration-none fs-5 fw-bold d-block py-2 menu-link active">
+                핫딜
+            </a>
         </div>
     </div>
+</div>
 
 
-        <!-- 정렬(드롭다운) -->
-        <!-- 서버로는 ?sort=NEWEST, PRICE_ASC, PRICE_DESC, POPULAR 등으로 전달 -->
-        <div class="dropdown">
-            <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                정렬: <span th:text="${currentSortLabel != null ? currentSortLabel : '최신순'}">최신순</span>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="sortDropdown">
-                <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='createdAt,desc')}">최신순</a></li>
-                <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='itemSaleprice,asc')}">낮은 가격</a></li>
-                <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='itemSaleprice,desc')}">높은 가격</a></li>
-<!-- 수정필요                <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='createdAt,desc')}">인기도</a></li>-->
-            </ul>
-        </div>
+<!-- 정렬(드롭다운) -->
+<!-- 서버로는 ?sort=NEWEST, PRICE_ASC, PRICE_DESC, POPULAR 등으로 전달 -->
+<div class="dropdown d-flex justify-content-end">
+    <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        정렬: <span th:text="${currentSortLabel != null ? currentSortLabel : '최신순'}">최신순</span>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="sortDropdown">
+        <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='createdAt,desc')}">최신순</a></li>
+        <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='itemSaleprice,asc')}">낮은 가격</a></li>
+        <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='itemSaleprice,desc')}">높은 가격</a></li>
+        <!-- 수정필요                <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='createdAt,desc')}">인기도</a></li>-->
+    </ul>
+</div>
 
 
-
-
-    <div class="container py-4">
-
-<!--    <div class="d-flex justify-content-between align-items-center mb-3">-->
-<!--        <h1 class="h3">Hotdeal</h1>-->
-        <div  class="d-flex justify-content-end">
-            <small th:text="'총 ' + ${itemPage.totalElements} + '개'">총 0개</small>
-        </div>
+    <!--        등록된 상품 전체 갯수 작은글씨로 보여주기-->
+    <!--<div class="container py-4">-->
+    <div  class="d-flex justify-content-end py-2">
+        <small th:text="'총 ' + ${itemPage.totalElements} + '개'">총 0개</small>
     </div>
+    <!--</div>-->
+
+<!--<div class="container py-4"> // 이전내용 -->
+
+<!--&lt;!&ndash;    <div class="d-flex justify-content-between align-items-center mb-3">&ndash;&gt;-->
+<!--&lt;!&ndash;        <h1 class="h3">Hotdeal</h1>&ndash;&gt;-->
+<!--        <div  class="d-flex justify-content-end">-->
+<!--            <small th:text="'총 ' + ${itemPage.totalElements} + '개'">총 0개</small>-->
+<!--        </div>-->
+<!--    </div>-->
 
     <div class="row g-3">
         <div class="col-12 col-sm-6 col-md-4 col-lg-3" th:each="item : ${itemPage.content}">
             <div class="card h-100">
                 <a th:href="@{/item/{id}(id=${item.id})}" style="text-decoration:none;color:inherit;">
+<!--                      or hotdeal -->
                     <!-- 이미지 -->
                     <img th:src="${item.itemImageUrl != null ? item.itemImageUrl : '/img/no-image.png'}"
                          class="card-img-top"
@@ -81,7 +104,8 @@
                     <div class="card-body d-flex flex-column">
                         <h5 class="card-title" th:text="${item.itemName}">상품명</h5>
                         <p class="card-text mt-auto">
-                            <strong th:text="${#numbers.formatDecimal(item.itemSaleprice, 0, 'COMMA', 2, 'POINT')} + '원'">0원</strong>
+<!--                            <strong th:text="${#numbers.formatDecimal(item.itemSaleprice, 0, 'COMMA', 2, 'POINT')} + '원'">0원</strong>-->
+                            <strong th:text="${item.formattedPrice}">0원</strong>
                         </p>
                         <div class="text-muted small">
                             조회수: <span th:text="${item.viewCount}">0</span>
@@ -93,24 +117,31 @@
         </div>
     </div>
 
-    <!-- 페이지네이션 -->
-    <div th:with="page=${itemPage.number}, last=${itemPage.totalPages}, sort=${itemPage.sort}, size=${param.size}" class="my-4 d-flex justify-content-center">
-        <nav>
-            <ul class="pagination">
-                <li class="page-item" th:classappend="(${itemPage}==0 ? 'disabled')">
-                    <a class="page-link" th:href="@{'?'(page=0, size=${size})}">≪</a>
-                </li>
-                <li class="page-item" th:each="i : ${#numbers.sequence(1, last)}"
-                    th:classappend="((${i}-1) == ${page}?'active')">
-                    <a class="page-link" th:href="@{'?'(page=${i}-1, size=${size})}" th:text="${i}"></a>
-                </li>
-                <li class="page-item" th:classappend="(${page} == (${last}-1) ? 'disabled')">
-                    <a class="page-link" th:href="@{'?'(page=${last}-1, size=${size})}">≫</a>
-                </li>
-            </ul>
-        </nav>
-    </div>
+
+<!-- 페이지네이션 -->
+<div th:with="page=${itemPage.number}, last=${itemPage.totalPages}, sort=${itemPage.sort}, size=${param.size}" class="my-4 d-flex justify-content-center">
+    <nav>
+        <ul class="pagination">
+            <li class="page-item" th:classappend="(${itemPage}==0 ? 'disabled')">
+                <a class="page-link" th:href="@{'?'(page=0, size=${size})}">≪</a>
+            </li>
+            <li class="page-item" th:each="i : ${#numbers.sequence(1, last)}"
+                th:classappend="((${i}-1) == ${page}?'active')">
+                <a class="page-link" th:href="@{'?'(page=${i}-1, size=${size})}" th:text="${i}"></a>
+            </li>
+            <li class="page-item" th:classappend="(${page} == (${last}-1) ? 'disabled')">
+                <a class="page-link" th:href="@{'?'(page=${last}-1, size=${size})}">≫</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
 </div>
 <script layout:fragment="script">
     //alert("script");
 </script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

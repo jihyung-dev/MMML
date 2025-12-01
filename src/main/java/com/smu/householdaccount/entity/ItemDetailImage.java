@@ -11,7 +11,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @Getter
 @Setter
 @Entity
-@Table(name = "ITEM_DETAIL_IMAGE")
+@Table(name = "ITEM_DETAIL_IMAGE", uniqueConstraints = @UniqueConstraint(columnNames = {"ITEM_ID", "DISPLAY_ORDER"}))
 public class ItemDetailImage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
