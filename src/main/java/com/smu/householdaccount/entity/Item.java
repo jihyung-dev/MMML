@@ -127,10 +127,10 @@ public class Item {
     private Set<ItemWish> wishes = new LinkedHashSet<>();
 
 
-    /**
+    /*
      * 템플릿에서 사용할 포맷된 가격 문자열을 제공한다.
      * @return "1,234원" 형태의 문자열 (소수점 반올림, 천단위 콤마)
-     */
+     * ▽▽▽▽▽▽▽▽▽▽ */
     @Transient
     public String getFormattedPrice() {
         if (this.getItemSaleprice() == null) {
@@ -142,5 +142,18 @@ public class Item {
         // longValue() 사용 — 필요하면 toBigIntegerString() 등으로 안전하게 처리 가능
         return df.format(scaled.longValue()) + "원";
     }
+
+
+    @Transient
+    public String getFormattedOriginalPrice() {
+        if (this.getOriginalPrice() == null) return "";
+        DecimalFormat df = new DecimalFormat("#,###");
+        BigDecimal scaled = this.getOriginalPrice().setScale(0, RoundingMode.HALF_UP);
+        return df.format(scaled.longValue()) + "원";
+    }
+
+    @Size(max = 4000)
+    @Column(name = "DESCRIPTION", length = 4000)
+    private String description;
 
 }
