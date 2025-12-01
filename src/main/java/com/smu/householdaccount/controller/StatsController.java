@@ -31,9 +31,23 @@ public class StatsController {
         return ResponseEntity.ok(statsService.getStatsFromRedis(gender, ageGroup, category));
     }
 
+    /**
+     * 모든 데이터 호출(그룹 x)
+     * @return
+     */
     @GetMapping("/loadAll")
     public ResponseEntity<?> load(
     ){
         return ResponseEntity.ok(statsService.getGlobalCategoryStats());
+    }
+
+    /**
+     * 모든 데이터 호출(그룹 o)
+     * @return
+     */
+    @GetMapping("/loadAll_group")
+    public ResponseEntity<?> loadGroup(
+    ){
+        return ResponseEntity.ok(statsService.getAllCategoryStats());
     }
 }

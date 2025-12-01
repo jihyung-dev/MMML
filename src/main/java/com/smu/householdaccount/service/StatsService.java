@@ -25,7 +25,7 @@ public class StatsService {
     public void updateCategoryStats() {
 
         List<CategoryStatsDto> stats = ledgerRepository.getCategoryStats();
-
+        Log.d("Redis", stats.toString());
         for (CategoryStatsDto s : stats) {
             // 성별, 나이별, 카테고리별 저장
             String key = String.format(
@@ -77,24 +77,23 @@ public class StatsService {
     public List<CategoryStatRedisDto> getAllCategoryStats() {
 
         Set<String> keys = redisTemplate.keys("category:stats:*");
+
         List<CategoryStatRedisDto> list = new ArrayList<>();
 
         for (String key : keys) {
-            Map<Object, Object> map = redisTemplate.opsForHash().entries(key);
-
             String[] p = key.split(":");
-            // p[0] = category
-            // p[1] = stats
-            // p[2] = gender
-            // p[3] = ageGroup
-            // p[4] = categoryName
+
+            // global 키는 length = 4 이므로 스킵
+            if (p.length != 5) continue;
+
+            Map<Object, Object> map = redisTemplate.opsForHash().entries(key);
 
             list.add(new CategoryStatRedisDto(
                     p[2], // gender
                     Integer.parseInt(p[3]), // ageGroup
                     p[4], // category
-                    new BigDecimal(map.get("avg").toString()), // avg
-                    new BigDecimal(map.get("sum").toString()), // sum
+                    new BigDecimal(map.get("avg").toString()),
+                    new BigDecimal(map.get("sum").toString()),
                     Integer.parseInt(map.get("count").toString())
             ));
         }

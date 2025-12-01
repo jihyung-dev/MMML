@@ -23,6 +23,43 @@ let loaded6MonthCache = null;
 
 // 전체 사용자 평균 데이터, 페이지 로딩 시 한번만 호출
 let globalAvgLedger = null;
+// 전체 사용자 전달 데이터, 카테고리별, 페이지 로딩 시 한번만 호출
+let allCategoryStats = [];
+// 선택된 카테고리 리스트
+let selectedCategories = new Set();
+
+let genderChart = null;
+let ageChart = null;
+
+// 카테고리 별 연령대 배열
+let AGE_LABELS = [];
+
+function prepareAgeLabels() {
+    const ageSet = new Set();
+
+    allCategoryStats.forEach(s => {
+        const a = String(s.ageGroup);
+        ageSet.add(`${a}대`);
+    });
+
+    AGE_LABELS = Array.from(ageSet).sort();
+}
+
+function initCharts() {
+    genderChart = Highcharts.chart('genderChartContainer', {
+        chart: { type: 'column' },
+        title: { text: '성별 평균 지출 비교' },
+        xAxis: { categories: ['남성', '여성'] },
+        series: []
+    });
+
+    ageChart = Highcharts.chart('ageChartContainer', {
+        chart: { type: 'column' },
+        title: { text: '연령대 평균 지출 비교' },
+        xAxis: { categories: AGE_LABELS },
+        series: []
+    });
+}
 
 async function loadLedgerChart({ year, month }) {
     const key = `${year}-${month}`;
@@ -276,7 +313,11 @@ async function startDocu() {
 
     // 2) 기존 로직들 실행
     await loadLedgerChart({ year: currentYear, month: currentMonth });
-    await loadTopData();
+    await loadTopData(); // Top3 데이터
+    await loadAllCategoryStats(); // 성별 연령대 별 통계
+    buildCategorySelectList();
+    initCharts();
+    prepareAgeLabels();
 }
 
 // 초기 로딩
@@ -634,3 +675,194 @@ async function loadGlobalAvgData() {
     }
 }
 
+async function loadAllCategoryStats() {
+    const res = await fetch('/stats/loadAll_group');
+    allCategoryStats = await res.json();
+}
+
+function buildCategorySelectList() {
+    const categories = new Set();
+
+    allCategoryStats.forEach(stat => {
+        categories.add(stat.category);
+    });
+
+    const listEl = document.getElementById("categorySelectList");
+    listEl.innerHTML = "";
+
+    categories.forEach(cat => {
+        const btn = document.createElement("button");
+        btn.className = "category-btn";
+        btn.textContent = cat;
+
+        btn.addEventListener("click", () => {
+            btn.classList.toggle("active");
+            toggleCategory(cat);
+        });
+
+        listEl.appendChild(btn);
+    });
+}
+
+function toggleCategory(categoryName) {
+    const area = document.getElementById("categoryStatsCharts");
+
+    // 선택 토글 처리
+    if (selectedCategories.has(categoryName)) {
+        selectedCategories.delete(categoryName);
+        removeCategoryFromCharts(categoryName);
+    } else {
+        selectedCategories.add(categoryName);
+        addCategoryToCharts(categoryName);
+    }
+
+    // 선택된 카테고리가 하나라도 있으면 열기
+    if (selectedCategories.size > 0) {
+        openChartArea(area);
+    }
+    // 모두 해제되면 닫기
+    else {
+        closeChartArea(area);
+    }
+}
+
+let clearChartTimeout = null;
+
+function closeChartArea(area) {
+    area.classList.remove("open");
+
+    // 이미 예약된 series 제거 작업이 있으면 취소
+    if (clearChartTimeout) {
+        clearTimeout(clearChartTimeout);
+    }
+
+    // 애니메이션 끝난 뒤 시리즈 제거
+    clearChartTimeout = setTimeout(() => {
+        if (selectedCategories.size === 0) {
+            genderChart.series.slice().forEach(s => s.remove());
+            ageChart.series.slice().forEach(s => s.remove());
+        }
+    }, 350);
+}
+
+function openChartArea(area) {
+    if (!area.classList.contains("open")) {
+        area.classList.add("open");
+
+        // 레이아웃이 확정된 후 reflow
+        setTimeout(() => {
+            genderChart.reflow();
+            ageChart.reflow();
+        }, 350);
+    }
+}
+
+// 카테고리 추가 제거
+function addCategoryToCharts(categoryName) {
+    const stat = getStatForCategory(categoryName);
+    const color = colorFromCategory(categoryName);
+
+    stat.age = stat.age.map(v => ({
+        age: typeof v.age === "string" && v.age.includes("대")
+            ? v.age
+            : `${v.age}대`,
+        value: v.value
+    }));
+
+    // (ex: ["20대","30대","40대"])
+    const ages = stat.age.map(v => v.age);
+
+    // 숫자 혹은 이상값 필터링
+    const validAges = ages.filter(age => /^[0-9]+대$/.test(age));
+
+    // 이미 있는 AGE_LABELS와 합쳐서 순서 유지
+    validAges.forEach(age => {
+        if (!AGE_LABELS.includes(age)) AGE_LABELS.push(age);
+    });
+
+    AGE_LABELS.sort();
+
+    ageChart.xAxis[0].setCategories(AGE_LABELS);
+
+    const ageMap = {};
+    stat.age.forEach(v => {
+        ageMap[v.age] = v.value;
+    });
+
+    const finalAgeData = AGE_LABELS.map(label => {
+        return ageMap[label] ?? null;
+    });
+
+    genderChart.addSeries({
+        name: categoryName,
+        data: [
+            stat.gender.male ?? null,
+            stat.gender.female ?? null
+        ],
+        color: color
+    });
+
+    ageChart.addSeries({
+        name: categoryName,
+        data: finalAgeData,
+        color: color
+    });
+}
+
+function removeCategoryFromCharts(categoryName) {
+    // 성별 차트 제거
+    const series1 = genderChart.series.find(s => s.name === categoryName);
+    if (series1) series1.remove();
+
+    // 연령대 차트 제거
+    const series2 = ageChart.series.find(s => s.name === categoryName);
+    if (series2) series2.remove();
+}
+
+// 카테고리별 계산
+function getStatForCategory(categoryName) {
+    const filtered = allCategoryStats.filter(s => s.category === categoryName);
+
+    const genderMap = {};
+    const ageMap = {};
+
+    filtered.forEach(s => {
+        const g = s.gender;
+        const a = String(s.ageGroup); // 숫자 → 문자열 변환
+        const avg = Number(s.avg);
+        const c = Number(s.count);
+
+        if (!genderMap[g]) genderMap[g] = { sum: 0, count: 0 };
+        genderMap[g].sum += avg * c;
+        genderMap[g].count += c;
+
+        if (!ageMap[a]) ageMap[a] = { sum: 0, count: 0 };
+        ageMap[a].sum += avg * c;
+        ageMap[a].count += c;
+    });
+    return {
+        gender: {
+            male: genderMap["M"] ? Math.round(genderMap["M"].sum / genderMap["M"].count) : 0,
+            female: genderMap["F"] ? Math.round(genderMap["F"].sum / genderMap["F"].count) : 0
+        },
+        age: Object.entries(ageMap).map(([age, obj]) => ({
+            age: `${age}대`,
+            value: Math.round(obj.sum / obj.count)
+        }))
+    }
+}
+
+// 카테고리별 차트 색상 해시 기반으로 색 생성 함수
+function colorFromCategory(cat) {
+    let hash = 0;
+    for (let i = 0; i < cat.length; i++) {
+        hash = cat.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    let color = '#';
+    for (let i = 0; i < 3; i++) {
+        const value = (hash >> (i * 8)) & 0xFF;
+        color += ('00' + value.toString(16)).slice(-2);
+    }
+    return color;
+}

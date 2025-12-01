@@ -246,3 +246,86 @@ body {
         flex-direction: column;
     }
 }
+
+/* 유저 평균 데이터 */
+.last-month-box {
+    background: #ffffff;
+    border: 1px solid #e5e8f0;
+    border-radius: 10px;
+    padding: 18px 22px;
+    margin-bottom: 30px;
+    margin-top: 30px;
+}
+
+.section-title {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.avg-list {
+    margin: 0;
+    padding: 0;
+}
+
+.avg-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #eef0f4;
+    font-size: 14px;
+}
+
+.avg-item:last-child {
+    border-bottom: none;
+}
+
+.avg-cat {
+    font-weight: 500;
+}
+
+.avg-value {
+    font-weight: 600;
+}
+
+.category-btn {
+    margin: 6px;
+    padding: 8px 14px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.category-btn:hover {
+    background: #eef2f7;
+}
+
+.category-btn.active {
+    background: #3974ff;
+    color: white;
+    border-color: #2c62d4;
+    box-shadow: 0 0 6px rgba(57,116,255,0.4);
+    font-weight: 600;
+    transform: translateY(-1px);
+}
+
+#categoryStatsCharts {
+    display: block;             /* 항상 block 유지 */
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition:
+            max-height 0.45s ease,  /* 열림/닫힘 동일 효과 */
+            opacity 0.35s ease;
+    pointer-events: none;       /* 닫혀있을 때 클릭 방지 */
+}
+
+/* 열렸을 때 */
+#categoryStatsCharts.open {
+    max-height: 600px;
+    opacity: 1;
+    pointer-events: auto;
+}

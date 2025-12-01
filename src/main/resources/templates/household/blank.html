@@ -97,11 +97,29 @@
         </div>
     </div>
 
-    <!-- 전체 보기 버튼 -->
-    <div class="mt-4 text-end">
-        <button id="viewFullStatsBtn" class="btn btn-outline-primary">
-            전체 분석 보기 →
-        </button>
+    <!-- 지난 달 사용자 카테고리 평균 섹션 -->
+    <div id="lastMonthUserAvgContainer" class="last-month-box mt-4">
+
+        <h4 class="section-title">📊 지난 달 사용자들의 카테고리 평균</h4>
+        <div id="lastMonthAvgList" class="avg-list">
+            <!-- 카테고리/금액 리스트 -->
+        </div>
+        <p class="hint-text">※ 항목을 클릭하면 성별/연령대별 차트가 아래에 표시됩니다.</p>
+        <div id="categorySelectList"></div>
+    </div>
+
+    <!-- 🔻 카테고리 선택 시 나오는 상세 차트 영역 -->
+    <div id="categoryStatsCharts" class="last-month-box mt-3">
+        <h4 id="statsChartTitle" class="section-title"></h4>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div id="genderChartContainer" style="height:300px;"></div>
+            </div>
+            <div class="col-md-6">
+                <div id="ageChartContainer" style="height:300px;"></div>
+            </div>
+        </div>
     </div>
 </div>
 
