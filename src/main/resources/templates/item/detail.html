@@ -236,7 +236,54 @@
         else setAmounts(0,null);
 
         document.getElementById('cartBtn').addEventListener('click',()=>alert('장바구니 담기 예시'));
-        document.getElementById('wishBtn').addEventListener('click',()=>alert('찜하기 예시'));
+        // document.getElementById('wishBtn').addEventListener('click',()=>alert('찜하기 예시'));
+        document.addEventListener('DOMContentLoaded', function() {
+            const wishBtn = document.getElementById('wishBtn');
+
+            // 버튼 클릭 이벤트 리스너
+            wishBtn.addEventListener('click', function() {
+                const itemId = this.getAttribute('data-item-id');
+                let isWished = this.getAttribute('data-is-wished') === 'true'; // 현재 상태
+
+                // 찜 상태에 따라 요청할 URL 및 메서드 결정
+                const url = `/hotdeal/wishlist/${itemId}`;
+                const method = isWished ? 'DELETE' : 'POST'; // 현재 찜 상태면 DELETE(취소), 아니면 POST(등록)
+
+                // 1. AJAX 요청 (Fetch API 사용)
+                fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                        // CSRF 토큰 필요 시 여기에 추가
+                    }
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            // 서버에서 오류 응답이 온 경우
+                            throw new Error('서버 요청 실패');
+                        }
+                        // 2. 요청 성공 시 버튼 상태 업데이트
+                        isWished = !isWished; // 상태 반전
+
+                        // 3. HTML 요소 속성 및 클래스 업데이트
+                        this.setAttribute('data-is-wished', isWished);
+
+                        if (isWished) {
+                            this.classList.remove('btn-outline-primary');
+                            this.classList.add('btn-danger');
+                            this.querySelector('span').textContent = '❤️ 찜 취소';
+                        } else {
+                            this.classList.remove('btn-danger');
+                            this.classList.add('btn-outline-primary');
+                            this.querySelector('span').textContent = '🤍 찜하기';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('찜하기 처리 중 오류 발생:', error);
+                        alert('찜하기/취소 처리 중 오류가 발생했습니다.');
+                    });
+            });
+        });
 
         document.getElementById('purchaseForm').addEventListener('submit', ev=>{
             const requiredSelects = document.querySelectorAll('.option-select, .single-option');
