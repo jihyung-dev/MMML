@@ -419,8 +419,8 @@ function buildCategoryComparisonList(currentCategories, threeMonthCategories) {
     return result;
 }
 
-async function exportExcel() {
-    const url = `/excel/export?year=${currentYear}&month=${currentMonth}`;
+async function exportExcel(mail) {
+    const url = `/excel/export/mail?year=${currentYear}&month=${currentMonth}&email=${mail}`;
 
     const res = await fetch(url, { method: "GET" });
 
