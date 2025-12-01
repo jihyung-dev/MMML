@@ -82,6 +82,7 @@
     background: #0d6efd;
     color: white;
     text-decoration: none;
+    font-size: 13px;
 }
 
 .nav-login-btn:hover,
@@ -92,4 +93,6 @@
 .nav-user-info {
     font-weight: 600;
     color: #333;
+    font-size:13px;
+
 }

@@ -2,7 +2,6 @@ package com.smu.householdaccount.controller;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDate;
 
 import com.smu.householdaccount.entity.Category;
 import com.smu.householdaccount.entity.HotdealOption;
@@ -22,8 +21,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.text.DecimalFormat;
 import java.util.LinkedHashMap;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -54,7 +53,7 @@ public class ItemController {    // 명시적 생성자 주입 (Lombok 없이 �
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime date,
             @PageableDefault(page=0, size = 8, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
             Model model
     ) {

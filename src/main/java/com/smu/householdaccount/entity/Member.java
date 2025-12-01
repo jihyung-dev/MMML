@@ -54,12 +54,32 @@ public class Member {
     @Column(name = "ENABLED")
     private String enabled;
 
+
     @ColumnDefault("SYSTIMESTAMP")
     @Column(name = "CREATED_AT")
     private LocalDateTime createdAt;
 
     @Column(name = "UPDATED_AT")
     private LocalDateTime updatedAt;
+
+//   @PrePersist, @PreUpdate 두개추가 회원가입시 자동 createdAt 넣어줌, 정보수정시 자동 updatedAt
+    @PrePersist
+    public void prePersist() {
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
+        if (this.enabled == null) {
+            this.enabled = "Y";
+        }
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
+
+
 
     @OneToMany(mappedBy = "writer")
     private Set<BoardComment> boardComments = new LinkedHashSet<>();

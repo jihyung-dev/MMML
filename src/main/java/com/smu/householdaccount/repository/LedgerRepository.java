@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface LedgerRepository extends JpaRepository<LedgerEntry, Long> {
@@ -24,7 +25,7 @@ public interface LedgerRepository extends JpaRepository<LedgerEntry, Long> {
 
     List<LedgerEntry> findByGroupAndDateRange(
             @Param("group") BudgetGroup group,
-            @Param("startDate") LocalDate startDate,
-            @Param("endDate") LocalDate endDate
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate
     );
 }

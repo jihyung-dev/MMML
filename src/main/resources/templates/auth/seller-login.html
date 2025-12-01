@@ -19,19 +19,30 @@
     <form action="/seller/login" method="post">
 
         <label>아이디</label>
-        <input type="text" value="U006" name="memberId" required placeholder="회원 ID">
+        <input type="text" name="memberId" required placeholder="회원 ID">
 
         <label>비밀번호</label>
-        <input type="password" value="1234" name="password" required placeholder="비밀번호">
+        <input type="password" name="password" required placeholder="비밀번호">
 
         <label>사업자번호</label>
-        <input type="text" value="123-01-00006" name="bizNo" required placeholder="사업자번호">
+        <input type="text" name="bizNo" required placeholder="사업자번호">
 
         <button type="submit">판매자 로그인</button>
     </form>
 
+    <!-- 🔹 아래에 각종 링크들 -->
     <div class="login-links">
-        <a href="/join/seller">판매자 회원가입</a>
+        <!-- 공통(회원) 기능 -->
+        <a href="/find-id">아이디 찾기</a> |
+        <a href="/find-pw">비밀번호 찾기</a> |
+        <!-- 판매자 전용 -->
+        <a href="/seller/find-biz">사업자번호 찾기</a> |
+        <a href="/seller/join">판매자 회원가입</a>
+    </div>
+
+    <div class="login-links">
+        <!-- 일반 로그인으로 이동 링크도 하나 있으면 좋음 -->
+        <a href="/login">일반 회원 로그인으로 가기</a>
     </div>
 
 </div>

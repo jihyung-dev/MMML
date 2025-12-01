@@ -15,8 +15,7 @@ import org.hibernate.annotations.OnDeleteAction;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
-import java.time.Instant;
-import java.time.LocalDate;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -85,11 +84,11 @@ public class Item {
     private long popularityScore = 0;  // ← 기본값 0
 
     @Column(name = "SALE_START_AT")
-    private LocalDate saleStartAt;
+    private LocalDateTime saleStartAt;
 
     @NotNull
     @Column(name = "SALE_END_AT", nullable = false)
-    private LocalDate saleEndAt;
+    private LocalDateTime saleEndAt;
 
     /*@Size(max = 20)
     @ColumnDefault("'ON_SALE'")

@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -60,8 +61,8 @@ public class LedgerService {
      */
     public List<LedgerEntry> getLedgerAll(){
         BudgetGroup group = budgetGroupRepository.findById(1l).orElseThrow();
-        LocalDate start = LocalDate.of(2025, 8, 1);
-        LocalDate end   = LocalDate.of(2025, 8, 31);
+        LocalDateTime start = LocalDateTime.of(2025, 8, 1,0,0,0);
+        LocalDateTime end   = LocalDateTime.of(2025, 8, 31,0,0,0);
         Log.d("데이터 확인", group.toString());
         Log.d("그룹 : " , ledgerRepository.findByGroupAndDateRange(group, start, end).toString());
         return null;
@@ -72,23 +73,23 @@ public class LedgerService {
      */
     public LedgerSummaryDto getMonthLedger(int year, int month){
         BudgetGroup group = budgetGroupRepository.findById(1l).orElseThrow(); // 수정 필요.하드코딩
-        LocalDate date = LocalDate.of(year, month, 1);
+        LocalDateTime date = LocalDateTime.of(year, month, 1,0,0,0);
         // 기준이 되는 달의 1일
         LocalDate targetMonth = LocalDate.of(year, month, 1);
 
         // 3개월 전 1일
-        LocalDate startDate = targetMonth.minusMonths(3).withDayOfMonth(1);
+        LocalDateTime startDate = targetMonth.minusMonths(3).withDayOfMonth(1).atStartOfDay();
 
         // 기준달의 마지막날
-        LocalDate endDate = targetMonth.withDayOfMonth(targetMonth.lengthOfMonth());
+        LocalDateTime endDate = targetMonth.withDayOfMonth(targetMonth.lengthOfMonth()).atStartOfDay();
         List<LedgerEntry> entries = ledgerRepository.findByGroupAndDateRange(group, startDate, endDate);
         return getLedgerSummary(entries);
     }
 
     public LedgerSummaryDto getMonthlyChart(int year, int month) {
         BudgetGroup group = budgetGroupRepository.findById(1l).orElseThrow(); // 수정 필요.하드코딩
-        LocalDate date_start = LocalDate.of(year, month, 1);
-        LocalDate date_end = LocalDate.of(year, month, Utility.endOfMonth(year, month));
+        LocalDateTime date_start = LocalDateTime.of(year, month, 1,0,0,0);
+        LocalDateTime date_end = LocalDateTime.of(year, month, Utility.endOfMonth(year, month),0,0,0);
         List<LedgerEntry> entries = ledgerRepository.findByGroupAndDateRange(group, date_start, date_end);
 
         return getLedgerSummary(entries);
@@ -96,8 +97,8 @@ public class LedgerService {
 
     public List<LedgerEntry> getMonthlyToExcel(int year, int month) {
         BudgetGroup group = budgetGroupRepository.findById(1l).orElseThrow(); // 수정 필요.하드코딩
-        LocalDate date_start = LocalDate.of(year, month, 1);
-        LocalDate date_end = LocalDate.of(year, month, Utility.endOfMonth(year, month));
+        LocalDateTime date_start = LocalDateTime.of(year, month, 1,0,0,0);
+        LocalDateTime date_end = LocalDateTime.of(year, month, Utility.endOfMonth(year, month),0,0,0);
         List<LedgerEntry> entries = ledgerRepository.findByGroupAndDateRange(group, date_start, date_end);
 
         return entries;
@@ -115,10 +116,10 @@ public class LedgerService {
         BigDecimal totalIncome = BigDecimal.ZERO;
 
         Map<String, BigDecimal> categoryMap = new HashMap<>();
-        Map<LocalDate, DailySummary> dailyMap  = new HashMap<>();
+        Map<LocalDateTime, DailySummary> dailyMap  = new HashMap<>();
 
         for(LedgerEntry entry : entries){
-            LocalDate date = entry.getOccurredAt();
+            LocalDateTime date = entry.getOccurredAt();
             dailyMap.putIfAbsent(date, LedgerSummaryDto.DailySummary.builder()
                     .date(date)
                     .expense(BigDecimal.ZERO)

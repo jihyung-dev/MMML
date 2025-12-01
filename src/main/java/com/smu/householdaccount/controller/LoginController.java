@@ -64,48 +64,6 @@ public class LoginController {
     //  🔹 일반 회원가입
     // =============================
 
-    @GetMapping("/join/member")
-    public String joinMemberForm(Model model) {
-        model.addAttribute("member", new Member());
-        return "auth/join-member";
-    }
-
-    @PostMapping("/join/member")
-    public String joinMember(@ModelAttribute Member member, Model model) {
-
-        // 아이디 중복 체크
-        if (memberService.existsByMemberId(member.getMemberId())) {
-            model.addAttribute("member", member);
-            model.addAttribute("error", "이미 사용 중인 아이디입니다.");
-            return "auth/join-member";
-        }
-
-        // 닉네임 중복 체크 (필드명이 memberNickname이라고 가정)
-        if (member.getMemberNickname() != null &&
-                memberService.existsByNickname(member.getMemberNickname())) {
-            model.addAttribute("member", member);
-            model.addAttribute("error", "이미 사용 중인 닉네임입니다.");
-            return "auth/join-member";
-        }
-
-        // 전화번호 중복 체크
-        if (member.getPhone() != null &&
-                memberService.existsByPhone(member.getPhone())) {
-            model.addAttribute("member", member);
-            model.addAttribute("error", "이미 가입된 전화번호입니다.");
-            return "auth/join-member";
-        }
-
-        // 기본 권한은 MemberService에서 USER로 넣어주고 있음
-        memberService.registerUser(member);
-
-        // 가입 후 로그인 페이지로 이동
-        return "redirect:/login";
-    }
-
-    // =============================
-    //  🔹 아이디 찾기
-    // =============================
 
     @GetMapping("/find-id")
     public String findIdForm() {
