@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,7 +54,7 @@ public class ItemServiceImpl implements ItemService {
                                   BigDecimal minPrice,
                                   BigDecimal maxPrice,
                                   String saleStatus,
-                                  LocalDate activeOn,
+                                  LocalDateTime activeOn,
                                   Pageable pageable
     ){
         Specification<Item> spec = Specification.allOf(

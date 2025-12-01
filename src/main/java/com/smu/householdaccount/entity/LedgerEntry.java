@@ -11,7 +11,6 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -69,7 +68,7 @@ public class LedgerEntry {
 
     @NotNull
     @Column(name = "OCCURRED_AT", nullable = false)
-    private LocalDate occurredAt;
+    private LocalDateTime occurredAt;
 
     @Size(max = 200)
     @Column(name = "PLACE_OF_USE", length = 200)

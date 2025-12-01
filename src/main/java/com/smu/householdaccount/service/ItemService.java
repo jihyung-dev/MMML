@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,7 +21,7 @@ public interface ItemService {
                            BigDecimal minPrice,
                            BigDecimal maxPrice,
                            String saleStatus,
-                           LocalDate activeOn,
+                           LocalDateTime activeOn,
                            Pageable pageable);
 
 //    필요없으면 삭제할 예정
@@ -30,7 +31,7 @@ public interface ItemService {
                            BigDecimal minPrice,
                            BigDecimal maxPrice,
                            String saleStatus,
-                           LocalDate activeOn,
+                           LocalDateTime activeOn,
                            Pageable pageable);*/
 
 

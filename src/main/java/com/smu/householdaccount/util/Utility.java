@@ -5,6 +5,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 
 public class Utility {
@@ -29,7 +30,7 @@ public class Utility {
      */
     public static int endOfMonth(int year, int month){
         YearMonth yearMonth = YearMonth.of(year, month);
-        LocalDate endDate = yearMonth.atEndOfMonth();
+        LocalDateTime endDate = yearMonth.atEndOfMonth().atStartOfDay();
         return endDate.getDayOfMonth();
     }
 }

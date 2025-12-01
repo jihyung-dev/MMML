@@ -80,11 +80,6 @@ public class SellerController {
         return "auth/seller-find-biz";
     }
 
-    @GetMapping("/order")
-    public String order(){
-        return "seller/orders";
-    }
-
     // 🔹 판매자 회원가입 폼
     @GetMapping("/join")
     public String sellerJoinForm(Model model) {

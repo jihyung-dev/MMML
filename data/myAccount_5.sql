@@ -316,3 +316,24 @@ CREATE TABLE MMML.SHIPMENT (
 -- 외래 키 체크 다시 활성화
 SET FOREIGN_KEY_CHECKS = 1;
 
+-- ============================================================
+--  MySQL ALTER TABLE: MMML.MEMBER
+--  Goal: Add Gender, Age, and Email columns
+--  (Existing data will be preserved)
+-- ============================================================
+
+USE MMML;
+
+-- 1. MEMBER 테이블에 컬럼 추가
+ALTER TABLE MMML.MEMBER
+    -- 성별: CHAR(1) 사용 (M: 남성, F: 여성)
+    ADD COLUMN gender CHAR(1) NULL COMMENT '성별 (M/F)',
+
+    -- 나이: TINYINT 또는 SMALLINT 사용 (NULL 허용)
+    ADD COLUMN age SMALLINT NULL COMMENT '나이',
+
+    -- 개인 이메일: VARCHAR(100) 사용 (Unique 설정 가능하지만, 기존 DDL에 없었으므로 NULL 허용)
+    ADD COLUMN email VARCHAR(100) NULL COMMENT '개인 이메일';
+
+COMMIT;
+
