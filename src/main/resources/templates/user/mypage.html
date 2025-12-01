@@ -26,8 +26,8 @@
                 <img src="/src/img/undraw_pic-profile_nr49.svg" class="rounded-circle" width="40" height="40" alt="Alex">
 
                 <div class="flex flex-col">
-                    <h1 class="text-black dark:text-white text-base font-medium leading-normal">김가은</h1>
-                    <p class="text-gray-500 dark:text-[#9db9a6] text-sm font-normal leading-normal">john.doe@email.com</p>
+                    <h1 class="text-black dark:text-white text-base font-medium leading-normal" th:text="${member.memberName}">이름</h1>
+<!--                    <p class="text-gray-500 dark:text-[#9db9a6] text-sm font-normal leading-normal" th:text="${member.email}">이메일</p>-->
                 </div>
             </div>
             <nav class="flex flex-col gap-2">
@@ -89,9 +89,9 @@
                             </div>
                             <div class="flex flex-col justify-center">
                                 <p class="text-gray-900 dark:text-white text-[15px] leading-tight tracking-[-0.015em]">닉네임</p>
-                                <p class="text-gray-900 dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em]">김개똥</p>
-                                <p class="text-gray-500 dark:text-[#9db9a6] text-base font-normal leading-normal">Member ID: 12345678</p>
-                                <p class="text-gray-500 dark:text-[#9db9a6] text-base font-normal leading-normal">Joined on: Jan 15, 2023</p>
+                                <p class="text-gray-900 dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em]" th:text="${member.memberNickname}">닉네임</p>
+                                <p class="text-gray-500 dark:text-[#9db9a6] text-base font-normal leading-normal" th:text="'Member ID: ' + ${member.memberId}">멤버 ID</p>
+                                <p class="text-gray-500 dark:text-[#9db9a6] text-base font-normal leading-normal" th:text="'Joined on: ' + ${member.createdAt}">가입일</p>
                             </div>
                         </div>
                         <!-- Buttons would appear in edit mode -->
@@ -196,19 +196,19 @@
                         <form class="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5" for="full-name">이름</label>
-                                <input class="w-full rounded-md border-gray-300 dark:border-white/20 bg-transparent text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-primary/50" id="full-name" readonly="" type="text" value="김가은"/>
+                                <input class="w-full rounded-md border-gray-300 dark:border-white/20 bg-transparent text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-primary/50" id="full-name" readonly="" type="text" th:value="${member.memberName}"/>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5" for="email">Email</label>
-                                <input class="w-full rounded-md border-gray-300 dark:border-white/20 bg-transparent text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-primary/50" id="email" readonly="" type="email" value="john.doe@email.com"/>
+<!--                                <input class="w-full rounded-md border-gray-300 dark:border-white/20 bg-transparent text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-primary/50" id="email" readonly="" type="email" th:value="${member.email}"/>-->
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5" for="phone">휴대폰 번호</label>
-                                <input class="w-full rounded-md border-gray-300 dark:border-white/20 bg-transparent text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-primary/50" id="phone" readonly="" type="tel" value="010-2345-6789"/>
+                                <input class="w-full rounded-md border-gray-300 dark:border-white/20 bg-transparent text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-primary/50" id="phone" readonly="" type="tel" th:value="${member.phone}"/>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5" for="address">주소</label>
-                                <input class="w-full rounded-md border-gray-300 dark:border-white/20 bg-transparent text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-primary/50" id="address" readonly="" type="text" value="경기도 오산시 까마귀로"/>
+                                <input class="w-full rounded-md border-gray-300 dark:border-white/20 bg-transparent text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-primary/50" id="address" readonly="" type="text" th:value="${member.address}"/>
                             </div>
                         </form>
                         <!-- Edit Mode Buttons -->
