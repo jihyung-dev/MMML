@@ -175,6 +175,11 @@ CREATE TABLE MMML.SELLER (
                              biz_no          VARCHAR(30) NOT NULL,
                              member_id       VARCHAR(50) NOT NULL,
                              biz_type        VARCHAR(30),
+    -- [추가된 컬럼]
+                             seller_address  VARCHAR(255),
+                             seller_phone    VARCHAR(20),
+                             seller_email    VARCHAR(100),
+
                              created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
                              updated_at      DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
 
@@ -252,13 +257,17 @@ CREATE TABLE MMML.ORDER_MAIN (
                                  buyer_id        VARCHAR(50) NOT NULL,
                                  total_amount    DECIMAL(15,2) NOT NULL,
                                  order_status    VARCHAR(20) NOT NULL,
-                                 merchant_uid    VARCHAR(100) NOT NULL, -- 추가: 상점 주문 고유 번호
+                                 merchant_uid    VARCHAR(100) NOT NULL,
+    -- [추가된 컬럼]
+                                 seller_id       BIGINT,
+
                                  created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
                                  updated_at      DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
 
                                  PRIMARY KEY (order_id),
                                  FOREIGN KEY (buyer_id) REFERENCES MMML.MEMBER(member_id),
-                                 UNIQUE KEY UQ_MERCHANT_UID (merchant_uid) -- MERCHANT_UID는 주문당 고유해야 함
+                                 FOREIGN KEY (seller_id) REFERENCES MMML.SELLER(seller_id), -- FK 설정
+                                 UNIQUE KEY UQ_MERCHANT_UID (merchant_uid)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- === PAYMENT_TRANSACTION (결제 거래 기록) ===
@@ -316,6 +325,37 @@ CREATE TABLE MMML.SHIPMENT (
 -- 외래 키 체크 다시 활성화
 SET FOREIGN_KEY_CHECKS = 1;
 
+
+
+-- 위에는 생성할때 수정된 버전,
+-- 기존 DB에 수정버전 넣기위한 alter 문
+
+-- 1. ORDER_MAIN 테이블 수정
+--    - merchant_uid는 NOT NULL UNIQUE 제약 조건이 있으므로,
+--      ALTER 구문에서 한 번에 추가하는 것이 가장 안전합니다.
+--      (이전에 이미 UNIQUE KEY로 설정되었다고 가정하고, 컬럼만 추가합니다.)
+ALTER TABLE MMML.ORDER_MAIN
+    -- ADD COLUMN merchant_uid VARCHAR(100) NOT NULL UNIQUE,
+    ADD COLUMN seller_id BIGINT,
+    ADD CONSTRAINT FK_ORDER_MAIN_SELLER
+        FOREIGN KEY (seller_id) REFERENCES MMML.SELLER(seller_id);
+
+-- 2. SELLER 테이블 수정
+--    - 회사 관련 상세 정보 컬럼 추가
+ALTER TABLE MMML.SELLER
+    ADD COLUMN seller_address VARCHAR(255),
+    ADD COLUMN seller_phone VARCHAR(20),
+    ADD COLUMN seller_email VARCHAR(100);
+
+
+-- 3. PAYMENT_TRANSACTION 테이블 수정
+--    - imp_uid 및 pg_tid UNIQUE KEY 추가 (DDL에 이미 포함되어 있지만, ALTER로 재정의 시 사용)
+ALTER TABLE MMML.PAYMENT_TRANSACTION
+    ADD COLUMN imp_uid VARCHAR(100) UNIQUE,
+    ADD CONSTRAINT UQ_IMP_UID UNIQUE (imp_uid);
+
+COMMIT;
+
 -- ============================================================
 --  MySQL ALTER TABLE: MMML.MEMBER
 --  Goal: Add Gender, Age, and Email columns
@@ -336,4 +376,3 @@ ALTER TABLE MMML.MEMBER
     ADD COLUMN email VARCHAR(100) NULL COMMENT '개인 이메일';
 
 COMMIT;
-
