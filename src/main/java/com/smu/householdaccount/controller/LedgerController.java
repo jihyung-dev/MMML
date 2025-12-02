@@ -93,16 +93,7 @@ public class LedgerController {
      * 캘린더 UI에 표시할 월별 일자별 수입/지출 소계 데이터를 JSON으로 반환합니다.
      * (FullCalendar의 events source로 사용됩니다.)
      */
-    @GetMapping("/calendar")
-    public ResponseEntity<List<LedgerSummaryDto.DailySummary>> getCalendarEvents(
-            @RequestParam int year,
-            @RequestParam int month
-    ) {
-        // Service에서 계산된 List<DailySummary>를 반환합니다.
-        // 이 데이터는 캘린더에서 수입(위) / 지출(아래)를 표시하는 데 사용됩니다.
-        List<LedgerSummaryDto.DailySummary> dailyStats = ledgerService.getCalendarDailyStats(year, month);
-        return ResponseEntity.ok(dailyStats);
-    }
+
     @GetMapping("")
     public String home(){
         return "household/blank";
