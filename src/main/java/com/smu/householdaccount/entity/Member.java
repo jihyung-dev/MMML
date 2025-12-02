@@ -62,7 +62,17 @@ public class Member {
     @Column(name = "UPDATED_AT")
     private LocalDateTime updatedAt;
 
-//   @PrePersist, @PreUpdate 두개추가 회원가입시 자동 createdAt 넣어줌, 정보수정시 자동 updatedAt
+    @Column(name = "gender")
+    private Character gender;
+
+    @Column(name = "age")
+    private Short age;
+
+    @Size(max = 100)
+    @Column(name = "email", length = 100)
+    private String email;
+
+    //   @PrePersist, @PreUpdate 두개추가 회원가입시 자동 createdAt 넣어줌, 정보수정시 자동 updatedAt
     @PrePersist
     public void prePersist() {
         if (this.createdAt == null) {

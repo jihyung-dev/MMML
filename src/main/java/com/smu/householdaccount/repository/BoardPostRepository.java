@@ -5,6 +5,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+
 public interface BoardPostRepository extends JpaRepository<BoardPost, Long> {
 
     /** 최신순 전체 조회 */
@@ -16,4 +18,11 @@ public interface BoardPostRepository extends JpaRepository<BoardPost, Long> {
             String contentKeyword,
             Pageable pageable
     );
+
+    Page<BoardPost> findByWriterId(String memberId,Pageable pageable);
+
+    Page<BoardPost> findByBoardLikes_MemberId(String memberId,Pageable pageable);
+    //List<BoardPost> findByWriterId(String memberId);
+
+
 }

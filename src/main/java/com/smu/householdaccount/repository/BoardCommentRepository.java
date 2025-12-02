@@ -1,6 +1,8 @@
 package com.smu.householdaccount.repository;
 
 import com.smu.householdaccount.entity.BoardComment;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -12,4 +14,6 @@ public interface BoardCommentRepository extends JpaRepository<BoardComment, Long
 
     /** 특정 댓글의 대댓글 */
     List<BoardComment> findByParentComment_IdOrderByCreatedAtAsc(Long parentId);
+
+    Page<BoardComment> findByWriterId(String memberId, Pageable pageable);
 }
