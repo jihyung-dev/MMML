@@ -30,6 +30,10 @@ public class Seller {
     private String bizNo;
 
     @NotNull
+    @Column(name = "BIZ_NAME", nullable = false, length = 30)
+    private String bizName;
+
+    @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.RESTRICT)
     @JoinColumn(name = "MEMBER_ID", nullable = false)

@@ -69,10 +69,10 @@ public class ItemServiceImpl implements ItemService {
         Page<Item> page = itemRepository.findAll(spec, pageable);
 
         // 연관 엔티티 강제 초기화 (LazyInitializationException 방지)
-        page.forEach(item -> {
-            if (item.getSeller() != null) item.getSeller().getId();
-            if (item.getCategory() != null) item.getCategoryId();
-        });
+//        page.forEach(item -> {
+//            if (item.getSeller() != null) item.getSeller().getId();
+//            if (item.getCategory() != null) item.getCategoryId();
+//        });
 
         return page;
     }

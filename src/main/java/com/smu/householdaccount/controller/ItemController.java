@@ -54,7 +54,7 @@ public class ItemController {    // 명시적 생성자 주입 (Lombok 없이 �
             @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime date,
-            @PageableDefault(page=0, size = 8, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            @PageableDefault(page=0, size = 8, sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
             Model model
     ) {
         Page<Item> itemPage = itemService.searchItems(sellerId, categoryId, q, minPrice, maxPrice, status, date, pageable);

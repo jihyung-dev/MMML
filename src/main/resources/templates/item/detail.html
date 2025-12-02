@@ -1,24 +1,21 @@
 <!doctype html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/default_layout}"
+      th:with="CONTENT_TITLE=${item.itemName} + ' | Hotdeal'">
 <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title th:text="${item.itemName} + ' | Hotdeal'">상품 상세 | Hotdeal</title>
-
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
-
     <!-- 프로젝트 CSS -->
-    <link th:href="@{/css/item-detail.css}" rel="stylesheet"/>
-
+    <link  layout:fragment="css" th:href="@{/css/item-detail.css}" rel="stylesheet"/>
 </head>
+
 <!--<body class="bg-light">-->
 <body>
 
 <!--<div class="container py-4">-->
-<div class="container mt-4">
+<div layout:fragment="content" class="mt-4">
 <!-- 상단 메뉴 / 뒤로가기 -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <!--<div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <a th:href="@{/hotdeal}" class="btn btn-outline-secondary btn-sm">← 목록으로</a>
         </div>
@@ -26,7 +23,7 @@
             <a th:href="@{/mypage}" class="btn btn-outline-secondary btn-sm">마이페이지</a>
             <a th:href="@{/hotdeal}" class="btn btn-primary btn-sm">핫딜 홈</a>
         </div>
-    </div>
+    </div>--> <!--나중에 쓸 일 없으면 삭제하겠음-->
 
     <div class="row g-4">
         <!-- 이미지 / 캐러셀 -->
@@ -135,7 +132,7 @@
                                     th:classappend="${isWished} ? 'btn-danger' : 'btn-outline-primary'">
                                 <span th:text="${isWished} ? '♡ 찜 취소':'♥ 찜하기'"></span></button>
                             <button type="submit" class="btn btn-success" id="buyBtn">바로구매</button>
-                            <button type="button" class="btn btn-primary" id="cartBtn">장바구니 담기</button>
+                            <button type="button" class="btn btn-primary" id="cartBtn">담기</button>
                         </div>
                     </form>
 
@@ -143,11 +140,20 @@
 
                     <!-- 판매자 정보 -->
                     <div class="seller-box mt-3">
-                        <div><strong>판매자</strong></div>
-                        <div th:if="${item.seller != null}">
-                            사업자번호: <span th:text="${item.seller.bizNo}">000-00-00000</span><br/>
-                            업종: <span th:text="${item.seller.bizType}">업종</span>
+                        <!-- 클릭하는 상단 영역 -->
+                        <div class="seller-header" onclick="toggleSellerInfo()">
+                            <a href="#seller-info" data-bs-toggle="collapse" style="text-decoration:none; color:inherit;">
+                                <strong th:text="${item.seller != null ? item.seller.bizName : '판매자' }"></strong>
+                                <span id="arrow">▼</span>
+                            </a>
                         </div>
+
+                        <!-- 접히는 영역 -->
+                        <div id="seller-info" class="collapse" th:if="${item.seller != null}">
+                            사업자번호: <span th:text="${item.seller.bizNo}"></span><br/>
+                            업종: <span th:text="${item.seller.bizType}"></span>
+                        </div>
+
                         <div th:if="${item.seller == null}" class="text-muted">
                             판매자 정보 없음
                         </div>
@@ -170,19 +176,45 @@
     </div>
 </div>
 
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-<script>
-    /* 옵션 선택 -> 추가금액 / 재고 / 총액 업데이트 하는 간단 JS
-       (서버에서 포맷된 base price 문자열(item.formattedPrice)을 보내주는 것을 가정)
-       아래는 가격 계산의 예시 로직입니다. 실제 숫자 계산을 위해서는 서버에서 basePrice(Number)도 주는게 편합니다.
+<script  layout:fragment="script">
+    /*
+        통합 스크립트
+      - toggleSellerInfo: 전역 함수 (onclick으로 호출 가능)
+      - 옵션/수량/총액 계산, 찜하기, 장바구니, 폼 검증 모두 DOMContentLoaded 안에서 안전하게 초기화
     */
-    (function(){
-        const currencyFmt = (num) => num ? String(num).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '원' : '0원';
-        const parsePrice = txt => txt ? Number(String(txt).replace(/[^0-9.-]+/g,""))||0 : 0;
 
-        const basePriceText = document.querySelector('.price-strong').innerText || '0원';
+    function toggleSellerInfo() {
+        const info = document.getElementById("seller-info");
+        const arrow = document.getElementById("arrow");
+        if (!info || !arrow) return;
+
+        if (info.classList.contains("collapsed")) {
+            info.classList.remove("collapsed");
+            info.classList.add("expanded");
+            arrow.textContent = "▲";
+        } else {
+            info.classList.remove("expanded");
+            info.classList.add("collapsed");
+            arrow.textContent = "▼";
+        }
+    }
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // 유틸
+        const currencyFmt = (num) => {
+            if (num === null || num === undefined) return '0원';
+            const n = Number(num) || 0;
+            return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '원';
+        };
+        const parsePrice = txt => {
+            if (!txt) return 0;
+            return Number(String(txt).replace(/[^0-9.-]+/g,"")) || 0;
+        };
+
+        // 요소들 (존재여부 체크)
+        const basePriceEl = document.querySelector('.price-strong');
+        const basePriceText = basePriceEl ? basePriceEl.innerText : '0원';
         const basePrice = parsePrice(basePriceText);
 
         const additionalPriceEl = document.getElementById('additionalPrice');
@@ -191,27 +223,28 @@
         const qtyInput = document.getElementById('qtyInput');
 
         const setAmounts = (addPrice, stock) => {
-            additionalPriceEl.innerText = currencyFmt(addPrice);
-            const qty = Number(qtyInput.value) || 1;
-            totalPriceEl.innerText = currencyFmt((basePrice + addPrice) * qty);
-            if(stock !== undefined && stock !== null) stockDisplay.innerText = stock;
+            if (additionalPriceEl) additionalPriceEl.innerText = currencyFmt(addPrice);
+            const qty = Number(qtyInput ? qtyInput.value : 1) || 1;
+            if (totalPriceEl) totalPriceEl.innerText = currencyFmt((basePrice + (Number(addPrice)||0)) * qty);
+            if (stockDisplay && (stock !== undefined && stock !== null)) stockDisplay.innerText = stock;
         };
 
+        // 옵션(select) 처리
         const optionSelects = document.querySelectorAll('.option-select');
-        if(optionSelects.length>0){
+        if(optionSelects.length > 0){
             optionSelects.forEach(sel=>{
                 sel.addEventListener('change',()=>{
-                    let sumAdd=0,minStock=null;
+                    let sumAdd = 0, minStock = null;
                     optionSelects.forEach(s=>{
                         const opt = s.options[s.selectedIndex];
                         if(opt && opt.dataset){
-                            const ap = parseInt(opt.dataset.additionalPrice||0);
+                            const ap = parseInt(opt.dataset.additionalPrice||0) || 0;
                             const st = opt.dataset.stock ? parseInt(opt.dataset.stock) : null;
-                            sumAdd += ap||0;
-                            if(st!==null) minStock = minStock===null?st:Math.min(minStock,st);
+                            sumAdd += ap;
+                            if(st !== null) minStock = minStock === null ? st : Math.min(minStock, st);
                         }
                     });
-                    setAmounts(sumAdd,minStock);
+                    setAmounts(sumAdd, minStock);
                 });
             });
         }
@@ -220,82 +253,110 @@
         if(singleOption){
             singleOption.addEventListener('change',()=>{
                 const opt = singleOption.options[singleOption.selectedIndex];
-                const ap = parseInt(opt.dataset.additionalPrice||0);
-                const st = opt.dataset.stock ? parseInt(opt.dataset.stock):null;
-                setAmounts(ap||0,st);
+                const ap = opt && opt.dataset ? parseInt(opt.dataset.additionalPrice||0) : 0;
+                const st = opt && opt.dataset && opt.dataset.stock ? parseInt(opt.dataset.stock) : null;
+                setAmounts(ap||0, st);
             });
         }
 
-        qtyInput.addEventListener('input', ()=>{
-            const add = parsePrice(additionalPriceEl.innerText);
-            setAmounts(add, stockDisplay.innerText);
-        });
-
-        if(singleOption && singleOption.selectedIndex>0) singleOption.dispatchEvent(new Event('change'));
-        else if(optionSelects.length>0) optionSelects[0].dispatchEvent(new Event('change'));
-        else setAmounts(0,null);
-
-        document.getElementById('cartBtn').addEventListener('click',()=>alert('장바구니 담기 예시'));
-        // document.getElementById('wishBtn').addEventListener('click',()=>alert('찜하기 예시'));
-        document.addEventListener('DOMContentLoaded', function() {
-            const wishBtn = document.getElementById('wishBtn');
-
-            // 버튼 클릭 이벤트 리스너
-            wishBtn.addEventListener('click', function() {
-                const itemId = this.getAttribute('data-item-id');
-                let isWished = this.getAttribute('data-is-wished') === 'true'; // 현재 상태
-
-                // 찜 상태에 따라 요청할 URL 및 메서드 결정
-                const url = `/hotdeal/wishlist/${itemId}`;
-                const method = isWished ? 'DELETE' : 'POST'; // 현재 찜 상태면 DELETE(취소), 아니면 POST(등록)
-
-                // 1. AJAX 요청 (Fetch API 사용)
-                fetch(url, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json'
-                        // CSRF 토큰 필요 시 여기에 추가
-                    }
-                })
-                    .then(response => {
-                        if (!response.ok) {
-                            // 서버에서 오류 응답이 온 경우
-                            throw new Error('서버 요청 실패');
-                        }
-                        // 2. 요청 성공 시 버튼 상태 업데이트
-                        isWished = !isWished; // 상태 반전
-
-                        // 3. HTML 요소 속성 및 클래스 업데이트
-                        this.setAttribute('data-is-wished', isWished);
-
-                        if (isWished) {
-                            this.classList.remove('btn-outline-primary');
-                            this.classList.add('btn-danger');
-                            this.querySelector('span').textContent = '❤️ 찜 취소';
-                        } else {
-                            this.classList.remove('btn-danger');
-                            this.classList.add('btn-outline-primary');
-                            this.querySelector('span').textContent = '🤍 찜하기';
-                        }
-                    })
-                    .catch(error => {
-                        console.error('찜하기 처리 중 오류 발생:', error);
-                        alert('찜하기/취소 처리 중 오류가 발생했습니다.');
-                    });
+        // 수량 변경 시 총액 갱신
+        if(qtyInput){
+            qtyInput.addEventListener('input', ()=>{
+                const add = additionalPriceEl ? parsePrice(additionalPriceEl.innerText) : 0;
+                setAmounts(add, stockDisplay ? stockDisplay.innerText : null);
             });
-        });
+        }
 
-        document.getElementById('purchaseForm').addEventListener('submit', ev=>{
-            const requiredSelects = document.querySelectorAll('.option-select, .single-option');
-            for(const s of requiredSelects){
-                if(s.value===''){ ev.preventDefault(); alert('옵션을 모두 선택해주세요.'); s.focus(); return false;}
+        // 초기값 트리거
+        if(singleOption && singleOption.selectedIndex > 0) singleOption.dispatchEvent(new Event('change'));
+        else if(optionSelects.length > 0) optionSelects[0].dispatchEvent(new Event('change'));
+        else setAmounts(0, stockDisplay ? stockDisplay.innerText : null);
+
+        // 찜하기 로직 (안전 체크)
+        const wishBtn = document.getElementById('wishBtn');
+        if (wishBtn) {
+            const itemId = wishBtn.dataset ? wishBtn.dataset.itemId : null;
+            wishBtn.addEventListener('click', async (e) => {
+                if (!itemId) {
+                    alert('아이템 정보가 없습니다.');
+                    return;
+                }
+                try {
+                    const res = await fetch(`/hotdeal/wishlist/${itemId}`, { method: 'POST' });
+                    if (!res.ok) {
+                        if (res.status === 401) {
+                            alert('로그인이 필요합니다. 로그인 후 사용해주세요.');
+                            window.location.href = '/login';
+                            return;
+                        }
+                        throw new Error('network response not ok');
+                    }
+                    const json = await res.json();
+                    if (json) updateWishButton(wishBtn, json.wished);
+                } catch(err) {
+                    console.error('wish error', err);
+                    alert('찜하기 처리 중 오류가 발생했습니다.');
+                }
+            });
+
+            function updateWishButton(button, wished) {
+                if (wished) {
+                    button.classList.remove('btn-outline-primary');
+                    button.classList.add('btn-primary', 'text-white');
+                    button.innerText = '♥ 찜함';
+                } else {
+                    button.classList.remove('btn-primary', 'text-white', 'btn-danger');
+                    button.classList.add('btn-outline-primary');
+                    button.innerText = '♥ 찜하기';
+                }
             }
-            const stockVal = parseInt(stockDisplay.innerText);
-            const qty = Number(qtyInput.value)||1;
-            if(!isNaN(stockVal) && stockVal<qty){ ev.preventDefault(); alert('선택한 수량이 재고보다 많습니다.'); return false;}
-        });
+        }
 
-    })();
+        // 장바구니 버튼 (예시)
+        const cartBtn = document.getElementById('cartBtn');
+        if(cartBtn){
+            cartBtn.addEventListener('click', ()=> alert('장바구니 담기 예시'));
+        }
+
+        // 구매 폼 제출 검증
+        const purchaseForm = document.getElementById('purchaseForm');
+        if(purchaseForm){
+            purchaseForm.addEventListener('submit', ev=>{
+                const requiredSelects = document.querySelectorAll('.option-select, .single-option');
+                for(const s of requiredSelects){
+                    if(s && s.value === ''){
+                        ev.preventDefault();
+                        alert('옵션을 모두 선택해주세요.');
+                        s.focus && s.focus();
+                        return false;
+                    }
+                }
+                const stockVal = stockDisplay ? parseInt(stockDisplay.innerText) : NaN;
+                const qty = Number(qtyInput ? qtyInput.value : 1) || 1;
+                if(!isNaN(stockVal) && stockVal < qty){
+                    ev.preventDefault();
+                    alert('선택한 수량이 재고보다 많습니다.');
+                    return false;
+                }
+            });
+        }
+
+        // seller-header 클릭 바인딩 (inline onclick과 중복될 수 있으므로 중복 호출 방지)
+        const sellerHeader = document.querySelector('.seller-header');
+        if (sellerHeader) {
+            sellerHeader.addEventListener('click', (e) => {
+                // inline onclick도 있으면 두 번 호출될 수 있으므로 여기선 전역 함수를 직접 호출
+                toggleSellerInfo();
+            });
+        }
+
+        // 초기 화살표 표시 설정
+        const sellerInfo = document.getElementById('seller-info');
+        const sellerArrow = document.getElementById('arrow');
+        if (sellerInfo && sellerArrow) {
+            sellerArrow.textContent = sellerInfo.classList.contains('expanded') ? '▲' : '▼';
+        }
+    });
 </script>
 
 </body>
