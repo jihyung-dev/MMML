@@ -28,36 +28,65 @@
 <body>
 
 <div layout:fragment="content">
-        <!-- 마이페이지 버튼 -->
 
-    <!--<div class="d-flex flex-wrap align-items-center gap-2 justify-content-end">
-        <a th:href="@{/mypage}" class="btn btn-outline-secondary btn-sm" role="button" aria-label="마이페이지">
-                &lt;!&ndash;└ 링크수정필요 &ndash;&gt;
-            마이페이지
-        </a>
-    </div>-->
+<!--    카테고리 버튼-->
+    <form th:action="@{/hotdeal/search}" method="get" class="d-flex mb-4">
 
-<!-- Feature Cards -->
-<!--<div class="container py-5">
-    <div class="row g-2 text-center">
+        <!--             숨겨진 필드/⇒ 현재 선택된 카테고리 값 유지 -->
+        <input type="hidden" name="categoryId" th:value="${param.categoryId}" />
 
-        <div class="col-md-4">
-            <a href="/board" class="text-decoration-none fs-6 fw-bold d-block py-2 menu-link">
-                게시판
-            </a>
+        <!-- 카테고리 스크롤 컨테이너 -->
+        <div class="category-wrap-overlay position-relative d-flex align-items-center" style="flex:1;">
+            <!-- 그라데이션 오버레이 (왼쪽) -->
+            <div class="fade-overlay fade-left" aria-hidden="true"></div>
+
+            <!--             카테고리 버튼 그룹 -->
+            <!--            <div class="btn-group me-2" role="group">-->
+            <div class="category-scroll" id="categoryScroll" role="tablist" aria-label="카테고리">
+                <!--                전체버튼-->
+                <a th:href="@{/hotdeal}"
+                   th:classappend="${param.categoryId == null or param.categoryId[0] == ''} ? 'btn-primary' : 'btn-outline-secondary'"
+                   class="btn btn-outline-secondary btn-sm mx-1">전체</a>
+
+                <!--             DB에서 가져온 카테고리 버튼들 -->
+                <!-- th:href="@{'/hotdeal'(categoryId=${c.categoryId}, q=${param.q})} ⇒ 카테고리 버튼 클릭 시 해당 카테고리로 필터 + 검색어 유지-->
+                <a th:each="c : ${categories}"
+                   th:href="@{'/hotdeal'(categoryId=${c.categoryId}, q=${param.q})}"
+                   th:text="${c.categoryName}"
+                   th:classappend="${param.categoryId != null and param.categoryId[0]  == c.categoryId} ? 'btn-primary' : 'btn-outline-secondary'"
+                   class="btn btn-outline-secondary btn-sm category-btn mx-1">
+                </a>
+            </div>
+
+
+            <!-- 그라데이션 오버레이 (오른쪽) -->
+            <div class="fade-overlay fade-right" aria-hidden="true"></div>
+
+            <!-- 왼쪽/오른쪽 화살표 (SVG 아이콘) -->
+            <button type="button" class="cat-scroll-btn btn btn-light" id="catScrollLeft" aria-label="왼쪽으로 스크롤" disabled>
+                <!-- left SVG -->
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+
+            <button type="button" class="cat-scroll-btn btn btn-light" id="catScrollRight" aria-label="오른쪽으로 스크롤">
+                <!-- right SVG -->
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+
         </div>
-        <div class="col-md-4">
-            <a href="/ledger" class="text-decoration-none fs-6 fw-bold d-block py-2 menu-link">
-                가계부
-            </a>
-        </div>
-        <div class="col-md-4">
-            <a href="/hotdeal" class="text-decoration-none fs-5 fw-bold d-block py-2 menu-link active">
-                핫딜
-            </a>
-        </div>
-    </div>
-</div>-->
+
+<!--        검색창-->
+    <input type="text" name="q"
+           th:value="${param.q}"
+           class="form-control form-control-sm ms-2 search-input"
+           placeholder="검색어를 입력하세요"
+    />
+    <button type="submit" class="btn btn-primary">검색</button>
+    </form>
 
 
 <!-- 정렬(드롭다운) -->
