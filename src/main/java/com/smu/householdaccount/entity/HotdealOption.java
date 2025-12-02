@@ -10,6 +10,11 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.math.BigDecimal;
+import jakarta.persistence.Transient;
+
 import java.math.BigDecimal;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -53,5 +58,15 @@ public class HotdealOption {
 
     @OneToMany(mappedBy = "option")
     private Set<OrderItem> orderItems = new LinkedHashSet<>();
+
+
+    @Transient
+    public String getFormattedAdditionalPrice() {
+        if (this.getAdditionalPrice() == null) return "";
+        if (this.getAdditionalPrice().compareTo(BigDecimal.ZERO) == 0) return "";
+        DecimalFormat df = new DecimalFormat("#,###");
+        BigDecimal scaled = this.getAdditionalPrice().setScale(0, RoundingMode.HALF_UP);
+        return "(+" + df.format(scaled.longValue()) + "원)";
+    }
 
 }

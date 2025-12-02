@@ -81,3 +81,46 @@ textarea {
     border-radius: 4px;
     border: 1px solid #ccc;
 }
+
+
+/* 간단한 추가 스타일 (필요시 옮기세요) */
+.thumb {
+    object-fit: cover;
+    width: 100%;
+    height: 260px;
+}
+.no-image {
+    width: 100%;
+    height: 260px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#f2f2f2;
+    color:#999;
+    font-size:14px;
+}
+.price-strong {
+    font-size: 1.3rem;
+    font-weight:700;
+}
+.original-price {
+    text-decoration: line-through;
+    color: #888;
+    margin-right: 8px;
+}
+.option-label {
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+.seller-box {
+    background:#f8f9fa;
+    padding:12px;
+    border-radius:6px;
+}
+.card-img-top {
+    max-height: 200px;
+    object-fit: cover;
+}
+@media (min-width: 992px) {
+    .thumb { height: 420px; }
+}
