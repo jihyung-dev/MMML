@@ -21,6 +21,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -110,6 +111,20 @@ public class ItemController {    // 명시적 생성자 주입 (Lombok 없이 �
         return "redirect:/hotdeal"; // 임시로 목록 페이지로 리다이렉트
     }
 
+    @GetMapping("/item/{id}")
+    public String getItemDetail(
+            @PathVariable Long id,
+            Model model) {
+        Item item = itemService.findById(id);
+
+        // LocalDateTime -> 문자열
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String saleStartAtStr = item.getSaleStartAt().format(formatter);
+
+        model.addAttribute("item", item);
+        model.addAttribute("saleStartAtStr", saleStartAtStr);
+        return "item/detail";
+    }
 
     // 인기점수 변경: 폼 제출 방식 (예: 관리자 버튼에서 POST 호출)
     @PostMapping("/{id}/popularity")

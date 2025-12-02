@@ -42,6 +42,12 @@ public class ItemServiceImpl implements ItemService {
         this.wishRepository = wishRepository;
     }*/
 
+    @Override
+    public Item findById(Long id) {
+        return itemRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("상품을 찾을 수 없습니다. id=" + id));
+    }
+
     /**
      * 동적 검색 (Specification 을 사용)
      * 반환되는 Page<Item>의 각 Item은 service 내부에서 연관 객체를 미리 초기화함.

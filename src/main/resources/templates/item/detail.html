@@ -78,6 +78,24 @@
                     </div>
 
                     <div class="mb-2 text-muted">
+                        <!-- 세일 기간 -->
+                        <span th:if="${item.saleStartAt != null and item.saleEndAt != null}">
+                            세일 기간:
+                        <span th:text="${#temporals.format(item.saleStartAt, 'yyyy-MM-dd')}"></span>
+                            ~
+                        <span th:text="${#temporals.format(item.saleEndAt, 'yyyy-MM-dd')}"></span>
+                        </span>
+                        <br/>
+
+                        <!-- 판매 상태 -->
+                        <span th:if="${item.saleStatus != null}">
+                            판매 상태:
+                        <span th:class="${item.saleStatus == 'ON_SALE' ? 'text-success' : item.saleStatus == 'SOLD_OUT' ? 'text-warning' : 'text-secondary'}"
+                              th:text="${item.saleStatus == 'ON_SALE' ? '세일중' : item.saleStatus == 'SOLD_OUT' ? '매진' : '판매종료'}"></span>
+                        </span>
+                    </div>
+
+                    <div class="mb-2 text-muted">
                         조회수: <span th:text="${item.viewCount}">0</span>
                         &nbsp;·&nbsp; 인기도: <span th:text="${item.popularityScore}">0</span>
                     </div>
@@ -88,11 +106,17 @@
                     <form id="purchaseForm" th:action="@{/hotdeal/order}" method="post" class="mb-3">
                         <input type="hidden" name="itemId" th:value="${item.id}"/>
 
+                        <!-- 안내 메시지: 판매 종료 또는 매진 시 -->
+                        <div th:if="${item.saleStatus != 'ON_SALE'}" class="alert alert-warning">
+                            이 상품은 현재 <span th:text="${item.saleStatus == 'SOLD_OUT' ? '매진' : '판매 종료'}"></span> 상태로, 옵션 선택 및 구매가 불가능합니다.
+                        </div>
+
                         <!-- 옵션 그룹별 select -->
                         <div th:if="${optionGroups != null}">
                             <div th:each="group : ${optionGroups}" class="mb-2">
                                 <div class="option-label" th:text="${group.name}">옵션</div>
-                                <select class="form-select option-group" th:data-group-name="${group.name}">
+                                <select class="form-select option-group" th:data-group-name="${group.name}"
+                                        th:disabled="${item.saleStatus != 'ON_SALE'}">
                                     <option value="" style="color:#ccc">선택하세요</option>
                                     <option th:each="opt : ${group.options}"
                                             th:value="${opt.id}"
@@ -100,7 +124,9 @@
                                             th:data-additional-price="${opt.additionalPrice}"
                                             th:data-stock="${opt.stock}"
                                             th:data-option-type="${opt.optionType}"
-                                            th:data-option-value="${opt.optionValue}"></option>
+                                            th:data-option-value="${opt.optionValue}"
+                                            th:disabled="${opt.stock == 0 || item.saleStatus != 'ON_SALE'}">
+                                    </option>
                                 </select>
                             </div>
                         </div>
@@ -109,13 +135,15 @@
                         <div th:if="${optionGroups == null}">
                             <div class="mb-2">
                                 <div class="option-label">옵션</div>
-                                <select class="form-select single-option">
+                                <select class="form-select single-option"
+                                        th:disabled="${item.saleStatus != 'ON_SALE'}">
                                     <option value="" style="color: #ccc">선택하세요</option>
                                     <option th:each="opt : ${item.hotdealOptions}"
                                             th:value="${opt.id}"
                                             th:text="${opt.optionType + ' - ' + opt.optionValue + opt.formattedAdditionalPrice}"
                                             th:data-additional-price="${opt.additionalPrice}"
-                                            th:data-stock="${opt.stock}"></option>
+                                            th:data-stock="${opt.stock}"
+                                            th:disabled="${opt.stock == 0 || item.saleStatus != 'ON_SALE'}"></option>
                                 </select>
                             </div>
                         </div>
@@ -152,7 +180,7 @@
                                     th:data-is-wished="${isWished}"
                                     th:classappend="${isWished} ? 'btn-danger' : 'btn-outline-primary'">
                                 <span th:text="${isWished} ? '♡ 찜 취소':'♥ 찜하기'"></span></button>
-                            <button type="submit" class="btn btn-success" id="buyBtn">바로구매</button>
+                            <button type="submit" class="btn btn-success" th:disabled="${item.saleStatus != 'ON_SALE'}" id="buyBtn">구매하기</button>
                             <!--<button type="button" class="btn btn-primary" id="cartBtn">담기</button>-->
                         </div>
                     </form>
