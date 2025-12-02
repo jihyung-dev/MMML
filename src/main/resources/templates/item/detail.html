@@ -86,16 +86,15 @@
 
                     <!-- 옵션 선택 (두 가지 처리: optionGroups 가 있을 때 -> 여러 select, 없을 때 -> single select로 모든 옵션 노출) -->
                     <form id="purchaseForm" th:action="@{/hotdeal/order}" method="post" class="mb-3">
-<!--                    <form id="purchaseForm" action="#" method="post" class="mb-3">-->
                         <input type="hidden" name="itemId" th:value="${item.id}"/>
 
-                        <!--fallback: optionGroups 가 없을 때 (단일 select에 모든 옵션을 노출) -->
-                        <div>
-                            <div class="mb-2">
-                                <div class="option-label">옵션</div>
-                                <select class="form-select single-option" name="selectedOption">
-                                    <option value="" style="color: #ccc">선택하세요</option>
-                                    <option th:each="opt : ${item.hotdealOptions}"
+                        <!-- 옵션 그룹별 select -->
+                        <div th:if="${optionGroups != null}">
+                            <div th:each="group : ${optionGroups}" class="mb-2">
+                                <div class="option-label" th:text="${group.name}">옵션</div>
+                                <select class="form-select option-group" th:data-group-name="${group.name}">
+                                    <option value="" style="color:#ccc">선택하세요</option>
+                                    <option th:each="opt : ${group.options}"
                                             th:value="${opt.id}"
                                             th:text="${opt.optionType + ' - ' + opt.optionValue + opt.formattedAdditionalPrice}"
                                             th:data-additional-price="${opt.additionalPrice}"
@@ -106,22 +105,44 @@
                             </div>
                         </div>
 
-                        <!-- 수량 -->
-                        <div class="mb-3 d-flex align-items-center gap-2">
-                            <label class="option-label mb-0">수량</label>
-                            <input id="qtyInput" name="quantity" type="number" min="1" value="1" class="form-control" style="width:100px;" th:max="${item.hotdealOptions != null and #lists.size(item.hotdealOptions)>0 ? item.hotdealOptions[0].stock : '1'}"/>
-                                                                                                                                            <!--└─ 수량 선택 남은재고 넘어가지 못하게 해둠.-->
-                            <div class="ms-3 text-muted">남은재고:
-                                <span id="stockDisplay" th:text="${item.hotdealOptions != null and #lists.size(item.hotdealOptions)>0 ? item.hotdealOptions[0].stock : '—'}">—</span>
+                        <!-- 단일 옵션 fallback -->
+                        <div th:if="${optionGroups == null}">
+                            <div class="mb-2">
+                                <div class="option-label">옵션</div>
+                                <select class="form-select single-option">
+                                    <option value="" style="color: #ccc">선택하세요</option>
+                                    <option th:each="opt : ${item.hotdealOptions}"
+                                            th:value="${opt.id}"
+                                            th:text="${opt.optionType + ' - ' + opt.optionValue + opt.formattedAdditionalPrice}"
+                                            th:data-additional-price="${opt.additionalPrice}"
+                                            th:data-stock="${opt.stock}"></option>
+                                </select>
                             </div>
                         </div>
 
-                        <!-- 선택된 추가금액 / 총합 보여주기 -->
+                        <!-- 수량 -->
+                        <div class="mb-3 d-flex align-items-center gap-2">
+                            <!--<label class="option-label mb-0">수량</label>-->
+                            <!--<input id="qtyInput" name="quantity" type="number" min="1" value="1" class="form-control" style="width:100px;"/>-->
+                            <div class="ms-3 text-muted">남은재고: <span id="stockDisplay">—</span></div>
+                        </div>
+
+                        <!-- 옵션별 금액
+                        <div class="mb-3">
+                            <div>총 예상결제금액: <strong id="currentPrice" th:text="${item.formattedPrice}" data-base-price="${item.itemSalePrice}">0원</strong></div>
+                        </div>-->
+
+
+                        <!-- 장바구니 표시 영역 -->
+                        <div id="semiCart" class="mb-3">
+                            <h5>리스트</h5>
+                            <ul id="semiCartList" class="list-group"></ul>
+                        </div>
+
+                        <!-- 추가금액 / 총합 -->
                         <div class="mb-3">
                             <small class="text-muted">추가금액: <span id="additionalPrice">0원</span></small>
-                            <div>
-                                총 예상결제금액: <strong id="totalPrice" class="price-strong" th:text="${item.formattedPrice}">0원</strong>
-                            </div>
+                            <div>총 결제금액: <strong id="cartTotalPrice">0원</strong></div>
                         </div>
 
                         <!-- 버튼 -->
@@ -132,7 +153,7 @@
                                     th:classappend="${isWished} ? 'btn-danger' : 'btn-outline-primary'">
                                 <span th:text="${isWished} ? '♡ 찜 취소':'♥ 찜하기'"></span></button>
                             <button type="submit" class="btn btn-success" id="buyBtn">바로구매</button>
-                            <button type="button" class="btn btn-primary" id="cartBtn">담기</button>
+                            <!--<button type="button" class="btn btn-primary" id="cartBtn">담기</button>-->
                         </div>
                     </form>
 
@@ -176,127 +197,120 @@
     </div>
 </div>
 
-<script  layout:fragment="script">
-    /*
-        통합 스크립트
-      - toggleSellerInfo: 전역 함수 (onclick으로 호출 가능)
-      - 옵션/수량/총액 계산, 찜하기, 장바구니, 폼 검증 모두 DOMContentLoaded 안에서 안전하게 초기화
-    */
-
-    function toggleSellerInfo() {
-        const info = document.getElementById("seller-info");
-        const arrow = document.getElementById("arrow");
-        if (!info || !arrow) return;
-
-        if (info.classList.contains("collapsed")) {
-            info.classList.remove("collapsed");
-            info.classList.add("expanded");
-            arrow.textContent = "▲";
-        } else {
-            info.classList.remove("expanded");
-            info.classList.add("collapsed");
-            arrow.textContent = "▼";
-        }
-    }
-
-
+<script layout:fragment="script">
     document.addEventListener('DOMContentLoaded', () => {
-        // 유틸
-        const currencyFmt = (num) => {
-            if (num === null || num === undefined) return '0원';
-            const n = Number(num) || 0;
-            return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '원';
-        };
-        const parsePrice = txt => {
-            if (!txt) return 0;
-            return Number(String(txt).replace(/[^0-9.-]+/g,"")) || 0;
-        };
-
-        // 요소들 (존재여부 체크)
-        const basePriceEl = document.querySelector('.price-strong');
-        const basePriceText = basePriceEl ? basePriceEl.innerText : '0원';
-        const basePrice = parsePrice(basePriceText);
-
-        const additionalPriceEl = document.getElementById('additionalPrice');
-        const totalPriceEl = document.getElementById('totalPrice');
+        const cart = [];
+        const semiCartList = document.getElementById('semiCartList');
+        const additionalPriceDisplay = document.getElementById('additionalPrice');
+        const cartTotalPriceDisplay = document.getElementById('cartTotalPrice');
         const stockDisplay = document.getElementById('stockDisplay');
-        const qtyInput = document.getElementById('qtyInput');
 
-        const setAmounts = (addPrice, stock) => {
-            if (additionalPriceEl) additionalPriceEl.innerText = currencyFmt(addPrice);
-            const qty = Number(qtyInput ? qtyInput.value : 1) || 1;
-            if (totalPriceEl) totalPriceEl.innerText = currencyFmt((basePrice + (Number(addPrice)||0)) * qty);
-            if (stockDisplay && (stock !== undefined && stock !== null)) stockDisplay.innerText = stock;
-        };
+        const basePriceEl = document.querySelector('.price-strong');
+        const parsePrice = txt => Number(String(txt).replace(/[^0-9.-]+/g,"")) || 0;
+        const currencyFmt = num => String(num).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '원';
+        const basePrice = basePriceEl ? parsePrice(basePriceEl.innerText) : 0;
 
-        // 옵션(select) 처리
-        const optionSelects = document.querySelectorAll('.option-select');
-        if(optionSelects.length > 0){
-            optionSelects.forEach(sel=>{
-                sel.addEventListener('change',()=>{
-                    let sumAdd = 0, minStock = null;
-                    optionSelects.forEach(s=>{
-                        const opt = s.options[s.selectedIndex];
-                        if(opt && opt.dataset){
-                            const ap = parseInt(opt.dataset.additionalPrice||0) || 0;
-                            const st = opt.dataset.stock ? parseInt(opt.dataset.stock) : null;
-                            sumAdd += ap;
-                            if(st !== null) minStock = minStock === null ? st : Math.min(minStock, st);
-                        }
-                    });
-                    setAmounts(sumAdd, minStock);
-                });
+        function addOptionToCart() {
+            let optionText = "";
+            let optionId = "";
+            let additionalPrice = 0;
+            let stock = null;
+
+            const groupSelects = document.querySelectorAll('.option-group');
+            if(groupSelects.length > 0){
+                for(const sel of groupSelects){
+                    if(!sel.value) return; // 선택 안 된 옵션 무시
+                    const opt = sel.options[sel.selectedIndex];
+                    optionText += `${opt.text} / `;
+                    optionId += sel.value + ",";
+                    additionalPrice += parseInt(opt.dataset.additionalPrice || 0);
+                    stock = stock === null ? parseInt(opt.dataset.stock || 0) : Math.min(stock, parseInt(opt.dataset.stock || 0));
+                }
+                optionText = optionText.slice(0, -3);
+                optionId = optionId.slice(0, -1);
+            } else {
+                const sel = document.querySelector('.single-option');
+                if(!sel.value) return;
+                const opt = sel.options[sel.selectedIndex];
+                optionText = opt.text;
+                optionId = sel.value;
+                additionalPrice = parseInt(opt.dataset.additionalPrice || 0);
+                stock = parseInt(opt.dataset.stock || 0);
+            }
+
+            // 장바구니에 같은 옵션 있으면 수량 1 증가
+            const existing = cart.find(c => c.optionId === optionId);
+            if(existing){
+                if(existing.quantity + 1 > stock){
+                    alert("재고가 부족합니다.");
+                    return;
+                }
+                existing.quantity += 1;
+            } else {
+                cart.push({ optionId, optionText, quantity: 1, additionalPrice, basePrice, stock });
+            }
+
+            renderCart();
+            updateStockDisplay();
+        }
+
+        function renderCart() {
+            semiCartList.innerHTML = "";
+            let totalCartPrice = 0;
+            let totalAdd = 0;
+
+            cart.forEach((item, index) => {
+                const itemTotal = (item.basePrice + item.additionalPrice) * item.quantity;
+                totalCartPrice += itemTotal;
+                totalAdd += item.additionalPrice * item.quantity;
+
+                const li = document.createElement('li');
+                li.className = "list-group-item d-flex justify-content-between align-items-center";
+
+                li.innerHTML = `
+                <div>
+                    <strong>${item.optionText}</strong>
+                    <br>
+                    <small>${currencyFmt(item.basePrice + item.additionalPrice)} / 개</small>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-sm btn-outline-secondary cart-minus" data-index="${index}"
+                             style="padding:0.2rem 0.3rem; font-size:0.6rem; line-height:2; width: 1.5rem; min-width:0;">-</button>
+                    <span>${item.quantity}</span>
+                    <button class="btn btn-sm btn-outline-secondary cart-plus" data-index="${index}"
+                            style="padding:0.2rem 0.3rem; font-size:0.6rem; line-height:2; width: 1.5rem; min-width:0;">+</button>
+                    <strong class="ms-2">${currencyFmt(itemTotal)}</strong>
+                </div>
+            `;
+                semiCartList.appendChild(li);
+            });
+
+            cartTotalPriceDisplay.textContent = currencyFmt(totalCartPrice);
+            additionalPriceDisplay.textContent = currencyFmt(totalAdd);
+
+            document.querySelectorAll('.cart-plus').forEach(btn => {
+                btn.addEventListener('click', () => changeQty(btn.dataset.index, +1));
+            });
+            document.querySelectorAll('.cart-minus').forEach(btn => {
+                btn.addEventListener('click', () => changeQty(btn.dataset.index, -1));
             });
         }
 
-        const singleOption = document.querySelector('.single-option');
-        if(singleOption){
-            singleOption.addEventListener('change',()=>{
-                const opt = singleOption.options[singleOption.selectedIndex];
-                const ap = opt && opt.dataset ? parseInt(opt.dataset.additionalPrice||0) : 0;
-                const st = opt && opt.dataset && opt.dataset.stock ? parseInt(opt.dataset.stock) : null;
-                setAmounts(ap||0, st);
-            });
-        }
-
-        // 수량 변경 시 총액 갱신
-        if(qtyInput){
-            qtyInput.addEventListener('input', ()=>{
-                const add = additionalPriceEl ? parsePrice(additionalPriceEl.innerText) : 0;
-                setAmounts(add, stockDisplay ? stockDisplay.innerText : null);
-            });
-        }
-
-        // 초기값 트리거
-        if(singleOption && singleOption.selectedIndex > 0) singleOption.dispatchEvent(new Event('change'));
-        else if(optionSelects.length > 0) optionSelects[0].dispatchEvent(new Event('change'));
-        else setAmounts(0, stockDisplay ? stockDisplay.innerText : null);
-
-        // 찜하기 로직 (안전 체크)
+        // 찜하기
         const wishBtn = document.getElementById('wishBtn');
         if (wishBtn) {
             const itemId = wishBtn.dataset ? wishBtn.dataset.itemId : null;
             wishBtn.addEventListener('click', async (e) => {
-                if (!itemId) {
-                    alert('아이템 정보가 없습니다.');
-                    return;
-                }
+                if (!itemId) { alert('아이템 정보가 없습니다.'); return; }
                 try {
                     const res = await fetch(`/hotdeal/wishlist/${itemId}`, { method: 'POST' });
                     if (!res.ok) {
-                        if (res.status === 401) {
-                            alert('로그인이 필요합니다. 로그인 후 사용해주세요.');
-                            window.location.href = '/login';
-                            return;
-                        }
+                        if (res.status === 401) { alert('로그인이 필요합니다.'); window.location.href = '/login'; return; }
                         throw new Error('network response not ok');
                     }
                     const json = await res.json();
                     if (json) updateWishButton(wishBtn, json.wished);
-                } catch(err) {
-                    console.error('wish error', err);
-                    alert('찜하기 처리 중 오류가 발생했습니다.');
-                }
+                } catch(err) { console.error('wish error', err); alert('찜하기 처리 중 오류가 발생했습니다.'); }
             });
 
             function updateWishButton(button, wished) {
@@ -312,51 +326,50 @@
             }
         }
 
-        // 장바구니 버튼 (예시)
-        const cartBtn = document.getElementById('cartBtn');
-        if(cartBtn){
-            cartBtn.addEventListener('click', ()=> alert('장바구니 담기 예시'));
+        function changeQty(idx, diff) {
+            const item = cart[idx];
+            const newQty = item.quantity + diff;
+
+            if(newQty < 1){
+                alert("최소 수량은 1개입니다!");
+                return;
+            }
+            if(newQty > item.stock){
+                alert("재고보다 많이 담을 수 없습니다.");
+                return;
+            }
+
+            item.quantity = newQty;
+            renderCart();
         }
 
-        // 구매 폼 제출 검증
-        const purchaseForm = document.getElementById('purchaseForm');
-        if(purchaseForm){
-            purchaseForm.addEventListener('submit', ev=>{
-                const requiredSelects = document.querySelectorAll('.option-select, .single-option');
-                for(const s of requiredSelects){
-                    if(s && s.value === ''){
-                        ev.preventDefault();
-                        alert('옵션을 모두 선택해주세요.');
-                        s.focus && s.focus();
-                        return false;
+        function updateStockDisplay() {
+            let minStock = null;
+            const groupSelects = document.querySelectorAll('.option-group');
+            if(groupSelects.length > 0){
+                groupSelects.forEach(sel => {
+                    const opt = sel.options[sel.selectedIndex];
+                    if(opt?.dataset){
+                        const st = parseInt(opt.dataset.stock || 0);
+                        minStock = minStock === null ? st : Math.min(minStock, st);
                     }
+                });
+            } else {
+                const sel = document.querySelector('.single-option');
+                if(sel?.value){
+                    const opt = sel.options[sel.selectedIndex];
+                    minStock = parseInt(opt.dataset.stock || 0);
                 }
-                const stockVal = stockDisplay ? parseInt(stockDisplay.innerText) : NaN;
-                const qty = Number(qtyInput ? qtyInput.value : 1) || 1;
-                if(!isNaN(stockVal) && stockVal < qty){
-                    ev.preventDefault();
-                    alert('선택한 수량이 재고보다 많습니다.');
-                    return false;
-                }
-            });
+            }
+            stockDisplay.textContent = minStock !== null ? minStock : '—';
         }
 
-        // seller-header 클릭 바인딩 (inline onclick과 중복될 수 있으므로 중복 호출 방지)
-        const sellerHeader = document.querySelector('.seller-header');
-        if (sellerHeader) {
-            sellerHeader.addEventListener('click', (e) => {
-                // inline onclick도 있으면 두 번 호출될 수 있으므로 여기선 전역 함수를 직접 호출
-                toggleSellerInfo();
-            });
-        }
-
-        // 초기 화살표 표시 설정
-        const sellerInfo = document.getElementById('seller-info');
-        const sellerArrow = document.getElementById('arrow');
-        if (sellerInfo && sellerArrow) {
-            sellerArrow.textContent = sellerInfo.classList.contains('expanded') ? '▲' : '▼';
-        }
+        // 옵션 선택 시 바로 장바구니에 추가
+        document.querySelectorAll('.option-group, .single-option').forEach(sel => {
+            sel.addEventListener('change', addOptionToCart);
+        });
     });
+
 </script>
 
 </body>
