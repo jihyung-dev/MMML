@@ -54,7 +54,8 @@ public class Member {
     @Column(name = "ENABLED", length = 1)
     private String enabled;
 
-    @ColumnDefault("CURRENT_TIMESTAMP")
+
+    @ColumnDefault("SYSTIMESTAMP")
     @Column(name = "CREATED_AT")
     private LocalDateTime createdAt;
 
@@ -70,8 +71,8 @@ public class Member {
     private Integer age;     // NULL 허용
 
     @Size(max = 100)
-    @Column(name = "EMAIL", length = 100)
-    private String email;    // NULL 허용
+    @Column(name = "email", length = 100)
+    private String email;
 
     // ====== 공통 생성/수정 시간 처리 ======
     @PrePersist
@@ -119,6 +120,6 @@ public class Member {
     private Set<PaymentTransaction> paymentTransactions = new LinkedHashSet<>();
 
     // 🔹 회원 1명 ↔ 판매자 0..1 (1:1 관계)
-    @OneToOne(mappedBy = "member", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "member")
     private Seller seller;
 }

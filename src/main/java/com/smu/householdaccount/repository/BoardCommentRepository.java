@@ -19,4 +19,6 @@ public interface BoardCommentRepository extends JpaRepository<BoardComment, Long
      * (지금은 c.boardComments 양방향 매핑을 쓰면 이거 안 써도 됨)
      */
     List<BoardComment> findByParentComment_IdOrderByCreatedAtAsc(Long parentId);
+
+    Page<BoardComment> findByWriterId(String memberId, Pageable pageable);
 }

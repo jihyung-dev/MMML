@@ -1,5 +1,6 @@
 package com.smu.householdaccount.controller;
 
+import com.smu.householdaccount.entity.Member;
 import com.smu.householdaccount.entity.OrderMain;
 import com.smu.householdaccount.entity.Seller;
 import com.smu.householdaccount.service.OrderMainService;
@@ -26,9 +27,10 @@ public class SellerOrderController {
     public String List(
             Model model,
             @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
-            @SessionAttribute("sellerUser") Seller seller
-    ){
-        Page<OrderMain> orderMainPage = sellerService.getOrderMainBySeller(1L, pageable);
+            @SessionAttribute("loginUser") Member loginUser
+            ){
+        Seller seller = loginUser.getSeller();
+        Page<OrderMain> orderMainPage = sellerService.getOrderMainBySeller(seller.getId(), pageable);
         model.addAttribute("orderMainPage", orderMainPage);
         model.addAttribute("orderMains", orderMainPage.getContent());
         return "seller/orders";

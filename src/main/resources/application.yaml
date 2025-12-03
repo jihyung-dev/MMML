@@ -21,7 +21,7 @@ spring:
       max-request-size: 50MB
 
 server:
-  port: 7004
+  port: 7005
 
 render:
 #  render-host: http://127.0.0.1:8000
