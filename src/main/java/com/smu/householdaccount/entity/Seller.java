@@ -6,6 +6,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
@@ -32,11 +34,19 @@ public class Seller {
     @Column(name = "BIZ_NAME", nullable = false, length = 100)
     private String bizName; // 상호명
 
-    // 🔹 회원 1명 ↔ 판매자 0..1 (1:1 관계)
+
+    //main 에 유지됬던 내용, 1:1관계면 이걸 유지
     @NotNull
     @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "MEMBER_ID", nullable = false/*, unique = true*/)
+    @JoinColumn(name = "MEMBER_ID", nullable = false, unique = true)
     private Member member;
+    //hodeal 유지 내용
+    // 🔹 회원 1명 ↔ 판매자 0..1 (1:1 관계)_MantToOne X
+    //@NotNull
+    //@ManyToOne(fetch = FetchType.LAZY, optional = false)
+    //@OnDelete(action = OnDeleteAction.RESTRICT)
+    //@JoinColumn(name = "MEMBER_ID", nullable = false)
+    //private Member member;
 
     @Size(max = 50)
     @Column(name = "BIZ_TYPE", length = 50)
@@ -62,6 +72,7 @@ public class Seller {
     private LocalDateTime updatedAt;
 
     // 생성/수정 시간
+    // 🔹 회원가입 시점에 created_at 자동생성, 수정시 update_at 자동 생성
     @PrePersist
     public void prePersist() {
         if (this.createdAt == null) {
@@ -74,6 +85,17 @@ public class Seller {
         this.updatedAt = LocalDateTime.now();
     }
 
+
+    //main에는 존재하지않음
+    @ColumnDefault("SYSTIMESTAMP")
+    @Column(name = "CREATED_AT")
+    private LocalDateTime createdAt; //오류?
+
+    @Column(name = "UPDATED_AT")
+    private LocalDateTime updatedAt; //오류?
+    //여기까지
+
+
     // ====== 연관관계 (판매자가 올린 상품 / 주문 등) ======
 
     @OneToMany(mappedBy = "seller")
@@ -81,4 +103,5 @@ public class Seller {
 
     @OneToMany(mappedBy = "seller")
     private Set<OrderMain> orderMains = new LinkedHashSet<>();
+
 }

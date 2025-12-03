@@ -1,39 +1,45 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/default_layout}"
+      th:with="CONTENT_TITLE='내돈내삶 - 홈'">
 <head>
-    <meta charset="UTF-8">
+<!--    주석처리, 오류있으면 살리기 -->
+    <!--<meta charset="UTF-8">
     <title>내돈내삶 - 홈</title>
 
-    <!-- Custom CSS -->
-    <link rel="stylesheet" th:href="@{/css/indexhome.css}">
+    &lt;!&ndash; Custom CSS &ndash;&gt;
+    <link rel="stylesheet" th:href="@{/css/indexhome.css}">-->
 </head>
 
 <body>
-
-<!-- ===== NAVBAR ===== -->
+<!--    주석처리, 오류있으면 살리기 -->
+<!--
+&lt;!&ndash; ===== NAVBAR ===== &ndash;&gt;
 <nav class="main-navbar">
     <div class="nav-container">
 
-        <!-- Left: Brand -->
+        &lt;!&ndash; Left: Brand &ndash;&gt;
         <a href="/" class="nav-brand">내돈내삶</a>
 
-        <!-- Middle menu -->
+        &lt;!&ndash; Middle menu &ndash;&gt;
         <ul class="nav-menu">
             <li><a href="/ledger">가계부</a></li>
             <li><a href="/board">게시판</a></li>
             <li><a href="/hotdeal">핫딜</a></li>
         </ul>
 
-        <!-- Right: Login -->
+        &lt;!&ndash; Right: Login &ndash;&gt;
         <div class="nav-right">
 
-            <!-- 로그인 안 한 상태 -->
+            &lt;!&ndash; 로그인 안 한 상태 &ndash;&gt;
             <div th:if="${session.loginUser == null and session.sellerUser == null}">
-                <a href="/login" class="nav-login-btn">로그인</a>
-
+                <a href="/login" class="nav-login-btn">일반 로그인</a>
+                <a href="/seller/login" class="nav-login-btn">판매자 로그인</a>
             </div>
 
-            <!-- 일반 회원 로그인 -->
+            &lt;!&ndash; 일반 회원 로그인 &ndash;&gt;
             <div th:if="${session.loginUser != null}" class="nav-user-info">
                 <a href="/mypage">
                     <span th:text="${session.loginUser.memberNickname + '님 환영합니다!'}"></span>
@@ -42,47 +48,52 @@
                 <a href="/logout" class="nav-logout-btn">로그아웃</a>
             </div>
 
-
-
+            &lt;!&ndash; 판매자 로그인 &ndash;&gt;
+            <div th:if="${session.sellerUser != null}" class="nav-user-info">
+                <a href="/seller">
+                    <span th:text="${session.sellerUser.member.memberNickname + '님(판매자) 환영합니다!'}"></span>
+                </a>
+                &nbsp; | &nbsp;
+                <a href="/logout" class="nav-logout-btn">로그아웃</a>
+            </div>
         </div>
-
-
     </div>
 </nav>
+-->
 
 
-
+<div layout:fragment="content">
 <!-- ============================
        FULL PAGE SECTIONS
 ============================= -->
 
-<section class="fullpage section1">
-    <a href="/ledger">
-        <img src="/img/home_ledger.jpg" class="section-img">
-        <div class="section-text">
+    <section class="fullpage section1">
+        <a href="/ledger">
+            <img src="/img/home_ledger.jpg" class="section-img">
+            <div class="section-text">
 
-        </div>
-    </a>
-</section>
+            </div>
+        </a>
+    </section>
 
-<section class="fullpage section2">
-    <a href="/board">
-        <img src="/img/home_board.jpg" class="section-img">
-        <div class="section-text">
+    <section class="fullpage section2">
+        <a href="/board">
+            <img src="/img/home_board.jpg" class="section-img">
+            <div class="section-text">
 
-        </div>
-    </a>
-</section>
+            </div>
+        </a>
+    </section>
 
-<section class="fullpage section3">
-    <a href="/hotdeal">
-        <img src="/img/home_hotdeal.jpg" class="section-img">
-        <div class="section-text">
+    <section class="fullpage section3">
+        <a href="/hotdeal">
+            <img src="/img/home_hotdeal.jpg" class="section-img">
+            <div class="section-text">
 
-        </div>
-    </a>
-</section>
+            </div>
+        </a>
+    </section>
 
 
-</body>
+</div>
 </html>

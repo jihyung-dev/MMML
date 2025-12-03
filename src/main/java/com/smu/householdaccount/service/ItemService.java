@@ -4,6 +4,7 @@ import com.smu.householdaccount.entity.Category;
 import com.smu.householdaccount.entity.HotdealOption;
 import com.smu.householdaccount.entity.Item;
 import com.smu.householdaccount.entity.ItemDetailImage;
+import com.smu.householdaccount.repository.ItemRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ItemService {
+
+    Item findById(Long id);
+
     Page<Item> searchItems(Long sellerId,
                            String categoryId,
                            String keyword,
