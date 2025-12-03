@@ -7,332 +7,167 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>가계부 대시보드</title>
-    <!-- [페이지별 CSS] 레이아웃의 css 프래그먼트에 삽입됨 -->
+
     <th:block layout:fragment="css">
         <link rel="stylesheet" href="/css/ledger.css">
+        <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     </th:block>
-    <!-- Highcharts -->
-    <script src="https://code.highcharts.com/highcharts.js"></script>
-    <script src="https://code.highcharts.com/modules/exporting.js"></script>
-    <script src="https://code.highcharts.com/modules/export-data.js"></script>
-    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
 
-    <!-- FullCalendar -->
-    <script defer src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/index.global.min.js'></script>
+    <th:block layout:fragment="script">
+        <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script> <script src="https://code.highcharts.com/highcharts.js"></script>
+        <script src="https://code.highcharts.com/modules/exporting.js"></script>
+        <script src="https://code.highcharts.com/modules/export-data.js"></script>
+        <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+        <script defer src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/index.global.min.js'></script>
+        <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
-    <!-- CSS 및 JS 로드 -->
-    <link rel="stylesheet" href="/css/ledger.css">
-    <script src="/js/household/ledger.js"></script>
+        <script src="/js/household/ledger.js"></script>
+    </th:block>
 </head>
 <body>
 
-<!-- [페이지별 콘텐츠] 레이아웃의 content 프래그먼트에 삽입됨 -->
 <div layout:fragment="content">
-<!-- 상단 헤더 (네비게이션 + 요약) -->
-<div class="header-container mt-4">
-    <!-- 1. 월 이동 네비게이션  -->
-    <div id="monthNav" class="month-nav">
-        <button class="neo-btn" onclick="prevMonth()">&#9664;</button>
 
-        <span id="currentMonthLabel" class="neo-label">2025년 10월</span>
-
-        <button id="nextBtn" class="neo-btn" onclick="nextMonth()">&#9654;</button>
+    <div class="header-container mt-4 mobile-nav-only">
+        <div class="month-nav">
+            <button class="neo-btn" onclick="prevMonth()">&#9664;</button>
+            <span id="mobileLabel" class="neo-label">2025년 10월</span>
+            <button class="neo-btn" onclick="nextMonth()">&#9654;</button>
+        </div>
     </div>
-</div>
-    <!-- 메인 대시보드 (차트 + 캘린더 가로 배치) -->
+
     <div class="dashboard-container">
-        <!-- 왼쪽: 카테고리 차트 -->
         <div class="chart-wrapper">
             <div id="categoryChart" style="width: 100%; height: 100%;"></div>
         </div>
 
-    <!-- 오른쪽: 캘린더 -->
-    <div class="calendar-wrapper">
-        <div id="calendar"></div>
-    </div>
-</div>
-
-<div class="container my-4">
-
-    <!-- 제목 -->
-    <h4 class="mb-3 fw-bold">이번 달 소비 요약</h4>
-
-    <div id="top3Container" class="top3-wrapper">
-
-        <!-- 카드 1 -->
-        <div class="top3-card">
-            <h6 class="card-label">카테고리</h6>
-            <h4 class="card-category" id="top1-category">-</h4>
-
-            <p class="small-text">내 지출</p>
-            <div class="card-money" id="top1-my">- 원</div>
-
-            <p class="small-text mt-3">전체 평균 대비</p>
-            <div class="card-diff" id="top1-diff">- %</div>
-
-            <!-- 🔥 차트 렌더링용 div 추가 -->
-            <div id="top1-chart" style="height:120px; margin-top:10px;"></div>
-        </div>
-
-        <!-- 카드 2 -->
-        <div class="top3-card">
-            <h6 class="card-label">카테고리</h6>
-            <h4 class="card-category" id="top2-category">-</h4>
-
-            <p class="small-text">내 지출</p>
-            <div class="card-money" id="top2-my">- 원</div>
-
-            <p class="small-text mt-3">전체 평균 대비</p>
-            <div class="card-diff" id="top2-diff">- %</div>
-
-            <!-- 🔥 차트 렌더링용 div 추가 -->
-            <div id="top2-chart" style="height:120px; margin-top:10px;"></div>
-        </div>
-
-        <!-- 카드 3 -->
-        <div class="top3-card">
-            <h6 class="card-label">카테고리</h6>
-            <h4 class="card-category" id="top3-category">-</h4>
-
-            <p class="small-text">내 지출</p>
-            <div class="card-money" id="top3-my">- 원</div>
-
-            <p class="small-text mt-3">전체 평균 대비</p>
-            <div class="card-diff" id="top3-diff">- %</div>
-
-            <!-- 🔥 차트 렌더링용 div 추가 -->
-            <div id="top3-chart" style="height:120px; margin-top:10px;"></div>
-        </div>
-    </div>
-
-    <!-- 지난 달 사용자 카테고리 평균 섹션 -->
-    <div id="lastMonthUserAvgContainer" class="last-month-box mt-4">
-
-        <h4 class="section-title">📊 지난 달 사용자들의 카테고리 평균</h4>
-        <div id="lastMonthAvgList" class="avg-list">
-            <!-- 카테고리/금액 리스트 -->
-        </div>
-        <p class="hint-text">※ 항목을 클릭하면 성별/연령대별 차트가 아래에 표시됩니다.</p>
-        <div id="categorySelectList"></div>
-    </div>
-
-    <!-- 🔻 카테고리 선택 시 나오는 상세 차트 영역 -->
-    <div id="categoryStatsCharts" class="last-month-box mt-3">
-        <h4 id="statsChartTitle" class="section-title"></h4>
-
-        <div class="row">
-            <div class="col-md-6">
-                <div id="genderChartContainer" style="height:300px;"></div>
+        <div class="calendar-wrapper">
+            <div class="desktop-nav-only mb-3" style="display:flex; justify-content:center; align-items:center;">
+                <div class="month-nav">
+                    <button class="neo-btn" onclick="prevMonth()" style="transform: scale(0.9);">&#9664;</button>
+                    <span id="desktopLabel" class="neo-label" style="margin: 0 15px;">2025년 10월</span>
+                    <button class="neo-btn" onclick="nextMonth()" style="transform: scale(0.9);">&#9654;</button>
+                </div>
             </div>
-            <div class="col-md-6">
-                <div id="ageChartContainer" style="height:300px;"></div>
+
+            <div id="calendar"></div>
+        </div>
+    </div>
+
+    <div class="container my-4">
+
+        <h4 class="mb-3 fw-bold">이번 달 소비 요약</h4>
+        <div id="top3Container" class="top3-wrapper">
+            <div class="top3-card">
+                <h6 class="card-label">Top 1</h6>
+                <h4 class="card-category" id="top1-category">-</h4>
+                <p class="small-text">내 지출</p>
+                <div class="card-money" id="top1-my">- 원</div>
+                <p class="small-text mt-3">전체 평균 대비</p>
+                <div class="card-diff" id="top1-diff">- %</div>
+                <div id="top1-chart" style="height:120px; margin-top:10px;"></div>
+            </div>
+            <div class="top3-card">
+                <h6 class="card-label">Top 2</h6>
+                <h4 class="card-category" id="top2-category">-</h4>
+                <p class="small-text">내 지출</p>
+                <div class="card-money" id="top2-my">- 원</div>
+                <p class="small-text mt-3">전체 평균 대비</p>
+                <div class="card-diff" id="top2-diff">- %</div>
+                <div id="top2-chart" style="height:120px; margin-top:10px;"></div>
+            </div>
+            <div class="top3-card">
+                <h6 class="card-label">Top 3</h6>
+                <h4 class="card-category" id="top3-category">-</h4>
+                <p class="small-text">내 지출</p>
+                <div class="card-money" id="top3-my">- 원</div>
+                <p class="small-text mt-3">전체 평균 대비</p>
+                <div class="card-diff" id="top3-diff">- %</div>
+                <div id="top3-chart" style="height:120px; margin-top:10px;"></div>
             </div>
         </div>
-    </div>
-</div>
 
-<!-- 하단: 일별 차트 -->
-<div id="dailyChart" style="width: 100%; height: 400px; max-width: 1200px; margin: 30px auto;"></div>
+        <div id="lastMonthUserAvgContainer" class="last-month-box mt-4">
+            <h4 class="section-title">📊 지난 달 사용자들의 카테고리 평균</h4>
+            <div id="lastMonthAvgList" class="avg-list"></div>
+            <p class="hint-text">※ 항목을 클릭하면 성별/연령대별 차트가 아래에 표시됩니다.</p>
+            <div id="categorySelectList"></div>
+        </div>
 
-    <!-- 비교 차트 (막대) -->
-<div id="threeMonthBarChart" style="width: 100%; height: 400px; max-width: 1200px; margin: 30px auto;"></div>
-<button onclick="exportExcel('you12zin345@gmail.com')">엑셀 테스트</button>
-    <!-- 모달 -->
-    <div id="chartModal" class="modal-overlay">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal()">&times;</span>
-
-            <!-- 제목 -->
-            <h2 id="modalTitle"></h2>
-
-            <div id="modalBody">
-                <!-- 기존 카테고리 파이 차트 -->
-                <div id="modalCategoryChart" class="chart-container"></div>
-
-                <!-- 비교 섹션 -->
-                <div id="modalCompareSection" class="compare-section">
-                    <!-- 금액 비교 -->
-                    <div class="compare-values">
-                        <div class="value-box">
-                            <span class="label">이번 달</span>
-                            <span id="modalCurrentValue" class="value">0</span>
-                        </div>
-
-                        <div class="value-box">
-                            <span class="label">최근 3개월 평균</span>
-                            <span id="modalAverageValue" class="value">0</span>
-                        </div>
-                    </div>
-
-                    <!-- 비교 차트 (막대) -->
-                    <div id="modalCompareChart" class="chart-container"></div>
+        <div id="categoryStatsCharts" class="last-month-box mt-3">
+            <h4 id="statsChartTitle" class="section-title"></h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <div id="genderChartContainer" style="height:300px;"></div>
+                </div>
+                <div class="col-md-6">
+                    <div id="ageChartContainer" style="height:300px;"></div>
                 </div>
             </div>
         </div>
+
+        <div id="dailyChart" style="width: 100%; height: 400px; max-width: 1200px; margin: 30px auto;"></div>
+        <div id="threeMonthBarChart" style="width: 100%; height: 400px; max-width: 1200px; margin: 30px auto;"></div>
+
+        <div class="table-wrapper mt-5" style="background:#fff; padding:25px; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.05);">
+            <div class="d-flex justify-content-between align-items-center mb-3"
+                 style="cursor: pointer;"
+                 data-bs-toggle="collapse"
+                 data-bs-target="#transactionCollapse"
+                 aria-expanded="true"
+                 aria-controls="transactionCollapse">
+                <h5 class="fw-bold m-0">📋 이번 달 거래 내역 상세</h5>
+                <span class="toggle-icon">▼</span>
+            </div>
+
+            <div id="transactionCollapse" class="collapse">
+                <table id="ledgerTable" class="display" style="width:100%">
+                    <thead>
+                    <tr>
+                        <th>날짜</th>
+                        <th>구분</th>
+                        <th>카테고리</th>
+                        <th>내용 (메모)</th>
+                        <th>사용처</th>
+                        <th>결제수단</th>
+                        <th>금액</th>
+                    </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <button id="btnExcelExport"
+                    class="btn btn-sm btn-outline-success"
+                    onclick="exportExcel('you12zin345@gmail.com')"
+                    style="display:none;">
+                📥 엑셀로 내보내기
+            </button>
+        </div>
+
+    </div> <div id="chartModal" class="modal-overlay">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <h2 id="modalTitle"></h2>
+        <div id="modalBody">
+            <div id="modalCategoryChart" class="chart-container"></div>
+            <div id="modalCompareSection" class="compare-section">
+                <div class="compare-values">
+                    <div class="value-box">
+                        <span class="label">이번 달</span>
+                        <span id="modalCurrentValue" class="value">0</span>
+                    </div>
+                    <div class="value-box">
+                        <span class="label">최근 3개월 평균</span>
+                        <span id="modalAverageValue" class="value">0</span>
+                    </div>
+                </div>
+                <div id="modalCompareChart" class="chart-container"></div>
+            </div>
+        </div>
     </div>
+</div>
 
-    <!-- [페이지별 JS] 레이아웃의 script 프래그먼트에 삽입됨 -->
-    <th:block layout:fragment="script">
-        <!-- Highcharts -->
-        <script src="https://code.highcharts.com/highcharts.js"></script>
-        <script src="https://code.highcharts.com/modules/exporting.js"></script>
-        <script src="https://code.highcharts.com/modules/export-data.js"></script>
-        <script src="https://code.highcharts.com/modules/accessibility.js"></script>
-
-        <!-- FullCalendar -->
-        <script defer src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/index.global.min.js'></script>
-
-        <!-- CSS 및 JS 로드 -->
-        <script src="/js/household/ledger.js"></script>
-
-
-<!-- 스크립트: 캘린더 초기화 -->
-<!-- 스크립트 -->
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var calendarEl = document.getElementById('calendar');
-        var currentMonthLabel = document.getElementById('currentMonthLabel');
-
-        var initialDate = '2025-10-01';
-
-        var calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            locale: 'ko',
-            initialDate: initialDate,
-            height: '100%',
-            contentHeight: 'auto',
-
-            // ★ 중요: 이벤트 정렬 순서 (수입 -> 지출)
-            eventOrder: 'order',
-
-            // 날짜 숫자 처리
-            dayCellContent: function(arg) {
-                var text = arg.dayNumberText || '';
-                return { html: text.replace('일', '') };
-            },
-
-            // ★ 데이터 가져오기 및 색상 처리 ★
-            events:async function(info, successCallback, failureCallback) {
-                // 현재 월 계산
-                var viewMidDate = new Date((info.start.getTime() + info.end.getTime()) / 2);
-                var year = viewMidDate.getFullYear();
-                var month = viewMidDate.getMonth() + 1;
-
-                console.log(`[캘린더] 데이터 요청: ${year}년 ${month}월`);
-
-                    // 서버 API 호출
-                    try {
-                        const response = await fetch(`/ledger/calendar?year=${year}&month=${month}`);
-                        if (!response.ok) throw new Error('Network response was not ok');
-                        const data = await response.json();
-                        var events = [];
-                        var totalIncome = 0;
-                        var totalExpense = 0;
-
-                        // 1. 색상 농도를 위해 이번 달의 최대 수입/지출 금액 찾기
-                        let maxIncome = 0;
-                        let maxExpense = 0;
-
-                        data.forEach(day => {
-                            if (day.income > maxIncome) maxIncome = day.income;
-                            if (day.expense > maxExpense) maxExpense = day.expense;
-                        });
-
-                        // 2. 이벤트 생성
-                        data.forEach(function (day) {
-                            // (1) 수입 이벤트 (파란색 계열)
-                            if (day.income > 0) {
-                                // 농도 계산 (최소 0.1 ~ 최대 0.8)
-                                let alpha = 0.1;
-                                if (maxIncome > 0) {
-                                    alpha = 0.1 + (day.income / maxIncome) * 0.7;
-                                }
-
-                                events.push({
-                                    title: '+' + Math.floor(day.income).toLocaleString(),
-                                    start: day.date,
-                                    classNames: ['income-event'],
-                                    backgroundColor: `rgba(13, 110, 253, ${alpha})`, // Bootstrap Primary Blue 계열
-                                    borderColor: `rgba(13, 110, 253, ${alpha})`,
-                                    textColor: alpha > 0.5 ? '#fff' : '#004085', // 배경 진하면 흰 글씨
-                                    display: 'block',
-                                    extendedProps: {order: 1} // 정렬 순서 1 (상단)
-                                });
-                                totalIncome += day.income;
-                            }
-
-                            // (2) 지출 이벤트 (빨간색 계열)
-                            if (day.expense > 0) {
-                                // 농도 계산
-                                let alpha = 0.1;
-                                if (maxExpense > 0) {
-                                    alpha = 0.1 + (day.expense / maxExpense) * 0.7;
-                                }
-
-                                events.push({
-                                    title: '-' + Math.floor(day.expense).toLocaleString(),
-                                    start: day.date,
-                                    classNames: ['expense-event'],
-                                    backgroundColor: `rgba(220, 53, 69, ${alpha})`, // Bootstrap Danger Red 계열
-                                    borderColor: `rgba(220, 53, 69, ${alpha})`,
-                                    textColor: alpha > 0.5 ? '#fff' : '#721c24', // 배경 진하면 흰 글씨
-                                    display: 'block',
-                                    extendedProps: {order: 2} // 정렬 순서 2 (하단)
-                                });
-                                totalExpense += day.expense;
-                            }
-                        });
-
-                        // 상단 요약 업데이트
-                        updateSummary(totalIncome, totalExpense);
-
-                        successCallback(events);
-                    } catch (error) {
-                        console.error("캘린더 데이터 로딩 실패:", error);
-                        failureCallback(error);
-                    }
-                },
-                dateClick: function(info) {
-                    document.getElementById('modalTitle').innerText = info.dateStr + " 상세 내역";
-                    document.getElementById('modalBody').innerHTML = "<p>데이터 조회 중...</p>";
-                    document.getElementById('chartModal').style.display = 'flex';
-                }
-            });
-
-            calendar.render();
-
-        // document.getElementById('prevBtn').addEventListener('click', function() {
-        //     calendar.prev();
-        //     updateLabel();
-        // });
-        //
-        // document.getElementById('nextBtn').addEventListener('click', function() {
-        //     calendar.next();
-        //     updateLabel();
-        // });
-
-            function updateLabel() {
-                var date = calendar.getDate();
-                var year = date.getFullYear();
-                var month = date.getMonth() + 1;
-                document.getElementById('currentMonthLabel').innerText = year + "년 " + month + "월";
-            }
-
-            function updateSummary(income, expense) {
-                var incomeEl = document.getElementById('totalIncomeLabel');
-                var expenseEl = document.getElementById('totalExpenseLabel');
-                if(incomeEl) incomeEl.innerText = '수입 ' + Math.floor(income).toLocaleString() + '원';
-                if(expenseEl) expenseEl.innerText = '지출 ' + Math.floor(expense).toLocaleString() + '원';
-            }
-
-            updateLabel();
-        });
-
-        function closeModal() {
-            document.getElementById('chartModal').style.display = 'none';
-        }
-    </script>
-</th:block>
-
-    </body>
+</div>
+</body>
 </html>

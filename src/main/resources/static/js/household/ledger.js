@@ -15,6 +15,10 @@ let currentMonth = 10//now.getMonth() + 1;
 let modalJustOpened = false; // 모달 팝업 플래그
 let modalChartInstance = null;
 
+// [추가] 캘린더 객체 저장 변수
+let fullCalendarInstance = null;
+
+
 //LRU 캐싱 사용, 가장 최근에 사용하지 않은 데이터 제거.현재 달과 전 달의 2개월치 데이터를 3개까지 보관(총 6개)
 const ledgerCache = new Map();
 let loaded3MonthCache = {};
@@ -69,6 +73,10 @@ async function loadLedgerChart({ year, month }) {
     if (cached) {
         drawCategoryPieChart(cached.current.categories);
         drawDailyLineChart(cached.current.daily, cached.prev1.daily);
+
+        // [추가 1] 캐시가 있을 때 캘린더 그리기
+        if(cached.current.daily) initCalendar(cached.current.daily);
+
         return cached;
     }
 
@@ -79,7 +87,14 @@ async function loadLedgerChart({ year, month }) {
     drawDailyLineChart(bundle.current.daily, bundle.prev1.daily);
     await renderFullCategoryChart();
 
+    // [추가 2] 데이터를 새로 가져왔을 때 캘린더 그리기
+    if(bundle.current.daily) initCalendar(bundle.current.daily);
+
     return bundle;
+
+
+
+
 }
 
 function drawCategoryPieChart(categories) {
@@ -238,15 +253,29 @@ function drawTop3LineChart(containerId, category, history, overspend) {
 function drawDailyLineChart(currentDaily, prevDaily) {
     // prevDaily가 일수 다를 수 있으니 날짜 기준 맞추기
     const prevExpenseAligned = currentDaily.map(d => {
-        const day = d.date.split("-")[2];
-        const found = prevDaily.find(p => p.date.endsWith(day));
+        // 안전하게 날짜 문자열 처리 (YYYY-MM-DD 형식 가정)
+        const dateStr = d.date.toString().split('T')[0];
+        const day = dateStr.split("-")[2]; // '일' 부분 추출
+
+        // 지난달 데이터에서 같은 '일(Day)' 찾기
+        const found = prevDaily.find(p => {
+            const pDateStr = p.date.toString().split('T')[0];
+            return pDateStr.endsWith(`-${day}`);
+        });
         return found ? found.expense : 0;
     });
 
     Highcharts.chart('dailyChart', {
         chart: { type: 'line' },
         title: { text: '일별 지출/수입 추이' },
-        xAxis: { categories: currentDaily.map(d => d.date) },
+        xAxis: {
+            // ★ [수정] 날짜(2025-10-01)에서 앞의 연도 5글자를 잘라내고 '10-01'만 표시
+            categories: currentDaily.map(d => {
+                const dateStr = d.date.toString().split('T')[0];
+                return dateStr.substring(5); // "2025-" 제거 -> "10-01"
+            }),
+            crosshair: true
+        },
         yAxis: { title: { text: '금액(원)' } },
         legend: { enabled: true },
         series: [
@@ -272,9 +301,21 @@ function drawDailyLineChart(currentDaily, prevDaily) {
 
 
 // 월 표시 업데이트
+
 function updateMonthLabel() {
-    document.getElementById("currentMonthLabel").innerText =
-        `${currentYear}년 ${currentMonth}월`;
+    const text = `${currentYear}년 ${currentMonth}월`;
+
+    // 1. 모바일용 라벨 업데이트 (있으면)
+    const mobileLabel = document.getElementById("mobileLabel");
+    if(mobileLabel) mobileLabel.innerText = text;
+
+    // 2. PC용 라벨 업데이트 (있으면)
+    const desktopLabel = document.getElementById("desktopLabel");
+    if(desktopLabel) desktopLabel.innerText = text;
+
+    // (구버전 호환성을 위해 기존 ID도 체크)
+    const oldLabel = document.getElementById("currentMonthLabel");
+    if(oldLabel) oldLabel.innerText = text;
 }
 
 
@@ -305,6 +346,8 @@ function nextMonth() {
 async function updateChart() {
     updateMonthLabel();
     await loadLedgerChart({ year: currentYear, month: currentMonth });
+    // ★ [추가] 리스트 테이블 로딩/갱신
+    initDataTable();
 }
 
 async function startDocu() {
@@ -438,7 +481,7 @@ async function setCache(key, year, month, maxSize = 3) {
     }
 
     // 현재 달 데이터
-    const current = await fetch(`/ledger/chart?year=${year}&month=${month}`)
+    const current = await fetch(`/api/ledger/dashboard-data?year=${year}&month=${month}`)
         .then(res => res.json());
 
     // 지난달 계산
@@ -449,7 +492,7 @@ async function setCache(key, year, month, maxSize = 3) {
         prev1Year--;
     }
 
-    const prev1 = await fetch(`/ledger/chart?year=${prev1Year}&month=${prev1Month}`)
+    const prev1 = await fetch(`/api/ledger/dashboard-data?year=${prev1Year}&month=${prev1Month}`)
         .then(res => res.json());
 
     const bundle = { current, prev1 };
@@ -866,3 +909,305 @@ function colorFromCategory(cat) {
     }
     return color;
 }
+
+
+// =========================================
+// [New] 캘린더 로직 (파일 맨 아래에 붙여넣기)
+// =========================================
+
+function initCalendar(dailyData) {
+    var calendarEl = document.getElementById('calendar');
+
+    // 1. 기존 캘린더가 있으면 삭제 (월 이동 시 중복 생성 방지)
+    if(fullCalendarInstance) {
+        fullCalendarInstance.destroy();
+    }
+
+    // 2. 캘린더가 들어갈 HTML 요소가 진짜 있는지 확인
+    if (!calendarEl) {
+        console.warn("HTML에 id='calendar'인 요소가 없습니다.");
+        return;
+    }
+
+    // 3. 새 캘린더 생성
+    fullCalendarInstance = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'ko', // 한국어 설정
+        // 현재 보고 있는 달(currentYear, currentMonth)로 달력 시작
+        initialDate: `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`,
+        headerToolbar: false, // 상단 기본 버튼 숨김 (우리가 만든 화살표 버튼 사용)
+        height: '100%',       // 높이 꽉 채우기
+
+        // ★ [추가] 정렬 기준 설정 ('sortIdx' 라는 우리가 만든 번호를 기준으로 정렬해라!)
+        eventOrder: 'sortIdx',
+
+        // ★ 핵심: 리스트 대신 금액 이벤트 생성
+        events: createEventsFromDailyData(dailyData),
+
+        // 날짜 클릭 시 동작 (필요시 구현)
+        dateClick: function(info) {
+            console.log("클릭한 날짜:", info.dateStr);
+        }
+    });
+
+    fullCalendarInstance.render();
+}
+
+// [Helper] 일별 데이터를 FullCalendar 이벤트로 변환 (색상 강제 적용 버전)
+function createEventsFromDailyData(dailyData) {
+    const events = [];
+
+    // 데이터 검증
+    if (!dailyData || !Array.isArray(dailyData)) {
+        console.warn("⚠️ 캘린더 데이터가 비어있습니다.");
+        return events;
+    }
+
+    dailyData.forEach(day => {
+        // 날짜 형식 안전 처리
+        if (!day.date) return;
+
+        let dateStr = "";
+        if (Array.isArray(day.date)) {
+            const y = day.date[0];
+            const m = String(day.date[1]).padStart(2, '0');
+            const d = String(day.date[2]).padStart(2, '0');
+            dateStr = `${y}-${m}-${d}`;
+        } else {
+            dateStr = day.date.toString().split("T")[0];
+        }
+
+        // 1. 수입 (파란색 강제 적용)
+        if (day.income > 0) {
+            events.push({
+                title: `+${Number(day.income).toLocaleString()}`,
+                start: dateStr,
+                // ★ 여기가 핵심 수정: textColor 직접 지정
+                textColor: '#004085',
+                backgroundColor: 'transparent',
+                borderColor: 'transparent',
+                display: 'block',
+                classNames: ['income-text'], // (혹시 몰라 클래스도 남김)
+                // ★ 정렬 순서: 0번 (우선순위 높음 -> 상단 배치)
+                sortIdx: 0
+            });
+        }
+
+        // 2. 지출 (빨간색 강제 적용)
+        if (day.expense > 0) {
+            events.push({
+                title: `-${Number(day.expense).toLocaleString()}`,
+                start: dateStr,
+                // ★ 여기가 핵심 수정: textColor 직접 지정
+                textColor: '#d63031',
+                backgroundColor: 'transparent',
+                borderColor: 'transparent',
+                display: 'block',
+                classNames: ['expense-text'],
+                // ★ 정렬 순서: 1번 (우선순위 낮음 -> 하단 배치)
+                sortIdx: 1
+            });
+        }
+    });
+
+    // 디버깅용: 콘솔에서 날짜와 색상이 들어갔는지 확인
+    console.log("✅ 캘린더 이벤트 생성 완료 (첫번째 데이터):", events[0]);
+    return events;
+}
+async function startDocu() {
+    // 1) 전체 평균 데이터 먼저 로드
+    globalAvgLedger = await loadGlobalAvgData();
+
+    // 2) 차트 및 캘린더 로드
+    await loadLedgerChart({ year: currentYear, month: currentMonth });
+
+    // 3) ★ [추가] 리스트 테이블 로드 (이 한 줄이 없어서 처음에 안 나왔던 것!)
+    initDataTable();
+
+    // 4) 나머지 로직들 (순서 중요)
+    await loadTopData();
+    await loadAllCategoryStats();
+    buildCategorySelectList();
+    initCharts();
+    prepareAgeLabels();
+}
+// =========================================
+// [New] DataTables 리스트 로직 (컬럼 확장판)
+// =========================================
+
+    let ledgerTable = null;
+
+function initDataTable() {
+    if (ledgerTable) {
+        ledgerTable.ajax.url(`/api/ledger/transaction-list?year=${currentYear}&month=${currentMonth}`).load();
+        return;
+    }
+
+    ledgerTable = $('#ledgerTable').DataTable({
+        ajax: {
+            url: `/api/ledger/transaction-list?year=${currentYear}&month=${currentMonth}`,
+            dataSrc: ''
+        },
+        columns: [
+            // ... (기존 컬럼 설정들 100% 동일하게 유지) ...
+            {
+                data: 'occurredAt',
+                width: "12%",
+                render: function(data) {
+                    if(!data) return "-";
+                    const date = new Date(data);
+                    const m = String(date.getMonth() + 1).padStart(2, '0');
+                    const d = String(date.getDate()).padStart(2, '0');
+                    const h = String(date.getHours()).padStart(2, '0');
+                    const min = String(date.getMinutes()).padStart(2, '0');
+                    return `${m}-${d} <span style="color:#888; font-size:0.9em;">${h}:${min}</span>`;
+                }
+            },
+            {
+                data: 'entryType',
+                width: "8%",
+                className: "text-center",
+                render: function(data) {
+                    if(data === 'INCOME') return '<span class="badge bg-primary-subtle text-primary-emphasis rounded-pill">수입</span>';
+                    if(data === 'EXPENSE') return '<span class="badge bg-danger-subtle text-danger-emphasis rounded-pill">지출</span>';
+                    return data;
+                }
+            },
+            {
+                data: 'categoryName',
+                width: "10%",
+                defaultContent: "-"
+            },
+            { data: 'memo', defaultContent: "-" },
+            {
+                data: 'placeOfUse',
+                width: "15%",
+                defaultContent: "-",
+                render: function(data) { return data ? data : '<span style="color:#ccc;">(미기재)</span>'; }
+            },
+            {
+                data: 'payType',
+                width: "10%",
+                className: "text-center",
+                defaultContent: "-",
+                render: function(data) {
+                    if(data === 'CARD') return '💳 카드';
+                    if(data === 'CASH') return '💵 현금';
+                    if(data === 'TRANSFER') return '🏦 이체';
+                    return data;
+                }
+            },
+            {
+                data: 'entryAmount',
+                width: "12%",
+                className: "text-end",
+                render: function(data, type, row) {
+                    const num = Number(data).toLocaleString();
+                    const color = row.entryType === 'INCOME' ? '#3781d1' : '#db6767';
+                    return `<span style="color:${color}; font-weight:bold;">${num}원</span>`;
+                }
+            }
+        ],
+        // [디자인 옵션]
+        order: [[0, 'asc']], // 1일부터 정렬
+        pageLength: 10,
+        lengthChange: false,
+        language: { url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/ko.json" },
+        responsive: true,
+
+        // ★ [핵심 1] 레이아웃 커스텀 (dom 설정)
+        // 'top-toolbar': 상단 영역 (엑셀 버튼 들어갈 곳)
+        // 't': 테이블 (Table)
+        // 'bottom-toolbar': 하단 영역 (정보 - 검색 - 페이징)
+        dom: '<"top-toolbar" > t <"bottom-toolbar" i f p >',
+
+        // ★ [핵심 2] 요소 이동 및 커스텀
+        initComplete: function() {
+            // 1) 엑셀 버튼을 상단 툴바(.top-toolbar)로 이사시키고 보이게 하기
+            $('#btnExcelExport')
+                .appendTo('.top-toolbar')
+                .show();
+
+            // 2) 검색창에 ID/Name 부여 (경고 제거용)
+            $('#ledgerTable_filter input')
+                .attr('id', 'dt-search-box')
+                .attr('name', 'dt-search-box')
+                .attr('placeholder', '내역 검색...'); // 플레이스홀더 추가
+        }
+    });
+
+}
+// [ledger.js] 맨 아래 함수 교체
+
+function createEventsFromDailyData(dailyData) {
+    const events = [];
+
+    if (!dailyData || !Array.isArray(dailyData)) return events;
+
+    // 1. 이번 달의 최대 수입/지출 찾기 (농도 계산용)
+    let maxIncome = 0;
+    let maxExpense = 0;
+
+    dailyData.forEach(day => {
+        if (day.income > maxIncome) maxIncome = day.income;
+        if (day.expense > maxExpense) maxExpense = day.expense;
+    });
+
+    // 0으로 나누기 방지
+    if (maxIncome === 0) maxIncome = 1;
+    if (maxExpense === 0) maxExpense = 1;
+
+    dailyData.forEach(day => {
+        if (!day.date) return;
+
+        // 날짜 파싱
+        let dateStr = "";
+        if (Array.isArray(day.date)) {
+            const y = day.date[0];
+            const m = String(day.date[1]).padStart(2, '0');
+            const d = String(day.date[2]).padStart(2, '0');
+            dateStr = `${y}-${m}-${d}`;
+        } else {
+            dateStr = day.date.toString().split("T")[0];
+        }
+
+        // 2. 수입 이벤트 생성 (파란색 히트맵)
+        if (day.income > 0) {
+            // 투명도 계산: 최소 0.2 ~ 최대 1.0
+            const opacity = 0.2 + (day.income / maxIncome) * 0.8;
+
+            events.push({
+                title: `+${Number(day.income).toLocaleString()}`,
+                start: dateStr,
+                // 배경색: 파란색(RGB: 0, 123, 255) + 투명도
+                backgroundColor: `rgba(0, 123, 255, ${opacity})`,
+                borderColor: 'transparent',
+                textColor: '#fff', // 배경이 있으니 글씨는 흰색
+                display: 'block',
+                sortIdx: 0,
+                classNames: ['heatmap-event']
+            });
+        }
+
+        // 3. 지출 이벤트 생성 (빨간색 히트맵)
+        if (day.expense > 0) {
+            // 투명도 계산
+            const opacity = 0.2 + (day.expense / maxExpense) * 0.8;
+
+            events.push({
+                title: `-${Number(day.expense).toLocaleString()}`,
+                start: dateStr,
+                // 배경색: 빨간색(RGB: 220, 53, 69) + 투명도
+                backgroundColor: `rgba(220, 53, 69, ${opacity})`,
+                borderColor: 'transparent',
+                textColor: '#fff', // 글씨는 흰색
+                display: 'block',
+                sortIdx: 1,
+                classNames: ['heatmap-event']
+            });
+        }
+    });
+
+    return events;
+}
+

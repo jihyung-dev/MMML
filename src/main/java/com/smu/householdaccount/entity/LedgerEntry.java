@@ -54,7 +54,7 @@ public class LedgerEntry {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.RESTRICT)
     @JoinColumn(name = "CATEGORY_ID", nullable = false)
-    @JsonIgnore
+//    @JsonIgnore
     private Category category;
 
     @NotNull

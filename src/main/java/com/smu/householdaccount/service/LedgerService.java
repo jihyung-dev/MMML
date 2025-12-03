@@ -3,9 +3,8 @@ package com.smu.householdaccount.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.smu.householdaccount.dto.ledger.LedgerSummaryDto;
+import com.smu.householdaccount.dto.ledger.*;
 import com.smu.householdaccount.dto.ledger.LedgerSummaryDto.*;
-import com.smu.householdaccount.dto.ledger.MonthlyLedgerDto;
 import com.smu.householdaccount.entity.BudgetGroup;
 import com.smu.householdaccount.entity.LedgerEntry;
 import com.smu.householdaccount.repository.BudgetGroupRepository;
@@ -16,6 +15,7 @@ import com.smu.householdaccount.web.SafeHttpClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.time.YearMonth;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class LedgerService {
@@ -129,12 +130,7 @@ public class LedgerService {
         return entries;
     }
 
-    public List<DailySummary> getCalendarDailyStats(int year, int month) {
-        LedgerSummaryDto summary = getMonthlyChart(year, month);
 
-        // 캘린더가 요구하는 DailySummary 리스트만 반환
-        return summary.getDaily();
-    }
 
     public LedgerSummaryDto getLedgerSummary(List<LedgerEntry> entries){
         BigDecimal totalExpense = BigDecimal.ZERO;
@@ -215,4 +211,90 @@ public class LedgerService {
         return result;
     }
 
+// ========================================================
+// [New] 대시보드 데이터 처리 (기존 로직 영향 없음)
+// ========================================================
+    public LedgerSummaryDto getDashboardDataNew(int year, int month) {
+        // 1. 날짜 및 그룹 설정
+        LocalDateTime start = LocalDateTime.of(year, month, 1, 0, 0, 0);
+        LocalDateTime end = start.plusMonths(1).minusSeconds(1);
+        BudgetGroup myGroup = budgetGroupRepository.findById(1L).orElseThrow(); // 임시 그룹 ID 1
+
+        // 2. 카테고리별 합계
+        List<CategorySumDto> catSums = ledgerRepository.findCategorySumNew(myGroup, start, end);
+
+        List<LedgerSummaryDto.CategorySummary> categories = catSums.stream()
+                .map(dto -> LedgerSummaryDto.CategorySummary.builder()
+                        .categoryName(dto.getCategoryName())
+                        .amount(dto.getTotalAmount())
+                        .build())
+                .collect(Collectors.toList());
+
+        // 3. 일별 합계
+        List<DailySumDto> daySums = ledgerRepository.findDailySumNew(myGroup, start, end);
+
+        // 4. 일별 데이터 정리 (Map 사용)
+        Map<LocalDate, LedgerSummaryDto.DailySummary> dailyMap = new HashMap<>();
+        BigDecimal totalIncome = BigDecimal.ZERO;
+        BigDecimal totalExpense = BigDecimal.ZERO;
+
+        for (DailySumDto dto : daySums) {
+            dailyMap.putIfAbsent(dto.getDate(), LedgerSummaryDto.DailySummary.builder()
+                    .date(dto.getDate().atStartOfDay())
+                    .income(BigDecimal.ZERO)
+                    .expense(BigDecimal.ZERO)
+                    .build());
+
+            LedgerSummaryDto.DailySummary summary = dailyMap.get(dto.getDate());
+            if ("INCOME".equals(dto.getEntryType())) {
+                summary.setIncome(dto.getTotalAmount());
+                totalIncome = totalIncome.add(dto.getTotalAmount());
+            } else if ("EXPENSE".equals(dto.getEntryType())) {
+                summary.setExpense(dto.getTotalAmount());
+                totalExpense = totalExpense.add(dto.getTotalAmount());
+            }
+        }
+
+        // 5. 날짜순 정렬
+        List<LedgerSummaryDto.DailySummary> dailyList = dailyMap.values().stream()
+                .sorted(Comparator.comparing(LedgerSummaryDto.DailySummary::getDate))
+                .collect(Collectors.toList());
+
+        // 6. 결과 반환
+        return LedgerSummaryDto.builder()
+                .categories(categories)
+                .daily(dailyList)
+                .totalIncome(totalIncome)
+                .totalExpense(totalExpense)
+                .build();
+    }
+
+    // [수정] DataTables용 상세 내역 조회 (DTO로 변환 반환)
+    @Transactional(readOnly = true)
+    public List<LedgerDetailDto> getTransactionList(Long groupId, int year, int month) {
+        // 1. 그룹 및 날짜 조회
+        BudgetGroup group = budgetGroupRepository.findById(groupId)
+                .orElseThrow(() -> new IllegalArgumentException("Group not found"));
+
+        LocalDateTime start = LocalDateTime.of(year, month, 1, 0, 0, 0);
+        LocalDateTime end = start.plusMonths(1).minusSeconds(1);
+
+        // 2. DB 조회
+        List<LedgerEntry> entries = ledgerRepository.findByGroupAndDateRange(group, start, end);
+
+        // 3. 엔티티 -> DTO 변환 (여기서 필요한 정보만 쏙쏙 뽑습니다)
+        return entries.stream()
+                .map(entry -> LedgerDetailDto.builder()
+                        .id(entry.getId())
+                        .occurredAt(entry.getOccurredAt())
+                        .entryType(entry.getEntryType())
+                        // ★ 여기가 핵심! 카테고리 객체에서 이름만 꺼내서 문자열로 담음
+                        .categoryName(entry.getCategory().getCategoryName())
+                        .memo(entry.getMemo())
+                        .placeOfUse(entry.getPlaceOfUse())
+                        .payType(entry.getPayType())
+                        .entryAmount(entry.getEntryAmount())
+                        .build())
+                .collect(java.util.stream.Collectors.toList());
+    }
 }
