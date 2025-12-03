@@ -1,13 +1,12 @@
 package com.smu.householdaccount.controller;
 
 import com.smu.householdaccount.dto.ledger.LedgerSummaryDto;
+import com.smu.householdaccount.dto.python.ClassifyTransactionResponse;
 import com.smu.householdaccount.service.LedgerService;
-import org.springframework.data.repository.query.Param;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -97,5 +96,26 @@ public class LedgerController {
     @GetMapping("")
     public String home(){
         return "household/blank";
+    }
+
+    /**
+     * 실제로는 금융 API를 호출해야 하지만, json호출 하는것으로 대체
+     * 호출 후 python 서버에 전송
+     * @return
+     */
+    @PostMapping("/loadData")
+    public ResponseEntity<?> getLedgerData(
+            HttpSession session
+    ){
+        String memberId = (String) session.getAttribute("loginUserId");
+        ClassifyTransactionResponse res  = ledgerService.getLedgerTransaction(memberId);
+
+        return ResponseEntity.ok(res);
+    }
+
+    @GetMapping("/test")
+    public ResponseEntity<?> test(@SessionAttribute(name="loginUserId") String user) {
+        System.out.println(user);
+        return ResponseEntity.ok(user);
     }
 }

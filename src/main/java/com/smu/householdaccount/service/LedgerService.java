@@ -1,22 +1,36 @@
 package com.smu.householdaccount.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smu.householdaccount.dto.ledger.*;
 import com.smu.householdaccount.dto.ledger.LedgerSummaryDto.*;
+
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.smu.householdaccount.dto.CategoryUpdateReq;
+import com.smu.householdaccount.dto.TransActionBulkReq;
+import com.smu.householdaccount.dto.ledger.LedgerSummaryDto;
+import com.smu.householdaccount.dto.ledger.LedgerSummaryDto.*;
+import com.smu.householdaccount.dto.ledger.MonthlyLedgerDto;
+import com.smu.householdaccount.dto.python.ClassifyTransactionResponse;
+import com.smu.householdaccount.dto.python.TransactionResult;
 import com.smu.householdaccount.entity.BudgetGroup;
+import com.smu.householdaccount.entity.Category;
 import com.smu.householdaccount.entity.LedgerEntry;
-import com.smu.householdaccount.repository.BudgetGroupRepository;
-import com.smu.householdaccount.repository.LedgerRepository;
+import com.smu.householdaccount.repository.*;
 import com.smu.householdaccount.util.Log;
 import com.smu.householdaccount.util.Utility;
 import com.smu.householdaccount.web.SafeHttpClient;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -26,25 +40,27 @@ import java.util.List;
 import java.util.Map;
 import java.time.YearMonth;
 import java.util.*;
+
+import java.util.function.Function;
+
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class LedgerService {
     @Value("${exchangerate.api-host}")
     private String host;
 
     private final LedgerRepository ledgerRepository;
     private final BudgetGroupRepository budgetGroupRepository;
+    private final CategoryRepository categoryRepository;
+    private final MemberRepository memberRepository;
+
+    private final LedgerSaveService ledgerSaveService;
 
     private final SafeHttpClient http;
     private final ObjectMapper mapper;
 
-    public LedgerService(LedgerRepository ledgerRepository, BudgetGroupRepository budgetGroupRepository, SafeHttpClient http, ObjectMapper mapper) {
-        this.ledgerRepository = ledgerRepository;
-        this.budgetGroupRepository = budgetGroupRepository;
-        this.http = http;
-        this.mapper = mapper;
-    }
 
     public Double getExchangeRate(){
         String url = host + "/latest?from=USD&to=KRW";
@@ -296,5 +312,127 @@ public class LedgerService {
                         .entryAmount(entry.getEntryAmount())
                         .build())
                 .collect(java.util.stream.Collectors.toList());
+    }
+    /**
+     *
+     */
+    public ClassifyTransactionResponse getLedgerTransaction(String memberId) {
+
+        // 더미 데이터 위치
+        String path = "C:\\Users\\kosmo\\Desktop\\project\\data\\dummy\\ledger\\ledger_dummy.json";
+        String url = "http://localhost:7004/ai/classify-transaction";
+        Log.d("그룹 확인", ledgerRepository.findGroupIdByMemberId(memberId).toString());
+        try {
+            // JSON → Map 리스트 로딩
+            ObjectMapper snakeMapper = new ObjectMapper();
+            snakeMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+
+            List<Map<String, Object>> rawList =
+                    snakeMapper.readValue(new File(path),
+                            new TypeReference<List<Map<String, Object>>>() {});
+
+            // Map → DTO 변환 (mapToDto 없이 직접 변환)
+            List<CategoryUpdateReq> dtoList = rawList.stream()
+                    .map(map -> {
+                        CategoryUpdateReq dto = new CategoryUpdateReq();
+                        dto.setEntryType((String) map.get("entry_type"));           // 지출/수입
+                        dto.setPayType((String) map.get("pay_type"));               // 결제 방식
+                        dto.setCardType((String) map.get("card_type"));             // 카드 타입
+                        dto.setEntryAmount(toBigDecimal(map.get("entry_amount")));  // BigDecimal 변환
+                        dto.setCurrency((String) map.getOrDefault("currency", "KRW")); // 통화 (없으면 기본 'KRW')
+                        dto.setOccurredAt((String) map.get("occurred_at"));         // 사용 일자
+                        dto.setPlaceOfUse((String) map.get("place_of_use"));        // 상점명
+                        dto.setMemo((String) map.getOrDefault("memo", null));       // 메모 optional
+                        // category는 merge 단계에서 세팅됨
+                        dto.setCategory(null);
+                        return dto;
+                    })
+                    .toList();
+
+            // Python 요청 객체 생성
+            TransActionBulkReq req = new TransActionBulkReq();
+            req.setTransActions(dtoList);
+
+            // HTTP 요청
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            String requestJson = mapper.writeValueAsString(req);
+
+            ClassifyTransactionResponse response =
+                    http.post(url, headers, requestJson, ClassifyTransactionResponse.class);
+
+            mergePythonResult(dtoList, response.getResults());
+            ledgerSaveService.saveMergedLedger(dtoList, memberId);
+
+            return response;
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private BigDecimal toBigDecimal(Object obj) {
+        if (obj == null) return null;
+
+        if (obj instanceof BigDecimal bd) {
+            return bd;
+        }
+        if (obj instanceof Number num) {
+            return BigDecimal.valueOf(num.doubleValue());
+        }
+        return new BigDecimal(obj.toString());
+    }
+
+    // 파이썬에서 받은 카테고리와 병합
+    private void mergePythonResult(
+            List<CategoryUpdateReq> dtoList,
+            List<TransactionResult> aiList
+    ) {
+
+        // 카테고리 이름 치환을 위한 데이터
+        List<Category> categories = getCategories();
+        // Map으로 카테고리 이름 매칭
+        Map<String, Category> categoryMap = categories.stream()
+                .collect(Collectors.toMap(
+                        cat -> cat.getCategoryName().trim(),
+                        Function.identity()
+                ));
+
+        for (CategoryUpdateReq dto : dtoList) {
+            aiList.stream()
+                    .filter(ai -> {
+                        // 1) 상호명 비교 (필요하면 normalize 써도 됨)
+                        boolean placeMatch = Objects.equals(ai.getPlaceOfUse(), dto.getPlaceOfUse());
+
+                        // 2) 금액 비교 (Integer → BigDecimal 변환)
+                        BigDecimal dtoAmt = dto.getEntryAmount();
+                        Integer aiAmtInt = ai.getEntryAmount();
+                        boolean amountMatch = false;
+                        if (dtoAmt != null && aiAmtInt != null) {
+                            BigDecimal aiAmt = BigDecimal.valueOf(aiAmtInt.longValue());
+                            amountMatch = aiAmt.compareTo(dtoAmt) == 0;
+                        }
+
+                        // 3) 날짜 비교 (지금은 문자열 그대로)
+                        boolean dateMatch = Objects.equals(ai.getOccurredAt(), dto.getOccurredAt());
+
+                        return placeMatch && amountMatch && dateMatch;
+                    })
+                    .findFirst()
+                    .ifPresent(ai -> dto.setCategory(ai.getCategory()));
+
+            String categoryName = dto.getCategory().trim();
+            Category category = categoryMap.get(categoryName);
+            if (category == null) {
+                Log.e("[카테고리 매칭 실패] 이름: {}", categoryName);
+                continue;
+            }
+            dto.setCategory(category.getCategoryId());
+        }
+    }
+
+    public List<Category> getCategories() {
+        return categoryRepository.findByCategoryIdStartingWith("C");
     }
 }

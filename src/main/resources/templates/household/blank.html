@@ -27,7 +27,7 @@
 <body>
 
 <div layout:fragment="content">
-
+    <button onclick="loadLedgerData()">데이터 불러오기</button>
     <div class="header-container mt-4 mobile-nav-only">
         <div class="month-nav">
             <button class="neo-btn" onclick="prevMonth()">&#9664;</button>
@@ -93,7 +93,6 @@
             <p class="hint-text">※ 항목을 클릭하면 성별/연령대별 차트가 아래에 표시됩니다.</p>
             <div id="categorySelectList"></div>
         </div>
-
         <div id="categoryStatsCharts" class="last-month-box mt-3">
             <h4 id="statsChartTitle" class="section-title"></h4>
             <div class="row">
