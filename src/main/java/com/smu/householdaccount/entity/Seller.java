@@ -87,13 +87,13 @@ public class Seller {
 
 
     //main에는 존재하지않음
-    @ColumnDefault("SYSTIMESTAMP")
-    @Column(name = "CREATED_AT")
-    private LocalDateTime createdAt; //오류?
+//    @ColumnDefault("SYSTIMESTAMP")
+//    @Column(name = "CREATED_AT")
+//    private LocalDateTime createdAt; //오류?
 
-    @Column(name = "UPDATED_AT")
-    private LocalDateTime updatedAt; //오류?
-    //여기까지
+//    @Column(name = "UPDATED_AT")
+//    private LocalDateTime updatedAt; //오류?
+//    //여기까지
 
 
     // ====== 연관관계 (판매자가 올린 상품 / 주문 등) ======

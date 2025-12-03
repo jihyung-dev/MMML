@@ -11,7 +11,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
-/*
+
 @Component
 @AllArgsConstructor(onConstructor_ = @Autowired)
 public class AutoLoginInterceptorDev implements HandlerInterceptor {
@@ -24,14 +24,13 @@ public class AutoLoginInterceptorDev implements HandlerInterceptor {
         //1,123-01-00006,U006,식품제조/농산물,2025-11-25 10:57:29,
         HttpSession session = request.getSession();
         Object loginUser = session.getAttribute("loginUser");
-        Object sellerUser = session.getAttribute("sellerUser");
-        if(loginUser!=null||sellerUser!=null) return true;
+
+        if(loginUser!=null) return true;
 
         Member loginMember=memberService.login("U006","1234");
         session.setAttribute("loginUser",loginMember);
-        Seller loginSeller=memberService.sellerLogin("U006","1234","123-01-00006");
-        session.setAttribute("sellerUser",loginSeller);
+
+
         return true;
     }
 }
-*/
