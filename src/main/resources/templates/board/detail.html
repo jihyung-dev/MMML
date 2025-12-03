@@ -35,7 +35,9 @@
 
     <div class="detail-meta">
         <span>카테고리: <b th:text="${post.category}"></b></span>
-        <span>작성자: <b th:text="${post.writer.memberNickname}"></b></span>
+        <span>작성자:
+            <b th:text="${post.writer != null ? post.writer.memberNickname : '탈퇴회원'}"></b>
+        </span>
         <span>작성일:
             <b th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}"></b>
         </span>
@@ -59,7 +61,6 @@
         </form>
     </th:block>
 
-
     <button><a class="button" href="/board">목록으로</a></button>
 
     <!-- ===========================
@@ -68,53 +69,104 @@
     <div class="comment-box">
         <h4>댓글</h4>
 
-        <!-- 댓글 목록 -->
-        <div th:each="c : ${post.boardComments}"
-             th:class="'comment-item ' + (${c.parentComment != null} ? 'reply' : '')">
+        <!-- ✅ 부모 댓글 루프 (페이징된 리스트) -->
+        <div th:each="c : ${parentComments}" class="comment-item">
 
-            <div>
-                <span class="comment-author"
-                      th:text="${c.writer.memberNickname}"></span>
-                <span th:text="${#temporals.format(c.createdAt,'yyyy-MM-dd HH:mm')}"></span>
+            <!-- 부모 댓글 -->
+            <div class="comment">
+                <div>
+                    <span class="comment-author"
+                          th:text="${c.writer != null ? c.writer.memberNickname : '탈퇴회원'}"></span>
+                    <span th:text="${#temporals.format(c.createdAt,'yyyy-MM-dd HH:mm')}"></span>
+                </div>
+
+                <div th:text="${c.commentContent}"></div>
+
+                <!-- 부모 댓글 삭제 버튼 (작성자 or 관리자만) -->
+                <th:block th:if="${session.loginUser != null
+                     and (session.loginUser.memberId == c.writer.memberId
+                          or session.loginUser.role == 'ADMIN')}">
+                    <form th:action="@{'/comment/' + ${c.id} + '/delete'}"
+                          method="post" style="display:inline;">
+                        <input type="hidden" name="postId" th:value="${post.id}">
+                        <button class="comment-delete-btn">삭제</button>
+                    </form>
+                </th:block>
+
+                <!-- 대댓글 작성 -->
+                <details>
+                    <summary>답글 달기</summary>
+
+                    <!-- 로그인 O -->
+                    <form th:if="${session.loginUser != null}"
+                          th:action="@{/comment/write}" method="post">
+                        <input type="hidden" name="postId" th:value="${post.id}">
+                        <input type="hidden" name="parentId" th:value="${c.id}">
+                        <!-- 작성자 닉네임 표시 (readonly) -->
+                        <input type="text"
+                               th:value="${session.loginUser.memberNickname}"
+                               readonly>
+                        <textarea name="content" required></textarea>
+                        <button>등록</button>
+                    </form>
+
+                    <!-- 로그인 X -->
+                    <p th:if="${session.loginUser == null}">
+                        답글을 작성하려면 <a href="/login">로그인</a>이 필요합니다.
+                    </p>
+
+                </details>
             </div>
 
-            <div th:text="${c.commentContent}"></div>
+            <!-- ✅ 이 부모 댓글의 대댓글 목록 -->
+            <div th:each="r : ${c.boardComments}" class="comment-item reply">
 
-            <!-- 댓글 삭제 버튼 (작성자 or 관리자만) -->
-            <th:block th:if="${session.loginUser != null
-                 and (session.loginUser.memberId == c.writer.memberId
-                      or session.loginUser.role == 'ADMIN')}">
-                <form th:action="@{'/comment/' + ${c.id} + '/delete'}"
-                      method="post" style="display:inline;">
-                    <input type="hidden" name="postId" th:value="${post.id}">
-                    <button class="comment-delete-btn">삭제</button>
-                </form>
-            </th:block>
+                <div>
+                    <span>ㄴ</span>
+                    <span class="comment-author"
+                          th:text="${r.writer != null ? r.writer.memberNickname : '탈퇴회원'}"></span>
+                    <span th:text="${#temporals.format(r.createdAt,'yyyy-MM-dd HH:mm')}"></span>
+                </div>
 
+                <div th:text="${r.commentContent}"></div>
 
-            <!-- 대댓글 작성 -->
-            <details>
-                <summary>답글 달기</summary>
+                <!-- 대댓글 삭제 버튼 (작성자 or 관리자만) -->
+                <th:block th:if="${session.loginUser != null
+                     and (session.loginUser.memberId == r.writer.memberId
+                          or session.loginUser.role == 'ADMIN')}">
+                    <form th:action="@{'/comment/' + ${r.id} + '/delete'}"
+                          method="post" style="display:inline;">
+                        <input type="hidden" name="postId" th:value="${post.id}">
+                        <button class="comment-delete-btn">삭제</button>
+                    </form>
+                </th:block>
+            </div>
 
-                <!-- 로그인 O -->
-                <form th:if="${session.loginUser != null}"
-                      th:action="@{/comment/write}" method="post">
-                    <input type="hidden" name="postId" th:value="${post.id}">
-                    <input type="hidden" name="parentId" th:value="${c.id}">
-                    <!-- 작성자 닉네임 표시 (readonly) -->
-                    <input type="text"
-                           th:value="${session.loginUser.memberNickname}"
-                           readonly>
-                    <textarea name="content" required></textarea>
-                    <button>등록</button>
-                </form>
+        </div>
 
-                <!-- 로그인 X -->
-                <p th:if="${session.loginUser == null}">
-                    답글을 작성하려면 <a href="/login">로그인</a>이 필요합니다.
-                </p>
+        <!-- ✅ 댓글 페이지네이션 (부모 댓글 기준 7개씩) -->
+        <div class="comment-pagination"
+             th:if="${parentCommentsPage.totalPages > 1}">
 
-            </details>
+            <!-- 이전 -->
+            <a th:if="${!parentCommentsPage.first}"
+               th:href="@{|/board/${post.id}?cPage=${parentCommentsPage.number - 1}|}">
+                이전
+            </a>
+
+            <!-- 페이지 번호 -->
+            <span th:each="i : ${#numbers.sequence(0, parentCommentsPage.totalPages - 1)}">
+                <a th:href="@{|/board/${post.id}?cPage=${i}|}"
+                   th:text="${i + 1}"
+                   th:classappend="${i} == ${parentCommentsPage.number} ? 'active' : ''">
+                </a>
+            </span>
+
+            <!-- 다음 -->
+            <a th:if="${!parentCommentsPage.last}"
+               th:href="@{|/board/${post.id}?cPage=${parentCommentsPage.number + 1}|}">
+                다음
+            </a>
         </div>
 
         <!-- 새 댓글 작성 -->

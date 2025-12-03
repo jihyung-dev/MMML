@@ -1,4 +1,4 @@
-/*package com.smu.householdaccount;
+package com.smu.householdaccount;
 
 import com.smu.householdaccount.interceptor.AutoLoginInterceptorDev;
 import lombok.AllArgsConstructor;
@@ -21,4 +21,3 @@ public class WebConfig implements WebMvcConfigurer {
     }
 }
 
-*/

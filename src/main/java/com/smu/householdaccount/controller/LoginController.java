@@ -21,7 +21,7 @@ public class LoginController {
     private final RedisService redisService;
     /**
      * 로그인 페이지
-     */
+     **/
     @GetMapping("/login")
     public String loginForm() {
         return "auth/login";
@@ -43,6 +43,9 @@ public class LoginController {
             model.addAttribute("error", "아이디 또는 비밀번호가 올바르지 않습니다.");
             return "auth/login";
         }
+
+        // 🔐 보안 강화: 세션에 올리기 전에 비밀번호 필드를 제거
+        loginUser.setPassword(null);
 
         // 🔥 로그인 성공 시 세션 저장
         session.setAttribute("loginUser", loginUser);

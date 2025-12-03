@@ -86,11 +86,11 @@ public class Seller {
     }
 
 
-//    //main에는 존재하지않음
+    //main에는 존재하지않음
 //    @ColumnDefault("SYSTIMESTAMP")
 //    @Column(name = "CREATED_AT")
 //    private LocalDateTime createdAt; //오류?
-//
+
 //    @Column(name = "UPDATED_AT")
 //    private LocalDateTime updatedAt; //오류?
 //    //여기까지

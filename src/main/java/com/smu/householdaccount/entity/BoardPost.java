@@ -62,7 +62,8 @@ public class BoardPost {
     }
 
     @OneToMany(mappedBy = "post")
-    private Set<BoardComment> boardComments = new LinkedHashSet<>();
+    @OrderBy("createdAt ASC ")
+    private java.util.List<BoardComment> boardComments = new java.util.ArrayList<>();
 
     @OneToMany(mappedBy = "post")
     private Set<BoardLike> boardLikes = new LinkedHashSet<>();
