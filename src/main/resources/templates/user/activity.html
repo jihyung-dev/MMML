@@ -2,15 +2,95 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layouts/my_layout}"
-      th:with="title='내 활동'"
->
+      th:with="title='내 활동'">
+
 <head>
+
     <style layout:fragment="css"></style>
 </head>
+
 <body>
-    <div layout:fragment="content">
-        <h1>나의 활동 내역</h1>
+<div layout:fragment="content">
+
+  <!--  <div>
+        <div class="space"></div>
+        <div style="font-size: 30px; font-weight: bold;">이 밑에 줄</div>
+        <div class="space"></div>
+        <hr class="community-hr">
     </div>
-    <script layout:fragment="script"></script>
+-->
+    <!-- 내가 작성한 글 -->
+    <section style="margin-top: 30px;">
+        <h2 style="font-size: 22px; font-weight: bold;"> 📝 내가 쓴 글</h2>
+        <div class="space"></div>
+
+        <div th:if="${myPostPage.content.size() == 0}">
+            <p>작성한 게시글이 없습니다.</p>
+        </div>
+
+        <ul th:if="${myPostPage.content.size() > 0}">
+            <li th:each="post : ${myPostPage.content}" style="margin-bottom: 15px;">
+                <a th:href="@{/board/{id}(id=${post.id})}"
+                   style="text-decoration: none; font-size: 18px; font-weight: 600;">
+                    [[${post.postTitle}]]
+                </a>
+                <div style="font-size: 12px; color: gray;">작성일: [[${post.createdAt}]]</div>
+            </li>
+        </ul>
+        <hr class="community-hr margin-top-10">
+    </section>
+
+
+    <!-- 내가 쓴 댓글 -->
+    <section style="margin-top: 40px;">
+        <h2 style="font-size: 22px; font-weight: bold;">💬 내가 쓴 댓글</h2>
+        <div class="space"></div>
+
+        <div th:if="${myCommentPage.totalElements == 0}">
+            <p>작성한 댓글이 없습니다.</p>
+        </div>
+
+        <ul th:if="${myCommentPage.totalElements > 0}">
+            <li th:each="comment : ${myCommentPage}" style="margin-bottom: 15px;">
+                <a th:href="@{/board/{id}(id=${comment.post.id})}">
+                    <div style="font-size: 16px;">
+                        <span th:text="${comment.commentContent}"></span>
+                    </div>
+                    <div style="font-size: 12px; color: gray;">작성일:
+                        <span th:text="${comment.createdAt}">
+                   </span>
+                    </div>
+                </a>
+            </li>
+            <hr class="community-hr">
+        </ul>
+
+    </section>
+
+
+    <!-- 좋아요 누른 게시글 -->
+    <section style="margin-top: 40px; margin-bottom: 50px;">
+        <h2 style="font-size: 22px; font-weight: bold;">❤️ 좋아요 누른 게시글</h2>
+        <div class="space"></div>
+
+        <div th:if="${likedPostPage.content.size() == 0}">
+            <p>좋아요한 게시글이 없습니다.</p>
+        </div>
+
+        <ul th:if="${likedPostPage.content.size() > 0}">
+            <li th:each="post : ${likedPostPage.content}" style="margin-bottom: 15px;">
+                <a th:href="@{/board/{id}(id=${post.id})}"
+                   style="text-decoration: none; font-size: 18px; font-weight: 600;">
+                    [[${post.postTitle}]]
+                </a>
+                <div style="font-size: 12px; color: gray;">작성일: [[${post.createdAt}]]</div>
+            </li>
+            <hr class="community-hr">
+        </ul>
+    </section>
+
+</div>
+
+<script layout:fragment="script"></script>
 </body>
 </html>

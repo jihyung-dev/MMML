@@ -1,6 +1,8 @@
 package com.smu.householdaccount.repository;
 
 import com.smu.householdaccount.dto.ledger.CategoryStatsDto;
+import com.smu.householdaccount.dto.ledger.CategorySumDto;
+import com.smu.householdaccount.dto.ledger.DailySumDto;
 import com.smu.householdaccount.entity.BudgetGroup;
 import com.smu.householdaccount.entity.LedgerEntry;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -46,4 +48,41 @@ public interface LedgerRepository extends JpaRepository<LedgerEntry, Long> {
         """,
             nativeQuery = true)
     List<CategoryStatsDto> getCategoryStats();
+
+    // ==========================================
+    // [New] 대시보드(차트/캘린더) 전용 최적화 쿼리
+    // ==========================================
+
+    // 1. 카테고리별 합계
+    @Query("""
+        SELECT c.categoryName AS categoryName, SUM(l.entryAmount) AS totalAmount
+        FROM LedgerEntry l
+        JOIN l.category c
+        WHERE l.groupId = :group
+          AND l.entryType = 'EXPENSE'
+          AND l.occurredAt BETWEEN :startDate AND :endDate
+        GROUP BY c.categoryName
+    """)
+    List<CategorySumDto> findCategorySumNew(
+            @Param("group") BudgetGroup group,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate
+    );
+
+    // 2. 일별 합계
+    @Query("""
+        SELECT 
+            CAST(l.occurredAt AS LocalDate) AS date, 
+            l.entryType AS entryType, 
+            SUM(l.entryAmount) AS totalAmount
+        FROM LedgerEntry l
+        WHERE l.groupId = :group
+          AND l.occurredAt BETWEEN :startDate AND :endDate
+        GROUP BY CAST(l.occurredAt AS LocalDate), l.entryType
+    """)
+    List<DailySumDto> findDailySumNew(
+            @Param("group") BudgetGroup group,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate
+    );
 }

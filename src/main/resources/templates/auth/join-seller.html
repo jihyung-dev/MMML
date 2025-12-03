@@ -2,60 +2,56 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>판매자 회원가입</title>
+    <title>판매자 등록</title>
     <link rel="stylesheet" th:href="@{/css/login.css}">
 </head>
 <body>
 
 <div class="login-container">
-    <h2>판매자 회원가입</h2>
+    <h2>판매자 등록</h2>
 
     <!-- 에러 메시지 -->
     <p th:if="${error}" class="error-text" th:text="${error}"></p>
 
-    <!-- 🔹 여기서 form 전체를 member에 바인딩 -->
-    <form action="/seller/join" method="post" th:object="${member}">
+    <!-- 로그인한 회원 정보 안내 (읽기 전용) -->
+    <div class="info-box">
+        <p>
+            로그인 아이디:
+            <strong th:text="${session.loginUser != null ? session.loginUser.memberId : '알 수 없음'}"></strong>
+        </p>
+        <p>
+            이름:
+            <strong th:text="${session.loginUser != null ? session.loginUser.memberName : '알 수 없음'}"></strong>
+        </p>
+    </div>
 
-        <!-- Member 정보 -->
-        <label>아이디</label>
-        <input type="text" th:field="*{memberId}" placeholder="아이디" required>
+    <!-- 🔹 판매자(Seller) 정보 입력 폼 -->
+    <form th:action="@{/seller/join}" method="post" th:object="${seller}">
 
-        <label>비밀번호</label>
-        <input type="password" th:field="*{password}" placeholder="비밀번호" required>
+        <label>사업자번호</label>
+        <input type="text" th:field="*{bizNo}" placeholder="사업자번호 (- 없이 숫자만)" required>
 
-        <label>이름</label>
-        <input type="text" th:field="*{memberName}" placeholder="이름" required>
+        <label>상호명</label>
+        <input type="text" th:field="*{bizName}" placeholder="예: OO마트, OO상사" required>
 
-        <label>닉네임</label>
-        <input type="text" th:field="*{memberNickname}" placeholder="닉네임">
+        <label>업태/업종</label>
+        <input type="text" th:field="*{bizType}" placeholder="예: 음식, 의류, 생활용품 등">
 
-        <label>휴대폰번호</label>
-        <input type="text" th:field="*{phone}" placeholder="010-0000-0000">
+        <label>사업장 주소</label>
+        <input type="text" th:field="*{bizAddress}" placeholder="사업장 주소를 입력하세요">
 
-        <label>주소</label>
-        <input type="text" th:field="*{address}" placeholder="주소">
+        <label>사업장 전화번호</label>
+        <input type="text" th:field="*{bizPhone}" placeholder="예: 02-123-4567 또는 010-0000-0000">
 
-        <hr/>
+        <label>사업자 이메일</label>
+        <input type="email" th:field="*{bizEmail}" placeholder="고객 문의용 이메일">
 
-        <!-- 🔹 Seller 정보는 그냥 name으로 바인딩 -->
-        <div>
-            <label>사업자번호</label>
-            <input type="text" name="bizNo"
-                   th:value="${seller != null} ? ${seller.bizNo} : ''"
-                   placeholder="사업자번호" required>
-
-            <label>업태/업종</label>
-            <input type="text" name="bizType"
-                   th:value="${seller != null} ? ${seller.bizType} : ''"
-                   placeholder="예: 음식, 의류 등">
-        </div>
-
-        <button type="submit">판매자 가입하기</button>
+        <button type="submit">판매자 등록하기</button>
     </form>
 
     <div class="login-links">
-        <a href="/seller/login">이미 판매자 계정이 있으신가요? 로그인</a> |
-        <a href="/login">일반 회원 로그인</a>
+        <a th:href="@{/seller}">판매자 페이지로 가기</a> |
+        <a th:href="@{/}">메인으로 돌아가기</a>
     </div>
 </div>
 

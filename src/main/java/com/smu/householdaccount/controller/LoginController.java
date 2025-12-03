@@ -2,6 +2,7 @@ package com.smu.householdaccount.controller;
 
 import com.smu.householdaccount.entity.Member;
 import com.smu.householdaccount.service.MemberService;
+import com.smu.householdaccount.service.SellerService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 public class LoginController {
 
     private final MemberService memberService;
+    private final SellerService sellerService;
 
     /**
      * 로그인 페이지
@@ -40,10 +42,14 @@ public class LoginController {
         }
 
         // 🔥 로그인 성공 시 세션 저장
-        session.setAttribute("loginUser", loginUser);                 // Member 객체
-        session.setAttribute("loginUserId", loginUser.getMemberId()); // BoardPostController용
+        session.setAttribute("loginUser", loginUser);
+        session.setAttribute("loginUserId", loginUser.getMemberId());
 
-        // 🔥 역할에 따라 이동 경로 분기
+        // ⭐ 여기 추가: 이 회원이 판매자인지 여부 세션에 저장
+        boolean isSeller = sellerService.getSellerByMemberId(loginUser.getMemberId()) != null;
+        session.setAttribute("isSeller", isSeller);
+
+        // 역할에 따라 이동 경로 분기
         if ("ADMIN".equalsIgnoreCase(loginUser.getRole())) {
             return "redirect:/admin";
         }
@@ -51,19 +57,19 @@ public class LoginController {
         return "redirect:/";
     }
 
+
     /**
      * 로그아웃
      */
     @GetMapping("/logout")
     public String logout(HttpSession session) {
-        session.invalidate();   // 세션 전체 삭제
+        session.invalidate();
         return "redirect:/";
     }
 
     // =============================
-    //  🔹 일반 회원가입
+    //  🔹 아이디 찾기 (이름 + 이메일)
     // =============================
-
 
     @GetMapping("/find-id")
     public String findIdForm() {
@@ -72,10 +78,10 @@ public class LoginController {
 
     @PostMapping("/find-id")
     public String findId(@RequestParam String memberName,
-                         @RequestParam String phone,
+                         @RequestParam String email,
                          Model model) {
 
-        String memberId = memberService.findMemberId(memberName, phone);
+        String memberId = memberService.findMemberId(memberName, email);
 
         if (memberId == null) {
             model.addAttribute("error", "일치하는 회원 정보가 없습니다.");
@@ -83,7 +89,6 @@ public class LoginController {
             model.addAttribute("memberId", memberId);
         }
 
-        // 같은 화면에서 결과 보여주기
         return "auth/find-id";
     }
 
@@ -96,14 +101,14 @@ public class LoginController {
         return "auth/find-pw";
     }
 
-    // 1단계: 본인 확인
+    // 1단계: 본인 확인 (ID + 이름 + 이메일)
     @PostMapping("/find-pw")
     public String verifyForPwReset(@RequestParam String memberId,
                                    @RequestParam String memberName,
-                                   @RequestParam String phone,
+                                   @RequestParam String email,
                                    Model model) {
 
-        boolean valid = memberService.verifyMemberForPasswordReset(memberId, memberName, phone);
+        boolean valid = memberService.verifyMemberForPasswordReset(memberId, memberName, email);
 
         if (!valid) {
             model.addAttribute("error", "입력하신 정보와 일치하는 회원이 없습니다.");
@@ -130,7 +135,6 @@ public class LoginController {
 
         memberService.resetPassword(memberId, newPassword);
 
-        // 비밀번호 변경 후 로그인 페이지로 이동
         return "redirect:/login";
     }
 }

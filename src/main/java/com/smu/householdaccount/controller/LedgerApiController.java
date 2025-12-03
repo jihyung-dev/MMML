@@ -1,6 +1,9 @@
 package com.smu.householdaccount.controller;
 
+import com.smu.householdaccount.dto.ledger.LedgerDetailDto;
+import com.smu.householdaccount.dto.ledger.LedgerSummaryDto;
 import com.smu.householdaccount.dto.ledger.LedgerSummaryDto.DailySummary;
+import com.smu.householdaccount.entity.LedgerEntry;
 import com.smu.householdaccount.service.LedgerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,21 +24,21 @@ import java.util.List;
 public class LedgerApiController {
 
     private final LedgerService ledgerService;
-
-    /**
-     * 캘린더 UI에 표시할 월별 일자별 수입/지출 소계 데이터를 JSON으로 반환합니다.
-     * (FullCalendar의 events source로 사용됩니다.)
-     * URL: /api/ledger/calendar?year=2025&month=10
-     */
-    @GetMapping("/calendar")
-    public ResponseEntity<List<DailySummary>> getCalendarEvents(
+    // [New] 대시보드(차트+캘린더) 데이터 통합 API
+    @GetMapping("/dashboard-data")
+    public ResponseEntity<LedgerSummaryDto> getDashboardData(
             @RequestParam int year,
             @RequestParam int month
     ) {
-        // Service에서 계산된 List<DailySummary>를 반환합니다.
-        List<DailySummary> dailyStats = ledgerService.getCalendarDailyStats(year, month);
-        return ResponseEntity.ok(dailyStats);
+        return ResponseEntity.ok(ledgerService.getDashboardDataNew(year, month));
     }
-
-    // (기존 LedgerController에 있던 /chart 등의 API도 이쪽으로 옮겨오는 것이 아키텍처상 더 깔끔합니다.)
+    // [수정] DataTables용 상세 내역 리스트 API
+    @GetMapping("/transaction-list")
+    public ResponseEntity<List<LedgerDetailDto>> getTransactionList(
+            @RequestParam int year,
+            @RequestParam int month
+    ) {
+        // 서비스 메서드 호출 (이름 바꿨으니 맞춰주세요)
+        return ResponseEntity.ok(ledgerService.getTransactionList(1L, year, month));
+    }
 }

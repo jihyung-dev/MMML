@@ -19,7 +19,8 @@ public interface ItemWishRepository extends JpaRepository<ItemWish, Long> {
     void deleteByItemIdAndMemberId(Long itemId, String memberId); // 찜 취소
 
     // 존재 여부만 체크할 땐 boolean
-    boolean existsByItem_IdAndMember_MemberId(Long itemId, String memberId);
+//    boolean existsByItem_IdAndMember_MemberId(Long itemId, String memberId);
+    boolean existsByItemIdAndMemberId(Long itemId, String memberId);
 
     // 아이템에 달린 모든 찜을 가져올 때
     List<ItemWish> findByItem_Id(Long itemId);

@@ -1,6 +1,7 @@
 package com.smu.householdaccount.controller;
 
 import com.smu.householdaccount.entity.Item;
+import com.smu.householdaccount.entity.Member;
 import com.smu.householdaccount.entity.Seller;
 import com.smu.householdaccount.repository.HotdealOptionRepository;
 import com.smu.householdaccount.repository.ItemRepository;
@@ -26,10 +27,11 @@ public class SellerItemController {
     @GetMapping
     public String list(
             Model model,
-            @SessionAttribute("sellerUser") Seller sellerUser,
+            @SessionAttribute("loginUser") Member loginUser,
             @PageableDefault(page = 0,size = 10,sort = "createdAt",direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        Page<Item> itemPage=itemRepository.findBySellerId(sellerUser.getId(), pageable);
+        Seller seller = loginUser.getSeller();
+        Page<Item> itemPage=itemRepository.findBySellerId(seller.getId(), pageable);
         model.addAttribute("itemPage",itemPage);
 
         return "seller/items";

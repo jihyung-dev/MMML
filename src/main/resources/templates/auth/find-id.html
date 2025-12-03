@@ -10,23 +10,27 @@
 <div class="login-container">
     <h2>아이디 찾기</h2>
 
+    <!-- 에러 메시지 -->
     <p th:if="${error}" class="error-text" th:text="${error}"></p>
+
+    <!-- 성공 시 아이디 보여주기 -->
     <p th:if="${memberId}" class="success-text">
         찾은 아이디: <span th:text="${memberId}"></span>
     </p>
 
-    <form action="/find-id" method="post">
+    <!-- 이름 + 이메일로 아이디 찾기 -->
+    <form th:action="@{/find-id}" method="post">
         <label>이름</label>
         <input type="text" name="memberName" required>
 
-        <label>휴대폰번호</label>
-        <input type="text" name="phone" required>
+        <label>이메일</label>
+        <input type="email" name="email" required>
 
         <button type="submit">아이디 찾기</button>
     </form>
 
     <div class="login-links">
-        <a href="/login">로그인</a>
+        <a th:href="@{/login}">로그인</a>
     </div>
 </div>
 
