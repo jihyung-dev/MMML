@@ -118,4 +118,25 @@ public class MemberServiceImp implements MemberService {
             memberRepository.save(member);
         });
     }
+
+    @Override
+    public boolean isMember(String memberId) {
+        return memberRepository.findById(memberId).isPresent();
+    }
+
+    @Override
+    public String buildSimpleOauthKey(String provider, String oauthId) {
+        String trimmed = oauthId.substring(0, Math.min(40, oauthId.length()));
+        return provider + "_" + trimmed;
+    }
+
+    @Override
+    public void registerOAuthUser(Member member) {
+        memberRepository.save(member);
+    }
+
+    @Override
+    public Member getMember(String memberId) {
+        return memberRepository.findByMemberId(memberId).orElse(null);
+    }
 }

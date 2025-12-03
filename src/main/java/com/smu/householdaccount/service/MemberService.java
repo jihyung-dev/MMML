@@ -30,4 +30,16 @@ public interface MemberService {
 
     // 🔹 비밀번호 재설정
     void resetPassword(String memberId, String newPassword);
+
+    // 회원 등록 여부 확인
+    boolean isMember(String memberId);
+
+    // oAuth 회원용 아이디
+    String buildSimpleOauthKey(String provider, String oauthId);
+
+    // 소셜 회원가입
+    void registerOAuthUser(Member member);
+
+    // 회원 정보 받아오기
+    Member getMember(String memberId);
 }

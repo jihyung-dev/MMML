@@ -1,12 +1,19 @@
 package com.smu.householdaccount.controller;
 
+import com.smu.householdaccount.entity.Member;
 import com.smu.householdaccount.service.KakaoApiService;
+import com.smu.householdaccount.service.MemberService;
+import com.smu.householdaccount.service.MemberServiceImp;
 import com.smu.householdaccount.service.NaverApiService;
+import com.smu.householdaccount.util.Log;
 import com.smu.householdaccount.util.Utility;
 import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 import org.apache.coyote.Response;
 import org.json.simple.JSONObject;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,19 +21,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.Map;
+import java.util.UUID;
+
 @Controller()
+@RequiredArgsConstructor
 @RequestMapping("/user")
 public class UserController{
 
     private final KakaoApiService kakaoApiService;
     private final NaverApiService naverApiService;
-
-    public UserController(KakaoApiService kakaoApiService, NaverApiService naverApiService) {
-        this.kakaoApiService = kakaoApiService;
-        this.naverApiService = naverApiService;
-
-        System.out.println("암호화 확인용 : " + Utility.encrypt("테스트용"));
-    }
+    private final MemberService memberService;
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     /**
      카카오 로그인 과정
@@ -43,11 +49,71 @@ public class UserController{
 
     // 카카오 로그인 콜백
     @GetMapping("/kakao/kakaoCallback")
-    public String kakaoCallback(@RequestParam String code){
+    public String kakaoCallback(
+            @RequestParam(required = false) String code,
+            @RequestParam(required = false) String error,
+            HttpSession session
+    ){
+        // 1) Provider가 에러 리턴한 경우 (카카오 권한 거부 등)
+        if (error != null) {
+            Log.e("Kakao returned error param: {}", error);
+            return "redirect:/login?error=" + error;
+        }
+
+        // 2) code 자체가 없는 경우
+        if (code == null) {
+            Log.e("Authorization code is null.","");
+            return "redirect:/login?error=invalid_request";
+        }
+        // 3) 인가 코드로 Access Token 발급
         boolean isSuccess = kakaoApiService.handleAuthorizationCallback(code);
+
+        if (!isSuccess) {
+            Log.e("Failed to issue token from Kakao API.","");
+            return "redirect:/login?error=token_failed";
+        }
+
+        // 4) 토큰 성공 → 유저 정보 조회
         JSONObject userInfo = kakaoApiService.getUserProfile();
-        System.out.println(userInfo);
-        return "callback/kakao";
+        if (userInfo == null) {
+            Log.e("Failed to fetch user profile from Kakao.","");
+            return "redirect:/login?error=userinfo_failed";
+        }
+
+
+        // id는 Long 형태이므로 안전하게 문자열 변환
+        String oauthId = userInfo.get("id").toString();
+
+        String provider = "kakao"; // 카카오니까!
+        String oauthKey = memberService.buildSimpleOauthKey(provider, oauthId);
+        boolean isMember = memberService.isMember(oauthKey);
+
+        // 기존 회원의 경우
+        if(isMember){
+            Member member = memberService.getMember(oauthKey);
+            member.setPassword(null);
+            session.setAttribute("loginUser", member);
+            return "redirect:/home";
+        }
+        // 신규 회원의 경우
+        else {
+            // 멤버 신규 등록
+            JSONObject properties = (JSONObject) userInfo.get("properties");
+            String nickname = (String) properties.get("nickname");
+
+            Member member = new Member();
+            String encodedPw = passwordEncoder.encode(UUID.randomUUID().toString());
+            member.setPassword(encodedPw);
+            member.setMemberName("OAuthUser"); // 임시 이름
+            member.setMemberId(oauthKey);
+            member.setRole("GENERAL");
+            member.setMemberNickname(nickname);
+            memberService.registerOAuthUser(member);
+            member.setPassword(null);
+            session.setAttribute("loginUser", member);
+        }
+        // 로그인 성공 후 메인 페이지로
+        return "redirect:/home";
     }
 
     /**
@@ -60,26 +126,85 @@ public class UserController{
     // 네이버 로그인 요청
     @GetMapping("/naver/authorize")
     public RedirectView naverLogin() {
+        Log.d("[naver]", naverApiService.getAuthUrl());
         return new RedirectView(naverApiService.getAuthUrl());
     }
 
     @GetMapping("/naver/naverCallback")
-    public String naverCallback(@RequestParam String code, @RequestParam String state) {
-        // 생성한 token값과 비교 진행
-        String saved_token = naverApiService.getStateToken();
-        System.out.println("saved_token: " + saved_token);
-        System.out.println("state : " + state);
-        JSONObject userInfo = null;
-        // access 토큰 획득 후 로그인 정보 획득
-        if(state.equals(saved_token)) {
-            String accessToken = naverApiService.requestToken(code, state);
-            System.out.println(accessToken);
+    public String naverCallback(
+            @RequestParam(required = false) String code,
+            @RequestParam(required = false) String state,
+            @RequestParam(required = false) String error,
+            HttpSession session
+    ) {
 
-            userInfo = naverApiService.getUserProfile(); // 유저 프로필 정보 획득 후 홈으로 리다이렉트
+        // 1) Provider에서 에러 내려온 경우 (사용자 취소 등)
+        if (error != null) {
+            Log.e("[NAVER]Error returned from provider: {}", error);
+            return "redirect:/login?error=" + error;
         }
 
-        return "callback/naver";
+        // 2) 필수 파라미터 검증
+        if (code == null || state == null) {
+            Log.e("[NAVER]","Missing code or state");
+            return "redirect:/login?error=invalid_request";
+        }
+
+        // 3) state 토큰 검증
+        String savedState = naverApiService.getStateToken();
+        if (!state.equals(savedState)) {
+            Log.e("[NAVER]","Invalid state token");
+            return "redirect:/login?error=invalid_state";
+        }
+
+        // 4) Access Token 요청
+        String accessToken = naverApiService.requestToken(code, state);
+        if (accessToken == null) {
+            Log.e("[NAVER]","Failed to issue access token");
+            return "redirect:/login?error=token_failed";
+        }
+
+        Log.i("[NAVER] Access token issued: {}", accessToken);
+
+        JSONObject userInfo = naverApiService.getUserProfile();
+        if (userInfo == null) {
+            Log.e("[NAVER]","Failed to fetch user info");
+            return "redirect:/login?error=userinfo_failed";
+        }
+
+        String provider = "naver";
+        Map<String, Object> response = (Map<String, Object>) userInfo.get("response");
+
+        String oauthId = response.get("id").toString();
+
+        String oauthKey = memberService.buildSimpleOauthKey(provider, oauthId);
+        boolean isMember = memberService.isMember(oauthKey);
+
+        // 기존 회원의 경우
+        if(isMember){
+            Member member = memberService.getMember(oauthKey);
+            member.setPassword(null);
+            session.setAttribute("loginUser", member);
+
+            return "redirect:/home";
+        }
+
+        Member member = new Member();
+
+        String encodedPw = passwordEncoder.encode(UUID.randomUUID().toString());
+        member.setPassword(encodedPw);
+
+        member.setRole("GENERAL");
+        member.setMemberName("OAuthUser");
+        member.setMemberId(oauthKey);
+        member.setMemberNickname(response.get("name").toString());
+        memberService.registerOAuthUser(member);
+        member.setPassword(null);
+        session.setAttribute("loginUser", member);
+
+        return "redirect:/home";
     }
+
 
 
     @GetMapping("/login")
@@ -87,10 +212,9 @@ public class UserController{
         return "login";
     }
 
+    @GetMapping("auth/social-info")
+    public ResponseEntity<?> socialInfo() {
 
-
-
-
-
-
+        return ResponseEntity.ok("");
+    }
 }
