@@ -54,10 +54,17 @@ public class MemberAuthController {
             return "auth/join-member";
         }
 
-        // 기본 ROLE 은 서비스에서 USER 로 세팅
+        // ✅ 이메일 중복 체크 (아이디/비번 찾기에서 이메일을 쓰기 때문에)
+        if (member.getEmail() != null && !member.getEmail().isBlank()
+                && memberService.existsByEmail(member.getEmail())) {
+            model.addAttribute("member", member);
+            model.addAttribute("error", "이미 사용 중인 이메일입니다.");
+            return "auth/join-member";
+        }
+
+        // 기본 ROLE 은 서비스에서 GENERAL 로 세팅
         memberService.registerUser(member);
 
-        // 가입 완료 후 로그인 페이지로 이동 (원하면 "/" 그대로 둬도 됨)
         return "redirect:/login";
     }
 }

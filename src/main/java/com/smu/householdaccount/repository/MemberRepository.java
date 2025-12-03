@@ -17,12 +17,12 @@ public interface MemberRepository extends JpaRepository<Member, String> {
     boolean existsByMemberNickname(String memberNickname);
     boolean existsByPhone(String phone);
 
-    // 아이디 찾기용 (이름 + 전화번호 조합)
-    Optional<Member> findByMemberNameAndPhone(String memberName, String phone);
+    // 🚩 (추가) 이메일 중복 체크 필요하면 사용
+    boolean existsByEmail(String email);
 
-    // 비밀번호 찾기용
-    Optional<Member> findByMemberIdAndMemberNameAndPhone(String memberId, String memberName, String phone);
+    // 🔹 아이디 찾기용 (이름 + 이메일 조합)
+    Optional<Member> findByMemberNameAndEmail(String memberName, String email);
 
-
-
+    // 🔹 비밀번호 찾기 검증용 (ID + 이름 + 이메일)
+    Optional<Member> findByMemberIdAndMemberNameAndEmail(String memberId, String memberName, String email);
 }

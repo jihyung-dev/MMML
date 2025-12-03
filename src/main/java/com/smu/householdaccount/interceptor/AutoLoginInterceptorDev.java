@@ -11,7 +11,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
-
+/*
 @Component
 @AllArgsConstructor(onConstructor_ = @Autowired)
 public class AutoLoginInterceptorDev implements HandlerInterceptor {
@@ -34,3 +34,4 @@ public class AutoLoginInterceptorDev implements HandlerInterceptor {
         return true;
     }
 }
+*/

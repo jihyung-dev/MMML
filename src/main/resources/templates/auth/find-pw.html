@@ -12,21 +12,22 @@
 
     <p th:if="${error}" class="error-text" th:text="${error}"></p>
 
-    <form action="/find-pw" method="post">
+    <!-- ID + 이름 + 이메일로 본인확인 -->
+    <form th:action="@{/find-pw}" method="post">
         <label>아이디</label>
         <input type="text" name="memberId" required>
 
         <label>이름</label>
         <input type="text" name="memberName" required>
 
-        <label>휴대폰번호</label>
-        <input type="text" name="phone" required>
+        <label>이메일</label>
+        <input type="email" name="email" required>
 
         <button type="submit">본인확인</button>
     </form>
 
     <div class="login-links">
-        <a href="/login">로그인</a>
+        <a th:href="@{/login}">로그인</a>
     </div>
 </div>
 

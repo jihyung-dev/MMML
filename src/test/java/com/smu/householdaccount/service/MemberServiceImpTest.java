@@ -29,13 +29,5 @@ class MemberServiceImpTest {
         System.out.println(memberService.login("U067", "12341"));
     }
 
-    @Test
-    void sellerLogin() {
-        String sellerId = "U006";
-        String password = "1234";
-        String bizNo = "123-01-00006";
-        Seller seller = memberService.sellerLogin(sellerId, password, bizNo);
-        System.out.println(seller);
 
-    }
 }

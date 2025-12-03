@@ -29,8 +29,8 @@
 
             <!-- 로그인 안 한 상태 -->
             <div th:if="${session.loginUser == null and session.sellerUser == null}">
-                <a href="/login" class="nav-login-btn">일반 로그인</a>
-                <a href="/seller/login" class="nav-login-btn">판매자 로그인</a>
+                <a href="/login" class="nav-login-btn">로그인</a>
+
             </div>
 
             <!-- 일반 회원 로그인 -->
@@ -42,14 +42,7 @@
                 <a href="/logout" class="nav-logout-btn">로그아웃</a>
             </div>
 
-            <!-- 판매자 로그인 -->
-            <div th:if="${session.sellerUser != null}" class="nav-user-info">
-                <a href="/seller">
-                    <span th:text="${session.sellerUser.member.memberNickname + '님(판매자) 환영합니다!'}"></span>
-                </a>
-                &nbsp; | &nbsp;
-                <a href="/logout" class="nav-logout-btn">로그아웃</a>
-            </div>
+
 
         </div>
 
