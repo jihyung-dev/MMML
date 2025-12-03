@@ -25,19 +25,7 @@
 <div layout:fragment="content">
     <div class="container mt-4 board-container"> <!-- Bootstrap container로 여백 확보 -->
 
-    <a href="/" class="nav-brand">내돈내삶</a>
 
-    <div class="nav-right">
-        <div th:if="${session.loginUser != null}" class="nav-user-info">
-            <span th:text="${session.loginUser.memberNickname + '님 환영합니다!'}"></span>
-            &nbsp; | &nbsp;
-            <a href="/logout" class="nav-logout-btn">로그아웃</a>
-        </div>
-
-        <div th:if="${session.loginUser == null}" class="nav-user-info">
-            <a href="/login">로그인</a>
-        </div>
-    </div>
 
 <!-- 상단 배너 이미지 -->
 <img th:src="@{/img/게시판 이미지.jpg}"
@@ -110,7 +98,7 @@
                     검색창
         ============================= -->
         <form class="board-search-box d-flex justify-content-center gap-2 mb-4"
-              th:action="@{/board/list.do}" method="get">
+              th:action="@{/board}" method="get">
 
             <input type="text" name="keyword" class="form-control w-50"
                    th:value="${keyword}"

@@ -53,6 +53,7 @@ public class BoardComment {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "parentComment")
-    private Set<BoardComment> boardComments = new LinkedHashSet<>();
+    private java.util.List<BoardComment> boardComments = new java.util.ArrayList<>();
+
 
 }

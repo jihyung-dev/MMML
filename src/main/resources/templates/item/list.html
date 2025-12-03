@@ -64,30 +64,31 @@
 </div>-->
 
 <!--    main 내용, 로그인관련으로 유추중 -->
-    <!-- 🔹 판매자 등록 / 판매자 상세 / 로그인 후 유도 버튼
+<!--     🔹 판매자 등록 / 판매자 상세 / 로그인 후 유도 버튼-->
     <div class="d-flex justify-content-end mb-3">
 
-        &lt;!&ndash; 1) 비로그인: 로그인 페이지로 유도 &ndash;&gt;
+        <!-- 1) 비로그인: 로그인 페이지로 유도 -->
         <a th:if="${session.loginUser == null}"
            th:href="@{/login}"
            class="btn btn-outline-secondary btn-sm">
             로그인 후 판매자 등록
         </a>
 
-        &lt;!&ndash; 2) 로그인 했고, 아직 판매자가 아닌 경우: 판매자 등록 &ndash;&gt;
+        <!-- 2) 로그인 했고, 아직 판매자가 아닌 경우: 판매자 등록 (활성) -->
         <a th:if="${session.loginUser != null and (session.isSeller == null or session.isSeller == false)}"
            th:href="@{/seller/join}"
            class="btn btn-outline-primary btn-sm">
             판매자 등록
         </a>
 
-        &lt;!&ndash; 3) 로그인 했고, 이미 판매자인 경우: 판매자 상세 &ndash;&gt;
+        <!-- 3) 로그인 했고, 이미 판매자인 경우: 판매자 등록 버튼 비활성 -->
         <a th:if="${session.loginUser != null and session.isSeller == true}"
            th:href="@{/seller}"
-           class="btn btn-outline-primary btn-sm">
+           class="btn btn-outline-primary btn-sm"
+           style="opacity:0; pointer-events:none;">
             판매자 상세
         </a>
-    </div>-->
+    </div>
 
     <!--    병합 - hotdeal 내용으로  -->
     <!--    카테고리 버튼-->

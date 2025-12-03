@@ -1,7 +1,9 @@
 package com.smu.householdaccount.controller;
 
 import com.smu.householdaccount.entity.BoardPost;
+import com.smu.householdaccount.entity.BoardComment;
 import com.smu.householdaccount.service.BoardPostService;
+import com.smu.householdaccount.service.BoardCommentService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -10,12 +12,15 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/board")
 public class BoardPostController {
 
     private final BoardPostService boardPostService;
+    private final BoardCommentService boardCommentService; // ✅ 댓글 서비스 주입
 
     /** 게시글 목록 */
     @GetMapping
@@ -71,15 +76,28 @@ public class BoardPostController {
         return "redirect:/board";
     }
 
-    /** 글 상세 보기 */
+    /** 글 상세 보기 + 댓글(부모 기준) 7개씩 페이지네이션 */
     @GetMapping("/{id}")
-    public String detail(@PathVariable Long id, Model model) {
+    public String detail(@PathVariable Long id,
+                         @RequestParam(name = "cPage", defaultValue = "0") int cPage,
+                         Model model) {
 
+        // 게시글 조회
         BoardPost post = boardPostService.findById(id);
 
+        // 조회수 증가
         boardPostService.increaseViewCount(id);
 
+        // ✅ 부모 댓글 페이지네이션 (7개씩)
+        int pageSize = 7;
+        Page<BoardComment> parentCommentsPage =
+                boardCommentService.getParentComments(id, cPage, pageSize);
+
+        List<BoardComment> parentComments = parentCommentsPage.getContent();
+
         model.addAttribute("post", post);
+        model.addAttribute("parentCommentsPage", parentCommentsPage);
+        model.addAttribute("parentComments", parentComments);
 
         return "board/detail";
     }
