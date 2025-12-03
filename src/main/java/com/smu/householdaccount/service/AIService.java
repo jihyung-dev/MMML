@@ -2,7 +2,6 @@ package com.smu.householdaccount.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.smu.householdaccount.dto.CategoryUpdateReq;
 import com.smu.householdaccount.dto.TransActionBulkReq;
 import com.smu.householdaccount.dto.python.ClassifyTransactionResponse;
 import com.smu.householdaccount.dto.python.FineTuneResponse;
@@ -12,14 +11,9 @@ import com.smu.householdaccount.util.Log;
 import com.smu.householdaccount.web.SafeHttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
-
-import java.util.List;
 
 @Service
 public class AIService {

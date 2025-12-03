@@ -17,8 +17,8 @@ public class SafeHttpClient {
 
     public SafeHttpClient() {
         HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
-        factory.setConnectTimeout(3000);
-        factory.setReadTimeout(3000);
+        factory.setConnectTimeout(10000);
+        factory.setReadTimeout(10000);
 
         this.client = RestClient.builder()
                 .requestFactory(factory)

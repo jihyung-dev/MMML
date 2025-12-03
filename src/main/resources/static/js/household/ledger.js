@@ -866,3 +866,24 @@ function colorFromCategory(cat) {
     }
     return color;
 }
+
+// json 데이터 로드(개인 거래 내역)
+async function loadLedgerData() {
+    try{
+    const url = "/ledger/loadData";
+    const res = await fetch(url, {
+        method: "POST",
+        headers: {"Accept": "application/json", "Content-Type": "application/json"},
+    })
+
+    if(!res.ok){
+        throw new Error("Failed to load ledger data")
+    }
+
+    const result = await res.json();
+    console.log("ledger data loaded:", result);
+
+    }catch{
+        console.log("Error");
+    }
+}
