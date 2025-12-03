@@ -2,9 +2,12 @@ package com.smu.householdaccount.controller;
 
 import com.smu.householdaccount.entity.Member;
 import com.smu.householdaccount.service.MemberService;
+import com.smu.householdaccount.service.RedisService;
 import com.smu.householdaccount.service.SellerService;
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +18,7 @@ public class LoginController {
 
     private final MemberService memberService;
     private final SellerService sellerService;
-
+    private final RedisService redisService;
     /**
      * 로그인 페이지
      */
@@ -101,6 +104,23 @@ public class LoginController {
         return "auth/find-pw";
     }
 
+    // 메일 인증 절차 추가
+    @GetMapping("/request/mail")
+    public ResponseEntity<String> requestMail(HttpSession session, @RequestParam String email) throws MessagingException {
+        // 세션에서 메일 정보 받아서 사용자 아이디로 TTL 10분 캐싱 추가
+        Member member = (Member) session.getAttribute("loginUser");
+//        redisService.saveEmailAuthCode(member.getEmail());
+        redisService.saveEmailAuthCode(email);
+        return ResponseEntity.ok("success");
+    }
+
+    // 수신 메일 인증
+    @GetMapping("/request/check_mail")
+    public ResponseEntity<Boolean> checkMail(HttpSession session,@RequestParam String email, @RequestParam String inputCode) {
+        Boolean isValid = redisService.validateAuthCode(email, inputCode);
+        return ResponseEntity.ok(isValid);
+    }
+
     // 1단계: 본인 확인 (ID + 이름 + 이메일)
     @PostMapping("/find-pw")
     public String verifyForPwReset(@RequestParam String memberId,
@@ -112,7 +132,7 @@ public class LoginController {
 
         if (!valid) {
             model.addAttribute("error", "입력하신 정보와 일치하는 회원이 없습니다.");
-            return "auth/find-pw";
+            return "auth/find-pw"; // 고쳐야됨. 리다이렉트 막고, 응답값만 받아서 처리해야됨
         }
 
         // 본인 확인이 끝났으면, 비밀번호 재설정 페이지로 이동

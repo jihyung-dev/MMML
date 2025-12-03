@@ -32,6 +32,7 @@ public class MemberAuthController {
             @ModelAttribute Member member,
             Model model
     ) {
+        // 리다이렉트 수정 필요
         // 아이디 중복 체크
         if (memberService.existsByMemberId(member.getMemberId())) {
             model.addAttribute("member", member);
