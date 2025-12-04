@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/my_layout}"
+      th:with="title='주문한 내역'">
+<head>
+    <style layout:fragment="css"></style>
+</head>
+<body>
+<div layout:fragment="content">
+
+    <h1 class="text-2xl font-bold mb-6">🛒 주문 내역</h1>
+
+    <!-- 주문이 없을 때 -->
+    <div th:if="${#lists.isEmpty(orders)}" class="text-gray-600">
+        주문 내역이 없습니다.
+    </div>
+
+    <!-- 주문이 있을 때 -->
+    <div th:if="${!#lists.isEmpty(orders)}" class="space-y-4">
+
+        <div th:each="order : ${orders}"
+             class="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
+
+            <div class="flex justify-between items-center mb-2">
+                <p class="text-lg font-semibold">
+                    주문번호: <span th:text="${order.merchantUid}"></span>
+                </p>
+
+                <span class="text-sm px-3 py-1 rounded-full"
+                      th:classappend="${order.orderStatus == 'READY' ?
+                    'bg-yellow-100 text-yellow-700' :
+                    (order.orderStatus == 'PAID' ?
+                        'bg-green-100 text-green-700' :
+                        'bg-gray-200 text-gray-700')}"
+                      th:text="${order.orderStatus}">
+                </span>
+            </div>
+            <div class="mb-2">
+                <p>총 결제 금액:
+                    <span class="font-bold" th:text="${order.totalAmount}"></span>원
+                </p>
+
+                <p>주문 날짜:
+                    <span th:text="${order.createdAt}"></span>
+                </p>
+            </div>
+
+            <div class="flex gap-4" th:if="${order.orderItems != null and order.orderItems.size() > 0}"
+                th:each="orderItem : ${order.orderItems}">
+                <div class="mb-3" >
+                    <img th:if="${orderItem.item.itemImageUrl!=null}" th:src="@{${orderItem.item.itemImageUrl}}"
+                         alt="대표 이미지"
+                         class="w-28 h-28 object-cover rounded border" />
+                    <img th:if="${orderItem.item.itemImageUrl==null}" th:src="@{'/img/no-image.png'}"
+                         alt="No Image"
+                         class="w-28 h-28 object-cover rounded border" />
+                </div>
+
+                <!-- 오른쪽: 주문 정보 -->
+                <div class="flex flex-col justify-between">
+                    <div>
+                        <p>총 결제 금액:
+                            <span class="font-bold" th:text="${orderItem.item.originalPrice}"></span>원
+                        </p>
+
+                        <p>상품 이름:
+                            <span th:text="${orderItem.item.itemName}"></span>
+                        </p>
+                        <!-- 상세보기 버튼 -->
+                        <p class="mt-2">
+                            <a th:href="@{'/hotdeal/' + ${orderItem.item.id}}"
+                               class="text-blue-600 hover:underline font-medium">
+                                상세보기 →
+                            </a>
+                        </p>
+                    </div>
+
+
+
+                    <div class="mt-2" th:if="${order.orderItems == null or order.orderItems.size() == 0}">
+                        <span class="text-gray-400 text-sm">상세보기 불가</span>
+                    </div>
+                </div>
+            </div>
+</div>
+<script layout:fragment="script"></script>
+</body>
+</html>
