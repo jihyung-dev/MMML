@@ -14,7 +14,7 @@
 
 <!--<div class="container py-4">-->
 <div layout:fragment="content" class="mt-4">
-<!-- 상단 메뉴 / 뒤로가기 -->
+    <!-- 상단 메뉴 / 뒤로가기 -->
     <!--<div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <a th:href="@{/hotdeal}" class="btn btn-outline-secondary btn-sm">← 목록으로</a>
@@ -103,7 +103,7 @@
                     <hr/>
 
                     <!-- 옵션 선택 (두 가지 처리: optionGroups 가 있을 때 -> 여러 select, 없을 때 -> single select로 모든 옵션 노출) -->
-                    <form id="purchaseForm" th:action="@{/hotdeal/order}" method="post" class="mb-3">
+                    <form id="purchaseForm" th:action="@{/hotdeal/order/create}" method="post" class="mb-3">
                         <input type="hidden" name="itemId" th:value="${item.id}"/>
 
                         <!-- 안내 메시지: 판매 종료 또는 매진 시 -->
@@ -151,7 +151,7 @@
                         <!-- 수량 -->
                         <div class="mb-3 d-flex align-items-center gap-2">
                             <!--<label class="option-label mb-0">수량</label>-->
-                            <!--<input id="qtyInput" name="quantity" type="number" min="1" value="1" class="form-control" style="width:100px;"/>-->
+                            <input id="qtyInput" name="qty" type="number" min="1" value="1" class="form-control" style="width:100px;"/>
                             <div class="ms-3 text-muted">남은재고: <span id="stockDisplay">—</span></div>
                         </div>
 
@@ -227,7 +227,8 @@
 
 <script layout:fragment="script">
     document.addEventListener('DOMContentLoaded', () => {
-        const cart = [];
+        /// const cart = [];
+        window.cart = window.cart || [];
         const semiCartList = document.getElementById('semiCartList');
         const additionalPriceDisplay = document.getElementById('additionalPrice');
         const cartTotalPriceDisplay = document.getElementById('cartTotalPrice');
@@ -288,6 +289,7 @@
             let totalAdd = 0;
 
             cart.forEach((item, index) => {
+                console.log(item)
                 const itemTotal = (item.basePrice + item.additionalPrice) * item.quantity;
                 totalCartPrice += itemTotal;
                 totalAdd += item.additionalPrice * item.quantity;
@@ -296,6 +298,8 @@
                 li.className = "list-group-item d-flex justify-content-between align-items-center";
 
                 li.innerHTML = `
+                <input type="text" name="optionId" value="${item.optionId}">
+                <input type="number" name="quantity" value="${item.quantity}">
                 <div>
                     <strong>${item.optionText}</strong>
                     <br>
@@ -396,6 +400,62 @@
         document.querySelectorAll('.option-group, .single-option').forEach(sel => {
             sel.addEventListener('change', addOptionToCart);
         });
+
+
+        // 기존 코드에서 사용중인 cart 변수를 재사용해야 함.
+        // 만약 cart 변수가 다른 스코프면 이 코드의 cart 참조를 알맞게 바꿔줘.
+        // 아래 예시는 너가 올려준 코드와 합쳐서 사용한다고 가정.
+
+        const purchaseForm = document.getElementById('purchaseForm');
+        const buyBtn = document.getElementById('buyBtn');
+        // cart은 기존 스크립트에서 관리되는 배열 (각 항목: { optionId, optionText, quantity, additionalPrice, basePrice, stock })
+        // 만약 cart가 여기 스코프에 없다면 전역으로 올려놓거나 동일 스코프로 합쳐줘.
+
+        // 안전 체크: 폼이 있으면 submit 이벤트 붙임
+
+        // if (purchaseForm) {
+        //     purchaseForm.addEventListener('submit', function(e) {
+        //         e.preventDefault();
+        //
+        //         // assume cart exists in outer scope
+        //         if (!window.cart || window.cart.length === 0) {
+        //             alert('장바구니에 담긴 옵션이 없습니다. 옵션을 선택하세요.');
+        //             return;
+        //         }
+        //
+        //         // CSRF hidden input은 thymeleaf가 이미 넣어주고 있다면 여기선 생략.
+        //         // Remove any previously injected optionId/qty inputs to avoid duplicates
+        //         Array.from(purchaseForm.querySelectorAll('input[name="optionId"], input[name="qty"]')).forEach(n => n.remove());
+        //
+        //         // Append inputs for each cart item (so server can receive lists)
+        //         window.cart.forEach(item => {
+        //             // optionId (repeatable)
+        //             const opt = document.createElement('input');
+        //             opt.type = 'hidden';
+        //             opt.name = 'optionId';
+        //             opt.value = item.optionId; // semiCart에 저장한 optionId (문자 or number)
+        //             purchaseForm.appendChild(opt);
+        //
+        //             // qty
+        //             const q = document.createElement('input');
+        //             q.type = 'hidden';
+        //             q.name = 'qty';
+        //             q.value = item.quantity;
+        //             purchaseForm.appendChild(q);
+        //         });
+        //
+        //         // itemId는 originally inside the form as hidden; ensure it exists
+        //         const itemIdInput = purchaseForm.querySelector('input[name="itemId"]');
+        //         if (!itemIdInput) {
+        //             alert('상품 정보가 없습니다.');
+        //             return;
+        //         }
+        //
+        //         // submit the form (will send itemId + optionId[] + qty[] + csrf token)
+        //         purchaseForm.submit();
+        //     });
+        // }
+
     });
 
 </script>

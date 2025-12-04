@@ -36,7 +36,7 @@ public class OrderItem {
     private Item item;
 
     @Column(name = "OPTION_ID")
-    private Long otionId;
+    private Long optionId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.RESTRICT)

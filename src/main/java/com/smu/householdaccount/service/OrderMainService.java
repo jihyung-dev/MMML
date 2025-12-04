@@ -3,22 +3,28 @@ package com.smu.householdaccount.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smu.householdaccount.dto.payment.CreateOrderReq;
+import com.smu.householdaccount.entity.OrderItem;
 import com.smu.householdaccount.entity.OrderMain;
+import com.smu.householdaccount.repository.HotdealOptionRepository;
+import com.smu.householdaccount.repository.OrderItemRepository;
 import com.smu.householdaccount.repository.OrderMainRepository;
 import com.smu.householdaccount.web.SafeHttpClient;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
-public class OrderMainService {
+public class OrderMainService{
     @Value("${portone.api-key}")
     private String apiKey;
 

@@ -1,0 +1,134 @@
+<!-- templates/hotdeal/payment_page.html -->
+<!doctype html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/default_layout}"
+      th:with="CONTENT_TITLE='결제 | Hotdeal'">
+<head>
+    <meta charset="utf-8"/>
+    <title>결제 - Hotdeal</title>
+    <link layout:fragment="css" th:href="@{/css/item-detail.css}" rel="stylesheet"/>
+    <style>
+        .payment-card { max-width: 900px; margin: 2rem auto; }
+        .summary-row { display:flex; justify-content:space-between; align-items:center; padding:0.75rem 0; }
+        .muted-small { font-size:0.9rem; color:#6c757d; }
+        .pay-btn { min-width: 240px; }
+    </style>
+</head>
+
+<body>
+<div layout:fragment="content" class="container">
+
+    <div class="payment-card card shadow-sm">
+        <div class="card-body">
+            <h4 class="card-title mb-3">결제 정보 확인</h4>
+
+            <div th:if="${order != null}">
+                <div class="mb-3">
+                    <small class="muted-small">주문번호 (merchantUid)</small>
+                    <div class="fw-bold" th:text="${order != null ? '주문 #' + order.id : 'order-unknown'}">order-xxxxxxxx-xxxx</div>
+                </div>
+
+                <div class="mb-3">
+                    <small class="muted-small">상품 / 주문 요약</small>
+                    <div class="border rounded p-3 bg-light">
+                        <div class="summary-row">
+                            <div>
+                                <div th:text="${order.Id != null ? '주문 #' + order.Id : ''}">주문 #123</div>
+                                <div class="muted-small"
+                                     th:text="${order.createdAt != null ? #temporals.format(order.createdAt, 'yyyy-MM-dd HH:mm') : ''}">
+                                    2025-12-04 16:00
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <div class="h5 text-danger" th:text="${amount} + '원'">10,000원</div>
+                                <div class="muted-small">결제 예정 금액</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <ul class="list-group">
+                                <li th:each="oi : ${order.orderItems}"
+                                    class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div th:text="${oi.item != null ? oi.item.itemName : '상품'}">상품명</div>
+                                        <small class="muted-small"
+                                               th:text="${oi.option != null ? '옵션: ' + oi.option.optionType + ' ' + oi.option.optionValue : ''}">
+                                            옵션명
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <div th:text="${oi.price} + '원'">9,900원</div>
+                                        <small class="muted-small" th:text="'수량: ' + oi.qty">수량: 1</small>
+                                    </div>
+                                </li>
+
+                                <li th:if="${order.orderItems == null or #lists.isEmpty(order.orderItems)}"
+                                    class="list-group-item">
+                                    <div class="d-flex justify-content-between">
+                                        <div>핫딜 상품</div>
+                                        <div th:text="${amount} + '원'">10,000원</div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <small class="muted-small">결제 수단</small>
+                    <div class="mt-2 d-flex gap-2">
+                        <button id="payBtn" class="btn btn-primary pay-btn">카드 결제 (결제창 열기)</button>
+                        <button id="cancelBtn" class="btn btn-outline-secondary">주문 취소</button>
+                    </div>
+                </div>
+
+                <div class="mt-3 alert alert-light small">
+                    <strong>유의사항:</strong>
+                    <ul class="mb-0">
+                        <li>결제 진행 중에는 브라우저를 닫지 마세요.</li>
+                        <li>결제가 완료되면 자동으로 결제 완료 페이지로 이동합니다.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div th:unless="${order != null}" class="text-center py-4">
+                <p class="text-muted">유효한 주문 정보가 없습니다. 다시 시도해 주세요.</p>
+                <a th:href="@{/hotdeal}" class="btn btn-outline-primary">핫딜 목록으로</a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- 안전한 JS 인라인 사용: th:inline="javascript" -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    var merchantUid = /*[[${merchantUid} ?: 'order-unknown']]]*/ 'order-unknown';
+    var amount = /*[[${amount} ?: 0]]*/ 0;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var payBtn = document.getElementById('payBtn');
+        var cancelBtn = document.getElementById('cancelBtn');
+
+        if (payBtn) {
+            payBtn.addEventListener('click', function () {
+                if (!confirm('총 ' + amount + '원을 결제하시겠습니까? (데모)')) return;
+                // 실제 PG 연동 스크립트로 대체하세요.
+                window.location.href = /*[[@{/hotdeal/order/success}]]*/ '/hotdeal/order/success';
+            });
+        }
+
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', function () {
+                if (!confirm('주문을 취소하시겠습니까?')) return;
+                window.location.href = /*[[@{/hotdeal}]]*/ '/hotdeal';
+            });
+        }
+    });
+    /*]]>*/
+</script>
+
+</body>
+</html>

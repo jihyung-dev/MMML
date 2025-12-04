@@ -26,6 +26,7 @@ public class  OrderMain {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ORDER_ID", nullable = false)
     private Long id;
+
     @Column(name = "BUYER_ID", nullable = false, length = 50)
     private String buyerId;
 
