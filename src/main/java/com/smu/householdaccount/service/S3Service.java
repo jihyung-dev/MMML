@@ -19,6 +19,9 @@ import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignReques
 import java.io.IOException;
 import java.net.URL;
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Random;
 import java.util.UUID;
 
 @Service
@@ -64,6 +67,39 @@ public class S3Service {
         URL url = resource.getURL();
 
         return url.toString();
+    }
+
+    //선생님 작성
+    public String upload(MultipartFile file, String dirName) throws IOException {
+
+        // image/png -> png
+        String ext = file.getContentType().split("/")[1];
+
+        //S3에 저장한 파일 객체 생성
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+        int random = new Random().nextInt(9000) + 1000;
+
+        String fileName =  dirName + "/" +timestamp + "_" + random + "." + ext;
+        // it/20251203_224523_5721.png
+
+
+        ObjectMetadata metadata = ObjectMetadata.builder()
+                .contentType(file.getContentType())
+                .contentLength(file.getSize())
+                .build();
+
+        // S3에 업로드 (ObjectMetadata 방식)
+        S3Resource resource = s3Template.upload(
+                bucket,
+                fileName,
+                file.getInputStream(),
+                metadata
+        );
+
+        // 업로드된 객체의 URL 가져오기
+        URL url = resource.getURL();
+
+        return "https://" + cloudfrontDomain + "/" + fileName;
     }
 
     public String createPresignedGetUrl(String key) {

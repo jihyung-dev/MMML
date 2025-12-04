@@ -18,10 +18,12 @@ public class ItemDetailImage {
     @Column(name = "DETAIL_IMAGE_ID", nullable = false)
     private Long id;
 
-    @NotNull
+    @Column(name = "ITEM_ID", nullable = false)
+    private Long itemId;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "ITEM_ID", nullable = false)
+    @JoinColumn(name = "ITEM_ID", insertable = false, updatable = false)
     private Item item;
 
     @Size(max = 500)
