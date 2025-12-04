@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -122,5 +123,13 @@ public class OrderMainService {
         if(response == null){
             throw new RuntimeException("결제 취소 실패 : 응답 없음");
         }
+    }
+    public List<OrderMain> findByBuyerId(String buyerId) {
+        return orderMainRepository.findByBuyerId(buyerId);
+    }
+
+    public OrderMain findById(Long orderId) {
+        return orderMainRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("주문을 찾을 수 없습니다."));
     }
 }
