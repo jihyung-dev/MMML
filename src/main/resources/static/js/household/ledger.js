@@ -355,12 +355,14 @@ async function startDocu() {
     globalAvgLedger = await loadGlobalAvgData();
 
     // 2) 기존 로직들 실행
-    await loadLedgerChart({ year: currentYear, month: currentMonth });
+    await loadLedgerChart({year: currentYear, month: currentMonth});
     await loadTopData(); // Top3 데이터
     await loadAllCategoryStats(); // 성별 연령대 별 통계
     buildCategorySelectList();
     initCharts();
     prepareAgeLabels();
+
+    hideSkeleton();
 }
 
 // 초기 로딩
@@ -1014,6 +1016,7 @@ function createEventsFromDailyData(dailyData) {
     return events;
 }
 async function startDocu() {
+    showSkeleton();
     // 1) 전체 평균 데이터 먼저 로드
     globalAvgLedger = await loadGlobalAvgData();
 
@@ -1029,6 +1032,7 @@ async function startDocu() {
     buildCategorySelectList();
     initCharts();
     prepareAgeLabels();
+    hideSkeleton();
 }
 // =========================================
 // [New] DataTables 리스트 로직 (컬럼 확장판)
@@ -1212,6 +1216,7 @@ function createEventsFromDailyData(dailyData) {
 
 // json 데이터 로드(개인 거래 내역)
 async function loadLedgerData() {
+    showSkeleton();
     try{
         const url = "/ledger/loadData";
         const res = await fetch(url, {
@@ -1229,4 +1234,82 @@ async function loadLedgerData() {
     }catch{
         console.log("Error");
     }
+    hideSkeleton();
+}
+
+/**
+ * Global Skeleton UI
+ * - DOM에 없으면 자동 생성
+ * - showSkeleton(): skeleton 노출
+ * - hideSkeleton(): skeleton fade-out 후 제거
+ */
+
+/**
+ * Content 영역을 안전하게 탐색하는 함수
+ * (default_layout 렌더링 구조 대응)
+ */
+function findContentArea() {
+    return (
+        document.querySelector("main.container > div") ||     // 최우선
+        document.querySelector("main .container > div") ||    // fallback
+        document.querySelector('[layout\\:fragment="content"]') // 혹시 direct 렌더링된 케이스
+    );
+}
+
+/** Skeleton DOM이 없으면 생성 */
+function ensureSkeletonDom() {
+    // 이미 존재하면 패스
+    if (document.getElementById("globalSkeleton")) return;
+
+    const contentArea = findContentArea();
+    if (!contentArea) {
+        console.warn("content 영역을 찾지 못했습니다. Skeleton 생성 실패");
+        return;
+    }
+
+    const div = document.createElement("div");
+    div.id = "globalSkeleton";
+    div.style.display = "none"; // 초기에는 보이지 않도록
+
+    div.innerHTML = `
+        <div class="singleSkeletonCard"></div>
+    `;
+
+    // content 최상단에 삽입
+    contentArea.insertBefore(div, contentArea.firstChild);
+}
+
+/** Skeleton 표시 */
+function showSkeleton() {
+    ensureSkeletonDom();
+
+    const skel = document.getElementById("globalSkeleton");
+    if (!skel) return;
+
+    // display 켜기
+    skel.style.display = "flex";
+
+    // transition 설정
+    skel.style.setProperty('transition', 'opacity 0.35s ease', 'important');
+
+    // opacity 0 초기화
+    skel.style.setProperty('opacity', '0', 'important');
+
+    // 페이드인
+    requestAnimationFrame(() => {
+        skel.style.setProperty('opacity', '1', 'important');
+    });
+}
+
+/** Skeleton 숨기기 */
+function hideSkeleton() {
+    const skel = document.getElementById("globalSkeleton");
+    if (!skel) return;
+
+    skel.style.setProperty('opacity', '0', 'important');
+
+    // fade-out 후 DOM 제거
+    setTimeout(() => {
+        if (skel && skel.parentNode) skel.remove();
+    }, 350);
 }

@@ -26,7 +26,11 @@
 </head>
 <body>
 
-<div layout:fragment="content">
+<div layout:fragment="content" style="position: relative;">
+    <!-- 스켈레톤 오버레이 시작 -->
+    <div id="globalSkeleton">
+        <div class="singleSkeletonCard "></div>
+    </div>
     <button onclick="loadLedgerData()">데이터 불러오기</button>
     <div class="header-container mt-4 mobile-nav-only">
         <div class="month-nav">

@@ -576,3 +576,82 @@ body {
 .fc-day-today {
     background-color: #f8f9fa !important; /* 아주 연한 회색 배경 */
 }
+
+/* 🔹 전체 오버레이 */
+#globalSkeleton {
+    position: fixed !important;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+
+    background: rgba(0, 0, 0, 0.30);
+    backdrop-filter: blur(4px);
+    animation: bgFade 0.4s ease;
+}
+
+/* 🔹 Glass-style dark tile */
+#singleSkeletonCard {
+    width: 300px;
+    height: 170px;
+    border-radius: 18px;
+
+    /* Darker, softer glass */
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+
+    /* 약한 밝기와 은근한 음영 */
+    border: 1px solid rgba(255,255,255,0.15);
+    box-shadow:
+            0 6px 24px rgba(0,0,0,0.35),
+            inset 0 0 6px rgba(255,255,255,0.08);
+
+    position: relative;
+    overflow: hidden;
+
+    animation:
+            pulse 2.3s ease-in-out infinite,
+            float 6s ease-in-out infinite;
+}
+
+/* 🌊 아주 은은한 shimmer */
+#singleSkeletonCard::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+            110deg,
+            transparent 0%,
+            rgba(255,255,255,0.20) 40%,
+            transparent 80%
+    );
+    transform: translateX(-100%);
+    animation: shimmer 1.9s infinite linear;
+}
+
+/* 🎬 Keyframes */
+
+/* 부드러운 shimmer */
+@keyframes shimmer {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* pulse를 거의 정적으로 (눈 편안) */
+@keyframes pulse {
+    0%,100% { opacity: 0.85; }
+    50%     { opacity: 0.95; }
+}
+
+/* float는 아주 천천히 */
+@keyframes float {
+    0%,100% { transform: translateY(0px); }
+    50%     { transform: translateY(-4px); }
+}
+
+/* Fade-in overlay */
+@keyframes bgFade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
