@@ -2,23 +2,26 @@ package com.smu.householdaccount.controller;
 
 import com.smu.householdaccount.dto.ledger.LedgerSummaryDto;
 import com.smu.householdaccount.dto.python.ClassifyTransactionResponse;
+import com.smu.householdaccount.service.AIService;
 import com.smu.householdaccount.service.LedgerService;
+import com.smu.householdaccount.util.Log;
 import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @Controller
+@RequiredArgsConstructor
 @RequestMapping("/ledger")
 public class LedgerController {
 
     private final LedgerService ledgerService;
-
-    public LedgerController(LedgerService ledgerService) {
-        this.ledgerService = ledgerService;
-    }
+    private final AIService aiService;
 
     /**
      * 환율 받아오는 API
@@ -108,7 +111,7 @@ public class LedgerController {
             HttpSession session
     ){
         String memberId = (String) session.getAttribute("loginUserId");
-        ClassifyTransactionResponse res  = ledgerService.getLedgerTransaction(memberId);
+        ClassifyTransactionResponse res  = ledgerService.getLedgerTransaction(memberId, null);
 
         return ResponseEntity.ok(res);
     }
@@ -117,5 +120,32 @@ public class LedgerController {
     public ResponseEntity<?> test(@SessionAttribute(name="loginUserId") String user) {
         System.out.println(user);
         return ResponseEntity.ok(user);
+    }
+
+    @PostMapping("/import/excel")
+    @ResponseBody
+    public Map<String, Object> previewExcel(
+            @RequestParam("file") MultipartFile file
+    ) {
+        return ledgerService.previewExcel(file);// 화면에 노출되는 샘플은 3행만 노출
+    }
+
+    @PostMapping("/import/analyze")
+    public ResponseEntity<?> analyzeExcel(
+             HttpSession session,
+            @RequestBody Map<String, Object> previewJson
+    ) {
+        Map<String, Object> result = aiService.analyze(previewJson);
+
+        // 🚨 실패 응답 처리
+        if ("error".equals(result.get("status"))) {
+            return ResponseEntity.badRequest().body(result);
+        }
+
+        String memberId = (String) session.getAttribute("loginUserId");
+        ClassifyTransactionResponse res  = ledgerService.handleExcelClassification(memberId, result);
+
+        // 🔥 정상 응답이면 그대로 전달
+        return ResponseEntity.ok(res);
     }
 }

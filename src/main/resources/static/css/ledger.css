@@ -655,3 +655,99 @@ body {
     from { opacity: 0; }
     to   { opacity: 1; }
 }
+
+.file-drop-zone {
+    border: 2px dashed #aaa;
+    border-radius: 12px;
+    padding: 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.file-drop-zone.drag-over {
+    border-color: #000;
+    background-color: #f2f2f2;
+}
+
+.drop-text {
+    font-size: 18px;
+    color: #666;
+}
+
+.upload-preview-container {
+    background: #fff;
+    padding: 24px 28px;
+    border-radius: 12px;
+    border: 1px solid #ebebeb;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+
+.preview-title {
+    display: flex;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.preview-icon {
+    font-size: 22px;
+    margin-right: 8px;
+}
+
+.preview-title-text {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.preview-info {
+    margin-bottom: 16px;
+}
+
+.preview-info div {
+    margin-bottom: 4px;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #444;
+    margin-right: 6px;
+}
+
+.sample-title {
+    font-size: 17px;
+    margin-bottom: 12px;
+    font-weight: 600;
+}
+
+.table-wrap {
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.sample-table {
+    margin: 0;
+    width: 100%;
+    background: white;
+}
+
+.sample-table thead th {
+    background: #f7f7f7;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.sample-table td,
+.sample-table th {
+    padding: 10px 12px;
+    border-color: #e2e2e2;
+    font-size: 14px;
+}
+
+.sample-table tbody tr:nth-child(even) {
+    background: #fafafa;
+}
+
+.sample-table tbody td {
+    color: #444;
+}
