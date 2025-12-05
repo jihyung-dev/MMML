@@ -1104,8 +1104,47 @@ function closeWelcomeModal() {
 
 // ledger.js - startExtendedTour (최종 수정판: 종료 버튼 필승법 적용)
 
+// ledger.js - startExtendedTour (최종 수정판: CSS 자동 주입 + 종료 버튼 필승 로직)
+
+// ledger.js - startExtendedTour (TypeError 완벽 수정판)
+
 function startExtendedTour() {
-    // if (localStorage.getItem('tour_complete_final_v2')) return;
+    // if (localStorage.getItem('tour_complete_final_v5')) return;
+
+    // 1. 투어용 CSS 주입 (기존 유지)
+    const styleId = 'driver-custom-style';
+    if (!document.getElementById(styleId)) {
+        const style = document.createElement('style');
+        style.id = styleId;
+        style.innerHTML = `
+            @keyframes neonPulse {
+                0% { box-shadow: 0 0 5px #4a90e2; border-color: #4a90e2; }
+                100% { box-shadow: 0 0 15px #00d2ff, inset 0 0 5px #00d2ff; border-color: #00d2ff; }
+            }
+            .neon-active {
+                position: relative;
+                z-index: 100001 !important;
+                animation: neonPulse 1s infinite alternate;
+                background-color: transparent !important; 
+                pointer-events: auto !important; 
+            }
+            .tour-close-btn {
+                position: absolute;
+                top: 10px;
+                right: 15px;
+                font-size: 20px;
+                color: #999;
+                cursor: pointer;
+                z-index: 1000002;
+                font-family: Arial, sans-serif;
+            }
+            .tour-close-btn:hover { color: #ff4d4d; }
+            div#driver-popover-item { z-index: 100000 !important; }
+            .driver-active-element { z-index: 100000 !important; }
+            .driver-overlay { z-index: 99999 !important; }
+        `;
+        document.head.appendChild(style);
+    }
 
     const driver = window.driver.js.driver;
 
@@ -1116,6 +1155,34 @@ function startExtendedTour() {
         doneBtnText: '완료',
         nextBtnText: '네, 좋아요! >',
         prevBtnText: '< 이전',
+
+        // ★ [오류 수정] 인자로 들어오는 popover 객체 대신, 실제 DOM을 직접 찾습니다.
+        onPopoverRendered: (popoverObj) => {
+            // 1. 화면에 떠있는 팝업창(HTML 요소)을 직접 찾는다.
+            const popoverNode = document.querySelector('.driver-popover');
+
+            // 2. 팝업이 없거나, 이미 X버튼이 있으면 패스
+            if (!popoverNode || popoverNode.querySelector('.tour-close-btn')) return;
+
+            // 3. X 버튼 생성
+            const closeBtn = document.createElement('div');
+            closeBtn.className = 'tour-close-btn';
+            closeBtn.innerHTML = '&#10005;';
+            closeBtn.title = '투어 종료';
+
+            closeBtn.onclick = (e) => {
+                e.stopPropagation();
+                if (confirm('투어를 종료하시겠습니까?')) {
+                    document.querySelectorAll('.neon-active').forEach(el => el.classList.remove('neon-active'));
+                    if(typeof closeAddEntryModal === 'function') closeAddEntryModal();
+                    if(typeof closeDayListModal === 'function') closeDayListModal();
+                    driverObj.destroy();
+                }
+            };
+
+            // 4. 팝업창에 버튼 부착
+            popoverNode.appendChild(closeBtn);
+        },
 
         steps: [
             // [Step 0] 오프닝
@@ -1147,14 +1214,13 @@ function startExtendedTour() {
                     dayCells.forEach(cell => {
                         cell.addEventListener('click', () => {
                             el.classList.remove('neon-active');
-                            // ★ [수정] 모달이 뜨는 애니메이션 시간을 충분히(0.8초) 줘서 어색함 제거
                             setTimeout(() => driverObj.moveNext(), 800);
                         }, { once: true });
                     });
                 }
             },
 
-            // [Step 3] 추가 버튼 누르기 (모달 뜬 직후)
+            // [Step 3] 추가 버튼 누르기
             {
                 element: '#dayListModal button.btn-primary',
                 popover: { title: '3. 내역 등록', description: '새 내역을 등록해봅시다.<br><b>[+추가하기] 버튼을 클릭!</b>', side: "top", showButtons: [] },
@@ -1228,7 +1294,6 @@ function startExtendedTour() {
                                 </li>
                             `;
                         }
-                        // 리스트 그려지는 시간 대기
                         setTimeout(() => driverObj.moveNext(), 600);
                     }, { once: true });
                 }
@@ -1237,7 +1302,12 @@ function startExtendedTour() {
             // [Step 5] 등록 확인 & 클릭 유도
             {
                 element: '#tour-item',
-                popover: { title: '5. 등록 확인', description: '리스트에 내역이 추가되었습니다.<br><b>항목을 클릭해보세요.</b>', side: "left", showButtons: [] },
+                popover: {
+                    title: '5. 등록 확인',
+                    description: '리스트에 내역이 추가되었습니다.<br><b>항목을 클릭해보세요.</b>',
+                    side: "left",
+                    showButtons: []
+                },
                 onHighlightStarted: (el) => {
                     el.classList.add('neon-active');
                     el.addEventListener('click', () => {
@@ -1279,9 +1349,7 @@ function startExtendedTour() {
                 }
             },
 
-            // ============================================================
-            // [수정된 Step 7] 카테고리 (모든 버튼 네온 효과)
-            // ============================================================
+            // [Step 7] 카테고리 (2개 이상 선택 유도)
             {
                 element: '#categorySelectList',
                 popover: {
@@ -1292,17 +1360,14 @@ function startExtendedTour() {
                 },
                 onHighlightStarted: (el) => {
                     const btns = el.querySelectorAll('.category-btn');
-
-                    // ★ [수정] 모든 버튼에 네온 효과 부여
+                    // 모든 버튼 네온 효과
                     btns.forEach(btn => btn.classList.add('neon-active'));
 
-                    // 클릭 감지
                     btns.forEach(btn => {
                         btn.addEventListener('click', function checkCondition() {
                             setTimeout(() => {
                                 const activeCount = el.querySelectorAll('.category-btn.active').length;
                                 if (activeCount >= 2) {
-                                    // 완료되면 모든 버튼의 네온 끄기
                                     btns.forEach(b => b.classList.remove('neon-active'));
                                     driverObj.moveNext();
                                 }
@@ -1343,9 +1408,7 @@ function startExtendedTour() {
                 popover: { title: '상세 내역 관리', description: '여기서도 날짜를 이동하거나<br>항목을 눌러 <b>수정/삭제</b>가 가능합니다!', side: "top" }
             },
 
-            // ============================================================
-            // [수정된 Step 11] 종료 (Global Event Delegation - 필승법)
-            // ============================================================
+            // [Step 11] 종료 (종료 버튼 필승 로직)
             {
                 element: 'body',
                 popover: {
@@ -1356,23 +1419,21 @@ function startExtendedTour() {
                     showButtons: []
                 },
                 onHighlightStarted: (el) => {
-                    // ★ [필승법] 버튼이 언제 생기든 상관없이 문서 전체에서 클릭을 감시합니다.
-                    // 이렇게 하면 버튼이 늦게 그려져도 클릭을 무조건 잡습니다.
-                    const finishHandler = (e) => {
-                        if (e.target && e.target.id === 'tour-finish-btn') {
-                            driverObj.destroy();
-                            // 이벤트 리스너 제거 (청소)
-                            document.body.removeEventListener('click', finishHandler);
+                    setTimeout(() => {
+                        const finishBtn = document.getElementById('tour-finish-btn');
+                        if (finishBtn) {
+                            finishBtn.onclick = function() {
+                                driverObj.destroy();
+                            };
                         }
-                    };
-                    document.body.addEventListener('click', finishHandler);
+                    }, 100);
                 }
             }
         ],
 
         onDestroyStarted: () => {
             document.querySelectorAll('.neon-active').forEach(el => el.classList.remove('neon-active'));
-            localStorage.setItem('tour_complete_final_v2', 'true');
+            localStorage.setItem('tour_complete_final_v5', 'true');
         }
     });
 

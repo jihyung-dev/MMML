@@ -951,6 +951,24 @@ div#driver-popover-item {
     z-index: 100005 !important; /* JS에서 설정하지만 CSS로도 보장 */
 }
 
+/* 투어 팝업 우측 상단 닫기 버튼 */
+.tour-close-btn {
+    position: absolute;
+    top: 5px;
+    right: 15px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #999;
+    cursor: pointer;
+    z-index: 1000000; /* 글자보다 위에 */
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.tour-close-btn:hover {
+    color: #ff4d4d; /* 마우스 올리면 빨간색 */
+}
+
 /**
 기존 작업 내용
 /* top3 */
