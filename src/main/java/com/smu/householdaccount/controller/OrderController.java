@@ -49,6 +49,9 @@ public class OrderController {
         // 4) 실제 주문 생성
         OrderMain order = orderService.createHotdealOrder(hotdealOrderBean);
 
+        OrderMain orderWithItems = orderMainRepository.findWithItemsById(order.getId())
+                .orElse(order);
+
         // 5) 모델에 값 넣고 결제 페이지로 이동
         model.addAttribute("order", order);
         model.addAttribute("orderId", order.getId());

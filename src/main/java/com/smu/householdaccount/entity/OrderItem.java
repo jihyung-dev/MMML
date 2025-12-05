@@ -1,13 +1,16 @@
 package com.smu.householdaccount.entity;
 
+import io.lettuce.core.dynamic.annotation.Param;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import org.springframework.data.jpa.repository.Query;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 @Getter
 @Setter
