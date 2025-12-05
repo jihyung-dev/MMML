@@ -6,4 +6,5 @@ public interface DailySumDto {
     LocalDate getDate();
     String getEntryType();
     BigDecimal getTotalAmount();
+    Long getTxnCount(); // [추가]
 }

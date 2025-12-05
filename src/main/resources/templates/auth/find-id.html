@@ -1,12 +1,20 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html  lang="ko"
+       xmlns:th="http://www.thymeleaf.org"
+       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+       layout:decorate="~{layouts/default_layout}"
+       th:with="IS_LOGIN=false,CONTENT_TITLE='로그인 | 내돈내삶'">
+
 <head>
-    <meta charset="UTF-8">
-    <title>아이디 찾기</title>
     <link rel="stylesheet" th:href="@{/css/login.css}">
     <script src="/js/login/login.js"></script>
 </head>
-<body>
+
+<!-- 🔹 로그인 컨텐츠: 화면 중앙 정렬 -->
+<main layout:fragment="content"
+      class="container d-flex justify-content-center align-items-center"
+      style="min-height: 70vh;">
+
 
 <div class="login-container">
     <h2>아이디 찾기</h2>
@@ -47,5 +55,5 @@
     </div>
 </div>
 
-</body>
+</main>
 </html>

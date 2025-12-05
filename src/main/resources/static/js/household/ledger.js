@@ -9,8 +9,8 @@ Highcharts.setOptions({
 });
 const now = new Date();
 // 전역 상태
-let currentYear = 2025//now.getFullYear();
-let currentMonth = 10//now.getMonth() + 1;
+let currentYear = 2025  //now.getFullYear();
+let currentMonth = 10 //now.getMonth() + 1;
 
 let modalJustOpened = false; // 모달 팝업 플래그
 let modalChartInstance = null;
@@ -37,6 +37,8 @@ let ageChart = null;
 
 // 카테고리 별 연령대 배열
 let AGE_LABELS = [];
+// 엑셀 데이터
+let lastExcelRows = null;
 
 function prepareAgeLabels() {
     const ageSet = new Set();
@@ -91,10 +93,6 @@ async function loadLedgerChart({ year, month }) {
     if(bundle.current.daily) initCalendar(bundle.current.daily);
 
     return bundle;
-
-
-
-
 }
 
 function drawCategoryPieChart(categories) {
@@ -301,21 +299,35 @@ function drawDailyLineChart(currentDaily, prevDaily) {
 
 
 // 월 표시 업데이트
-
 function updateMonthLabel() {
     const text = `${currentYear}년 ${currentMonth}월`;
 
-    // 1. 모바일용 라벨 업데이트 (있으면)
+// 1. 모바일용 라벨 업데이트
     const mobileLabel = document.getElementById("mobileLabel");
     if(mobileLabel) mobileLabel.innerText = text;
 
-    // 2. PC용 라벨 업데이트 (있으면)
+    // 2. PC용 상단 라벨 업데이트
     const desktopLabel = document.getElementById("desktopLabel");
     if(desktopLabel) desktopLabel.innerText = text;
 
-    // (구버전 호환성을 위해 기존 ID도 체크)
-    const oldLabel = document.getElementById("currentMonthLabel");
-    if(oldLabel) oldLabel.innerText = text;
+    // 3. [핵심] 하단 테이블 위 라벨 업데이트 (이 부분이 없으면 숫자가 안 바뀝니다)
+    const bottomLabel = document.getElementById("bottomMonthLabel");
+    if(bottomLabel) bottomLabel.innerText = text;
+
+    // 기존 내용
+    // const text = `${currentYear}년 ${currentMonth}월`;
+    //
+    // // 1. 모바일용 라벨 업데이트 (있으면)
+    // const mobileLabel = document.getElementById("mobileLabel");
+    // if(mobileLabel) mobileLabel.innerText = text;
+    //
+    // // 2. PC용 라벨 업데이트 (있으면)
+    // const desktopLabel = document.getElementById("desktopLabel");
+    // if(desktopLabel) desktopLabel.innerText = text;
+    //
+    // // (구버전 호환성을 위해 기존 ID도 체크)
+    // const oldLabel = document.getElementById("currentMonthLabel");
+    // if(oldLabel) oldLabel.innerText = text;
 }
 
 
@@ -350,18 +362,21 @@ async function updateChart() {
     initDataTable();
 }
 
-async function startDocu() {
-    // 1) 전체 평균 데이터 먼저 로드
-    globalAvgLedger = await loadGlobalAvgData();
-
-    // 2) 기존 로직들 실행
-    await loadLedgerChart({ year: currentYear, month: currentMonth });
-    await loadTopData(); // Top3 데이터
-    await loadAllCategoryStats(); // 성별 연령대 별 통계
-    buildCategorySelectList();
-    initCharts();
-    prepareAgeLabels();
-}
+// 주석처리 확인용 !
+// async function startDocu() {
+//     // 1) 전체 평균 데이터 먼저 로드
+//     globalAvgLedger = await loadGlobalAvgData();
+//
+//     // 2) 기존 로직들 실행
+//     await loadLedgerChart({year: currentYear, month: currentMonth});
+//     await loadTopData(); // Top3 데이터
+//     await loadAllCategoryStats(); // 성별 연령대 별 통계
+//     buildCategorySelectList();
+//     initCharts();
+//     prepareAgeLabels();
+//
+//     hideSkeleton();
+// }
 
 // 초기 로딩
 document.addEventListener("DOMContentLoaded", () => {
@@ -453,23 +468,80 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("chartModal").style.display = "none";
 });
 
-// 밖에 눌러도 모달 종료
+
+// [New] 마우스 클릭 시작 위치를 저장할 변수
+let mouseDownTarget = null;
+
+document.addEventListener('mousedown', (e) => {
+    mouseDownTarget = e.target;
+});
+
+// =========================================
+// 1. 클릭 이벤트 리스너 (모달 외부 클릭 시 닫기)
+// =========================================
 document.addEventListener("click", (e) => {
-    const modal = document.getElementById("chartModal");
-    const content = document.querySelector(".modal-content");
+    // 1. 기존 차트 모달 닫기
+    const chartModal = document.getElementById("chartModal");
+    if (chartModal && chartModal.style.display === "flex") {
+        const content = chartModal.querySelector(".modal-content");
+        if (content && !content.contains(e.target) && !content.contains(mouseDownTarget) && !modalJustOpened) {
+            closeModal();
+        }
+    }
 
-    if (modal.style.display !== "flex") return; // 안 열려있으면 무시
-    if (modalJustOpened) return; // 바로 닫히는 버그 방지
-    if (content.contains(e.target)) return; // 내부 클릭은 무시
+    // 2. 입력/수정 모달(앞쪽) 닫기
+    const addModal = document.getElementById("addEntryModal");
+    let isAddModalOpen = false; // 플래그 변수
+    if (addModal && addModal.style.display === "flex") {
+        isAddModalOpen = true; // 열려있음 표시
+        const content = addModal.querySelector(".modal-content");
+        // 드래그 후 밖에서 뗐을 때 닫힘 방지
+        if (content && !content.contains(e.target) && !content.contains(mouseDownTarget) && !modalJustOpened) {
+            closeAddEntryModal();
+            isAddModalOpen = false; // 닫혔으므로 false
+        }
+    }
 
-    closeModal();
+    // 3. [수정됨] 리스트 모달(뒤쪽) 닫기
+    const listModal = document.getElementById("dayListModal");
+    if (listModal && listModal.style.display === "flex") {
+        const content = listModal.querySelector(".modal-content");
+
+        // 캘린더나 이벤트 클릭 방지
+        const isCalendarClick = e.target.closest('.fc-daygrid-day') || e.target.closest('.fc-event');
+
+        // ★ [핵심 수정] 앞쪽 모달(addEntryModal)이 열려있으면(!isAddModalOpen) 닫지 않음
+        if (content &&
+            !content.contains(e.target) &&
+            !content.contains(mouseDownTarget) &&
+            !isCalendarClick &&
+            !modalJustOpened &&
+            !isAddModalOpen) { // <--- 이 조건이 추가됨
+
+            closeDayListModal();
+        }
+    }
 });
 
-// esc로 모달 종료
+// =========================================
+// 2. 키보드 이벤트 리스너 (ESC 키 누르면 닫기)
+// =========================================
 document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeModal();
+    if (e.key === "Escape") {
+        // 열려있는 모달이 있다면 닫기 함수 호출
+        // (함수 내부에서 display 체크를 안 한다면 여기서 체크해도 되지만, 보통 닫기 함수만 호출해도 안전함)
+
+        const chartModal = document.getElementById("chartModal");
+        if(chartModal && chartModal.style.display === "flex") closeModal();
+
+        const addModal = document.getElementById("addEntryModal");
+        if(addModal && addModal.style.display === "flex") closeAddEntryModal();
+    }
 });
 
+// =========================================
+// 3. 캐싱 함수 (이벤트 리스너 밖으로 분리)
+// =========================================
 // 3개월간 데이터 캐싱(LRU 방식 사용)
 async function setCache(key, year, month, maxSize = 3) {
     // 이미 존재하면 최신으로 갱신
@@ -596,6 +668,13 @@ async function exportExcel(mail) {
         alert("엑셀 생성 실패");
         return;
     }
+
+    // 기존내용
+    // const blob = await res.blob();
+    // const a = document.createElement("a");
+    // a.href = window.URL.createObjectURL(blob);
+    // a.download = `ledger_${currentYear}-${currentMonth}.xlsx`;
+    // a.click();
 
 }
 // top 데이터 관련
@@ -914,106 +993,64 @@ function colorFromCategory(cat) {
 // [New] 캘린더 로직 (파일 맨 아래에 붙여넣기)
 // =========================================
 
+// [수정 2] 캘린더 설정 (숫자 중심 정렬 + 건수는 우측 부착)
 function initCalendar(dailyData) {
     var calendarEl = document.getElementById('calendar');
+    if(fullCalendarInstance) fullCalendarInstance.destroy();
+    if (!calendarEl) return;
 
-    // 1. 기존 캘린더가 있으면 삭제 (월 이동 시 중복 생성 방지)
-    if(fullCalendarInstance) {
-        fullCalendarInstance.destroy();
-    }
-
-    // 2. 캘린더가 들어갈 HTML 요소가 진짜 있는지 확인
-    if (!calendarEl) {
-        console.warn("HTML에 id='calendar'인 요소가 없습니다.");
-        return;
-    }
-
-    // 3. 새 캘린더 생성
     fullCalendarInstance = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
-        locale: 'ko', // 한국어 설정
-        // 현재 보고 있는 달(currentYear, currentMonth)로 달력 시작
+        locale: 'ko',
         initialDate: `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`,
-        headerToolbar: false, // 상단 기본 버튼 숨김 (우리가 만든 화살표 버튼 사용)
-        height: '100%',       // 높이 꽉 채우기
-
-        // ★ [추가] 정렬 기준 설정 ('sortIdx' 라는 우리가 만든 번호를 기준으로 정렬해라!)
+        headerToolbar: false,
+        height: '100%',
         eventOrder: 'sortIdx',
-
-        // ★ 핵심: 리스트 대신 금액 이벤트 생성
         events: createEventsFromDailyData(dailyData),
 
-        // 날짜 클릭 시 동작 (필요시 구현)
-        dateClick: function(info) {
-            console.log("클릭한 날짜:", info.dateStr);
-        }
+        // [수정] 화면 그리기 (간격 넓힘 + 밑선 정렬 + 중앙 유지)
+        eventContent: function(arg) {
+            const title = arg.event.title;
+            const count = arg.event.extendedProps.count;
+
+            // 1. 컨테이너: flex로 중앙 정렬 + baseline으로 글자 밑선 기준 정렬
+            // 2. 내부 div(relative): 메인 금액을 감싸는 기준점
+            // 3. 건수(absolute):
+            //    - left: 100% -> 금액 바로 끝에서 시작
+            //    - margin-left: 4px -> ★ 여유 있게 띄움 (너무 넓으면 짤리니 적당히)
+            //    - bottom: 1px -> ★ 숫자의 바닥 선과 시각적으로 맞춤
+
+            let htmlString = `
+                <div class="fc-event-title" style="width: 100%; display: flex; justify-content: center; align-items: baseline;">
+                    <div style="position: relative;">
+                        <span class="fw-bold" style="letter-spacing: -0.5px;">${title}</span>
+                        ${(count && count >= 2) ?
+                `<span style="
+                                position: absolute; 
+                                left: 100%; 
+                                bottom: 1px;
+                                margin-left: 4px;
+                                font-size: 0.75em; 
+                                font-weight: normal; 
+                                white-space: nowrap; 
+                                opacity: 0.9;">(${count})</span>`
+                : ''}
+                    </div>
+                </div>
+            `;
+
+            return { html: htmlString };
+        },
+
+        dateClick: function(info) { openDayListModal(info.dateStr); },
+        eventClick: function(info) { info.jsEvent.preventDefault(); openDayListModal(info.event.startStr); }
     });
 
     fullCalendarInstance.render();
 }
 
-// [Helper] 일별 데이터를 FullCalendar 이벤트로 변환 (색상 강제 적용 버전)
-function createEventsFromDailyData(dailyData) {
-    const events = [];
-
-    // 데이터 검증
-    if (!dailyData || !Array.isArray(dailyData)) {
-        console.warn("⚠️ 캘린더 데이터가 비어있습니다.");
-        return events;
-    }
-
-    dailyData.forEach(day => {
-        // 날짜 형식 안전 처리
-        if (!day.date) return;
-
-        let dateStr = "";
-        if (Array.isArray(day.date)) {
-            const y = day.date[0];
-            const m = String(day.date[1]).padStart(2, '0');
-            const d = String(day.date[2]).padStart(2, '0');
-            dateStr = `${y}-${m}-${d}`;
-        } else {
-            dateStr = day.date.toString().split("T")[0];
-        }
-
-        // 1. 수입 (파란색 강제 적용)
-        if (day.income > 0) {
-            events.push({
-                title: `+${Number(day.income).toLocaleString()}`,
-                start: dateStr,
-                // ★ 여기가 핵심 수정: textColor 직접 지정
-                textColor: '#004085',
-                backgroundColor: 'transparent',
-                borderColor: 'transparent',
-                display: 'block',
-                classNames: ['income-text'], // (혹시 몰라 클래스도 남김)
-                // ★ 정렬 순서: 0번 (우선순위 높음 -> 상단 배치)
-                sortIdx: 0
-            });
-        }
-
-        // 2. 지출 (빨간색 강제 적용)
-        if (day.expense > 0) {
-            events.push({
-                title: `-${Number(day.expense).toLocaleString()}`,
-                start: dateStr,
-                // ★ 여기가 핵심 수정: textColor 직접 지정
-                textColor: '#d63031',
-                backgroundColor: 'transparent',
-                borderColor: 'transparent',
-                display: 'block',
-                classNames: ['expense-text'],
-                // ★ 정렬 순서: 1번 (우선순위 낮음 -> 하단 배치)
-                sortIdx: 1
-            });
-        }
-    });
-
-    // 디버깅용: 콘솔에서 날짜와 색상이 들어갔는지 확인
-    console.log("✅ 캘린더 이벤트 생성 완료 (첫번째 데이터):", events[0]);
-    return events;
-}
 async function startDocu() {
+    showSkeleton();
     // 1) 전체 평균 데이터 먼저 로드
     globalAvgLedger = await loadGlobalAvgData();
 
@@ -1029,7 +1066,383 @@ async function startDocu() {
     buildCategorySelectList();
     initCharts();
     prepareAgeLabels();
+    dragElement();
+    hideSkeleton();
+
+// ★ 확장된 인터랙티브 투어 시작
+    setTimeout(() => {
+        startExtendedTour();
+    }, 500); // 화면 렌더링 안정화 대기
+
+/*    // ★ [여기 추가] 온보딩 모달 실행
+    console.log("온보딩 모달 체크 시작..."); // 디버깅용 로그
+    checkAndShowWelcomeModal();*/
 }
+/*// 2. 모달 띄우기 함수
+function checkAndShowWelcomeModal() {
+    // 테스트를 위해 아래 if문은 잠시 주석 처리하세요! (무조건 뜨게)
+    // if (!localStorage.getItem('welcome_done_v2')) {
+    const modal = document.getElementById("welcomeModal");
+    if(modal) {
+        console.log("모달 찾음! 표시합니다.");
+        modal.style.display = "flex";
+        modal.classList.add("show");
+    } else {
+        console.error("HTML에 id='welcomeModal'이 없습니다!");
+    }
+    // }
+}
+
+// 3. 닫기 함수
+function closeWelcomeModal() {
+    const modal = document.getElementById("welcomeModal");
+    if(modal) {
+        modal.style.display = "none";
+        modal.classList.remove("show");
+
+        // 닫을 때 '봤음' 처리
+        localStorage.setItem('welcome_done_v2', 'true');
+    }
+}*/
+
+// ledger.js - startExtendedTour (최종 수정판: 종료 버튼 필승법 적용)
+
+// ledger.js - startExtendedTour (최종 수정판: CSS 자동 주입 + 종료 버튼 필승 로직)
+
+// ledger.js - startExtendedTour (TypeError 완벽 수정판)
+
+function startExtendedTour() {
+    // if (localStorage.getItem('tour_complete_final_v5')) return;
+
+    // 1. 투어용 CSS 주입 (기존 유지)
+    const styleId = 'driver-custom-style';
+    if (!document.getElementById(styleId)) {
+        const style = document.createElement('style');
+        style.id = styleId;
+        style.innerHTML = `
+            @keyframes neonPulse {
+                0% { box-shadow: 0 0 5px #4a90e2; border-color: #4a90e2; }
+                100% { box-shadow: 0 0 15px #00d2ff, inset 0 0 5px #00d2ff; border-color: #00d2ff; }
+            }
+            .neon-active {
+                position: relative;
+                z-index: 100001 !important;
+                animation: neonPulse 1s infinite alternate;
+                background-color: transparent !important; 
+                pointer-events: auto !important; 
+            }
+            .tour-close-btn {
+                position: absolute;
+                top: 10px;
+                right: 15px;
+                font-size: 20px;
+                color: #999;
+                cursor: pointer;
+                z-index: 1000002;
+                font-family: Arial, sans-serif;
+            }
+            .tour-close-btn:hover { color: #ff4d4d; }
+            div#driver-popover-item { z-index: 100000 !important; }
+            .driver-active-element { z-index: 100000 !important; }
+            .driver-overlay { z-index: 99999 !important; }
+        `;
+        document.head.appendChild(style);
+    }
+
+    const driver = window.driver.js.driver;
+
+    const driverObj = driver({
+        showProgress: false,
+        animate: true,
+        allowClose: false,
+        doneBtnText: '완료',
+        nextBtnText: '네, 좋아요! >',
+        prevBtnText: '< 이전',
+
+        // ★ [오류 수정] 인자로 들어오는 popover 객체 대신, 실제 DOM을 직접 찾습니다.
+        onPopoverRendered: (popoverObj) => {
+            // 1. 화면에 떠있는 팝업창(HTML 요소)을 직접 찾는다.
+            const popoverNode = document.querySelector('.driver-popover');
+
+            // 2. 팝업이 없거나, 이미 X버튼이 있으면 패스
+            if (!popoverNode || popoverNode.querySelector('.tour-close-btn')) return;
+
+            // 3. X 버튼 생성
+            const closeBtn = document.createElement('div');
+            closeBtn.className = 'tour-close-btn';
+            closeBtn.innerHTML = '&#10005;';
+            closeBtn.title = '투어 종료';
+
+            closeBtn.onclick = (e) => {
+                e.stopPropagation();
+                if (confirm('투어를 종료하시겠습니까?')) {
+                    document.querySelectorAll('.neon-active').forEach(el => el.classList.remove('neon-active'));
+                    if(typeof closeAddEntryModal === 'function') closeAddEntryModal();
+                    if(typeof closeDayListModal === 'function') closeDayListModal();
+                    driverObj.destroy();
+                }
+            };
+
+            // 4. 팝업창에 버튼 부착
+            popoverNode.appendChild(closeBtn);
+        },
+
+        steps: [
+            // [Step 0] 오프닝
+            {
+                element: 'body',
+                popover: { title: '👋 환영합니다!', description: '가계부의 핵심 기능을<br>빠르게 체험해볼까요?', align: 'center' }
+            },
+
+            // [Step 1] 데이터 불러오기
+            {
+                element: 'button[onclick="loadLedgerData()"]',
+                popover: { title: '1. 데이터 연동', description: '먼저 데이터를 가져옵니다.<br><b>이 버튼을 클릭하세요!</b>', side: "bottom", showButtons: [] },
+                onHighlightStarted: (el) => {
+                    el.classList.add('neon-active');
+                    el.addEventListener('click', () => {
+                        el.classList.remove('neon-active');
+                        setTimeout(() => driverObj.moveNext(), 800);
+                    }, { once: true });
+                }
+            },
+
+            // [Step 2] 캘린더 조회
+            {
+                element: '#calendar',
+                popover: { title: '2. 캘린더 조회', description: '<b>아무 날짜나 클릭</b>해주세요.', side: "top", showButtons: [] },
+                onHighlightStarted: (el) => {
+                    el.classList.add('neon-active');
+                    const dayCells = document.querySelectorAll('.fc-daygrid-day');
+                    dayCells.forEach(cell => {
+                        cell.addEventListener('click', () => {
+                            el.classList.remove('neon-active');
+                            setTimeout(() => driverObj.moveNext(), 800);
+                        }, { once: true });
+                    });
+                }
+            },
+
+            // [Step 3] 추가 버튼 누르기
+            {
+                element: '#dayListModal button.btn-primary',
+                popover: { title: '3. 내역 등록', description: '새 내역을 등록해봅시다.<br><b>[+추가하기] 버튼을 클릭!</b>', side: "top", showButtons: [] },
+                onHighlightStarted: (el) => {
+                    const listModal = document.getElementById("dayListModal");
+                    if(listModal.style.display !== 'flex') openDayListModal('2025-10-01');
+
+                    el.classList.add('neon-active');
+                    el.addEventListener('click', () => {
+                        el.classList.remove('neon-active');
+                        setTimeout(() => driverObj.moveNext(), 100);
+                    }, { once: true });
+                }
+            },
+
+            // [Step 4] 정보 입력 & 저장
+            {
+                element: '#addEntryModal .modal-content',
+                popover: {
+                    title: '4. 정보 입력',
+                    description: '데이터는 제가 입력해드릴게요.<br><b>[저장하기] 버튼을 눌러보세요!</b>',
+                    side: "right",
+                    showButtons: []
+                },
+                onHighlightStarted: (el) => {
+                    const addModal = document.getElementById("addEntryModal");
+                    if (!addModal || addModal.style.display === 'none') {
+                        const dateText = document.getElementById('dayListDate').innerText || '2025-10-01';
+                        openAddEntryModal(dateText);
+                    }
+                    addModal.style.zIndex = "100005";
+
+                    document.getElementById("inputAmount").value = "5000";
+                    document.getElementById("inputPlace").value = "투어 체험용 커피";
+                    document.getElementById("inputMemo").value = "자동 입력됨";
+
+                    const saveBtn = addModal.querySelector('.btn-primary');
+                    const newBtn = saveBtn.cloneNode(true);
+                    newBtn.onclick = null;
+                    newBtn.removeAttribute("onclick");
+                    saveBtn.parentNode.replaceChild(newBtn, saveBtn);
+                    newBtn.classList.add('neon-active');
+
+                    newBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        newBtn.classList.remove('neon-active');
+                        addModal.style.zIndex = "";
+                        closeAddEntryModal();
+
+                        const listModal = document.getElementById("dayListModal");
+                        const listGroup = document.getElementById("dayListGroup");
+
+                        listModal.style.display = "flex";
+                        listModal.classList.add("show");
+
+                        if(listGroup) {
+                            listGroup.innerHTML = `
+                                <li id="tour-item" class="list-group-item list-group-item-action py-3" style="cursor:pointer; background:#f0f8ff;">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="d-flex flex-column">
+                                            <div class="d-flex align-items-baseline">
+                                                <span class="fw-bold me-2" style="font-size: 1.1rem; color: #333;">☕ 투어 체험용 커피</span>
+                                                <span class="text-muted small" style="font-size: 0.85rem;">방금 전</span>
+                                            </div>
+                                            <div class="text-secondary mt-1" style="font-size: 0.8rem;">└ 자동 입력됨</div>
+                                        </div>
+                                        <div class="text-danger fw-bold" style="font-size: 1.1rem;">-5,000원</div>
+                                    </div>
+                                </li>
+                            `;
+                        }
+                        setTimeout(() => driverObj.moveNext(), 600);
+                    }, { once: true });
+                }
+            },
+
+            // [Step 5] 등록 확인 & 클릭 유도
+            {
+                element: '#tour-item',
+                popover: {
+                    title: '5. 등록 확인',
+                    description: '리스트에 내역이 추가되었습니다.<br><b>항목을 클릭해보세요.</b>',
+                    side: "left",
+                    showButtons: []
+                },
+                onHighlightStarted: (el) => {
+                    el.classList.add('neon-active');
+                    el.addEventListener('click', () => {
+                        el.classList.remove('neon-active');
+
+                        const fakeItem = {
+                            id: 9999, entryAmount: 5000, occurredAt: '2025-10-01T12:30:00',
+                            entryType: 'EXPENSE', categoryName: '식비', placeOfUse: '투어 체험용 커피',
+                            memo: '자동 입력됨', payType: 'CARD'
+                        };
+                        openEditModal(fakeItem);
+
+                        setTimeout(() => driverObj.moveNext(), 500);
+                    }, { once: true });
+                }
+            },
+
+            // [Step 6] 수정/삭제 설명 -> [X] 누르면 바로 차트로 이동
+            {
+                element: '#addEntryModal .modal-content',
+                popover: { title: '6. 수정 및 삭제', description: '여기서 내용을 고치거나 삭제합니다.<br>확인하셨으면 <b>[X]로 닫아주세요.</b>', side: "right", showButtons: [] },
+                onHighlightStarted: (el) => {
+                    const addModal = document.getElementById("addEntryModal");
+                    addModal.style.zIndex = "100005";
+
+                    const closeBtn = addModal.querySelector('.close-btn');
+                    if(closeBtn) {
+                        closeBtn.classList.add('neon-active');
+                        closeBtn.addEventListener('click', () => {
+                            closeBtn.classList.remove('neon-active');
+                            addModal.style.zIndex = "";
+
+                            closeAddEntryModal();
+                            closeDayListModal();
+
+                            setTimeout(() => driverObj.moveNext(), 800);
+                        }, { once: true });
+                    }
+                }
+            },
+
+            // [Step 7] 카테고리 (2개 이상 선택 유도)
+            {
+                element: '#categorySelectList',
+                popover: {
+                    title: '7. 카테고리 분석',
+                    description: '비교하고 싶은 카테고리를<br><b>2개 이상 클릭</b>해주세요!',
+                    side: "top",
+                    showButtons: []
+                },
+                onHighlightStarted: (el) => {
+                    const btns = el.querySelectorAll('.category-btn');
+                    // 모든 버튼 네온 효과
+                    btns.forEach(btn => btn.classList.add('neon-active'));
+
+                    btns.forEach(btn => {
+                        btn.addEventListener('click', function checkCondition() {
+                            setTimeout(() => {
+                                const activeCount = el.querySelectorAll('.category-btn.active').length;
+                                if (activeCount >= 2) {
+                                    btns.forEach(b => b.classList.remove('neon-active'));
+                                    driverObj.moveNext();
+                                }
+                            }, 100);
+                        });
+                    });
+                }
+            },
+
+            // [Step 8] 차트 하이라이트
+            {
+                element: '#categoryStatsCharts',
+                popover: { title: '📊 차트 생성 완료!', description: '선택한 카테고리의<br>비교 데이터가 생성되었습니다.<br>확인 후 <b>[다음]</b>을 눌러주세요.', side: "top" },
+                onHighlightStarted: (el) => {
+                    el.classList.add('open');
+                    if(typeof genderChart !== 'undefined') genderChart.reflow();
+                    if(typeof ageChart !== 'undefined') ageChart.reflow();
+                }
+            },
+
+            // [Step 9] 하단 리스트 펼치기
+            {
+                element: '.table-wrapper',
+                popover: { title: '9. 전체 리스트 확인', description: '마지막으로 <b>화살표(▼)를 눌러</b><br>이번 달 전체 내역을 확인해보세요.', side: "top", showButtons: [] },
+                onHighlightStarted: (el) => {
+                    const toggleArea = el.querySelector('[data-bs-toggle="collapse"]');
+                    toggleArea.classList.add('neon-active');
+                    toggleArea.addEventListener('click', () => {
+                        toggleArea.classList.remove('neon-active');
+                        setTimeout(() => driverObj.moveNext(), 600);
+                    }, { once: true });
+                }
+            },
+
+            // [Step 10] 하단 리스트 안내
+            {
+                element: '#transactionCollapse',
+                popover: { title: '상세 내역 관리', description: '여기서도 날짜를 이동하거나<br>항목을 눌러 <b>수정/삭제</b>가 가능합니다!', side: "top" }
+            },
+
+            // [Step 11] 종료 (종료 버튼 필승 로직)
+            {
+                element: 'body',
+                popover: {
+                    title: '🎉 투어 완료!',
+                    description: '준비가 끝났습니다.<br>이제 효율적으로 자산을 관리해보세요!<br><br><button id="tour-finish-btn" class="driver-popover-done-btn" style="padding:8px 20px; font-weight:bold; cursor:pointer;">가계부 시작하기</button>',
+                    align: 'center',
+                    side: "center",
+                    showButtons: []
+                },
+                onHighlightStarted: (el) => {
+                    setTimeout(() => {
+                        const finishBtn = document.getElementById('tour-finish-btn');
+                        if (finishBtn) {
+                            finishBtn.onclick = function() {
+                                driverObj.destroy();
+                            };
+                        }
+                    }, 100);
+                }
+            }
+        ],
+
+        onDestroyStarted: () => {
+            document.querySelectorAll('.neon-active').forEach(el => el.classList.remove('neon-active'));
+            localStorage.setItem('tour_complete_final_v5', 'true');
+        }
+    });
+
+    driverObj.drive();
+}
+
 // =========================================
 // [New] DataTables 리스트 로직 (컬럼 확장판)
 // =========================================
@@ -1047,12 +1460,12 @@ function initDataTable() {
             url: `/api/ledger/transaction-list?year=${currentYear}&month=${currentMonth}`,
             dataSrc: ''
         },
+        // [수정] columns 설정: 너비(%) 고정 및 말줄임표(...) 적용
         columns: [
-            // ... (기존 컬럼 설정들 100% 동일하게 유지) ...
             {
                 data: 'occurredAt',
-                width: "12%",
-                render: function(data) {
+                width: "10%",    // 날짜는 고정폭
+                render: function(data) { /* 기존 렌더링 코드 유지 */
                     if(!data) return "-";
                     const date = new Date(data);
                     const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -1064,9 +1477,9 @@ function initDataTable() {
             },
             {
                 data: 'entryType',
-                width: "8%",
+                width: "7%",     // 뱃지는 작게
                 className: "text-center",
-                render: function(data) {
+                render: function(data) { /* 기존 렌더링 코드 유지 */
                     if(data === 'INCOME') return '<span class="badge bg-primary-subtle text-primary-emphasis rounded-pill">수입</span>';
                     if(data === 'EXPENSE') return '<span class="badge bg-danger-subtle text-danger-emphasis rounded-pill">지출</span>';
                     return data;
@@ -1074,22 +1487,35 @@ function initDataTable() {
             },
             {
                 data: 'categoryName',
-                width: "10%",
+                width: "12%",    // 카테고리 적당히
                 defaultContent: "-"
             },
-            { data: 'memo', defaultContent: "-" },
+            {
+                data: 'memo',
+                width: "20%",    // ★ 메모: 길어질 수 있음 -> 가장 넓게
+                defaultContent: "-",
+                // [핵심] render 함수로 감싸서 text-ellipsis 적용
+                render: function(data) {
+                    return `<span class="text-ellipsis" title="${data || ''}">${data || '-'}</span>`;
+                }
+            },
             {
                 data: 'placeOfUse',
-                width: "15%",
+                width: "18%",    // ★ 사용처: 길어질 수 있음
                 defaultContent: "-",
-                render: function(data) { return data ? data : '<span style="color:#ccc;">(미기재)</span>'; }
+                // [핵심] render 함수로 감싸서 text-ellipsis 적용
+                render: function(data) {
+                    const text = data ? data : '(미기재)';
+                    const color = data ? '' : 'color:#ccc;';
+                    return `<span class="text-ellipsis" style="${color}" title="${text}">${text}</span>`;
+                }
             },
             {
                 data: 'payType',
                 width: "10%",
                 className: "text-center",
                 defaultContent: "-",
-                render: function(data) {
+                render: function(data) { /* 기존 코드 유지 */
                     if(data === 'CARD') return '💳 카드';
                     if(data === 'CASH') return '💵 현금';
                     if(data === 'TRANSFER') return '🏦 이체';
@@ -1098,9 +1524,9 @@ function initDataTable() {
             },
             {
                 data: 'entryAmount',
-                width: "12%",
+                width: "16%",    // 금액은 자릿수가 많을 수 있으므로 넉넉하게
                 className: "text-end",
-                render: function(data, type, row) {
+                render: function(data, type, row) { /* 기존 코드 유지 */
                     const num = Number(data).toLocaleString();
                     const color = row.entryType === 'INCOME' ? '#3781d1' : '#db6767';
                     return `<span style="color:${color}; font-weight:bold;">${num}원</span>`;
@@ -1111,7 +1537,33 @@ function initDataTable() {
         order: [[0, 'asc']], // 1일부터 정렬
         pageLength: 10,
         lengthChange: false,
-        language: { url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/ko.json" },
+        language:
+        // { url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/ko.json" }
+        // [수정] 외부 URL 호출(CORS 에러) 대신 직접 객체를 정의함
+            {
+                "decimal": "",
+                "emptyTable": "데이터가 없습니다",
+                "info": "_START_ - _END_ (총 _TOTAL_ 개)",
+                "infoEmpty": "0 - 0 (총 0 개)",
+                "infoFiltered": "(전체 _MAX_ 개 중 검색결과)",
+                "infoPostFix": "",
+                "thousands": ",",
+                "lengthMenu": "_MENU_ 개씩 보기",
+                "loadingRecords": "로딩 중...",
+                "processing": "처리 중...",
+                "search": "검색:",
+                "zeroRecords": "검색된 데이터가 없습니다",
+                "paginate": {
+                    "first": "첫 페이지",
+                    "last": "마지막 페이지",
+                    "next": "다음",
+                    "previous": "이전"
+                },
+                "aria": {
+                    "sortAscending": ": 오름차순 정렬",
+                    "sortDescending": ": 내림차순 정렬"
+                }
+            },
         responsive: true,
 
         // ★ [핵심 1] 레이아웃 커스텀 (dom 설정)
@@ -1122,44 +1574,49 @@ function initDataTable() {
 
         // ★ [핵심 2] 요소 이동 및 커스텀
         initComplete: function() {
-            // 1) 엑셀 버튼을 상단 툴바(.top-toolbar)로 이사시키고 보이게 하기
+            // 1) 엑셀 버튼을 상단 툴바(.top-toolbar)로 이동 및 표시
             $('#btnExcelExport')
                 .appendTo('.top-toolbar')
                 .show();
 
-            // 2) 검색창에 ID/Name 부여 (경고 제거용)
+            // 2) [추가] 하단에 있던 Nav(#tableMonthNav)도 상단 툴바(.top-toolbar)로 이동
+            $('#tableMonthNav')
+                .appendTo('.top-toolbar')
+                .css('display', 'flex'); // 아까 감춰뒀던(display:none) 것을 flex로 보이게 변경
+
+            // 3) 검색창 설정 (기존 코드 유지)
             $('#ledgerTable_filter input')
                 .attr('id', 'dt-search-box')
                 .attr('name', 'dt-search-box')
-                .attr('placeholder', '내역 검색...'); // 플레이스홀더 추가
+                .attr('placeholder', '내역 검색...');
+        }
+
+    });
+    // ★ [New] 테이블 행 클릭 시 수정 모달 열기
+    $('#ledgerTable tbody').on('click', 'tr', function () {
+        const data = ledgerTable.row(this).data();
+        if(data) {
+            openEditModal(data); // 해당 데이터로 수정 모달 오픈
         }
     });
-
 }
-// [ledger.js] 맨 아래 함수 교체
-
+// [수정 1] 투명도 로직 변경 (0.2 -> 0.4 시작)
 function createEventsFromDailyData(dailyData) {
     const events = [];
 
     if (!dailyData || !Array.isArray(dailyData)) return events;
 
-    // 1. 이번 달의 최대 수입/지출 찾기 (농도 계산용)
-    let maxIncome = 0;
-    let maxExpense = 0;
+    let maxIncome = 1;
+    let maxExpense = 1;
 
     dailyData.forEach(day => {
         if (day.income > maxIncome) maxIncome = day.income;
         if (day.expense > maxExpense) maxExpense = day.expense;
     });
 
-    // 0으로 나누기 방지
-    if (maxIncome === 0) maxIncome = 1;
-    if (maxExpense === 0) maxExpense = 1;
-
     dailyData.forEach(day => {
         if (!day.date) return;
 
-        // 날짜 파싱
         let dateStr = "";
         if (Array.isArray(day.date)) {
             const y = day.date[0];
@@ -1170,39 +1627,42 @@ function createEventsFromDailyData(dailyData) {
             dateStr = day.date.toString().split("T")[0];
         }
 
-        // 2. 수입 이벤트 생성 (파란색 히트맵)
+        const incCount = day.incomeCount || 0;
+        const expCount = day.expenseCount || 0;
+
+        // 2. 수입 이벤트
         if (day.income > 0) {
-            // 투명도 계산: 최소 0.2 ~ 최대 1.0
-            const opacity = 0.2 + (day.income / maxIncome) * 0.8;
+            // ★ [수정] 투명도 0.4부터 시작 (0.4 ~ 1.0)
+            const opacity = 0.4 + (day.income / maxIncome) * 0.6;
 
             events.push({
                 title: `+${Number(day.income).toLocaleString()}`,
                 start: dateStr,
-                // 배경색: 파란색(RGB: 0, 123, 255) + 투명도
+                // 배경색: 파란색
                 backgroundColor: `rgba(0, 123, 255, ${opacity})`,
                 borderColor: 'transparent',
-                textColor: '#fff', // 배경이 있으니 글씨는 흰색
+                textColor: '#fff',
                 display: 'block',
                 sortIdx: 0,
-                classNames: ['heatmap-event']
+                extendedProps: { count: incCount, type: 'INCOME' }
             });
         }
 
-        // 3. 지출 이벤트 생성 (빨간색 히트맵)
+        // 3. 지출 이벤트
         if (day.expense > 0) {
-            // 투명도 계산
-            const opacity = 0.2 + (day.expense / maxExpense) * 0.8;
+            // ★ [수정] 투명도 0.4부터 시작
+            const opacity = 0.4 + (day.expense / maxExpense) * 0.6;
 
             events.push({
                 title: `-${Number(day.expense).toLocaleString()}`,
                 start: dateStr,
-                // 배경색: 빨간색(RGB: 220, 53, 69) + 투명도
+                // 배경색: 빨간색
                 backgroundColor: `rgba(220, 53, 69, ${opacity})`,
                 borderColor: 'transparent',
-                textColor: '#fff', // 글씨는 흰색
+                textColor: '#fff',
                 display: 'block',
                 sortIdx: 1,
-                classNames: ['heatmap-event']
+                extendedProps: { count: expCount, type: 'EXPENSE' }
             });
         }
     });
@@ -1212,6 +1672,7 @@ function createEventsFromDailyData(dailyData) {
 
 // json 데이터 로드(개인 거래 내역)
 async function loadLedgerData() {
+    showSkeleton();
     try{
         const url = "/ledger/loadData";
         const res = await fetch(url, {
@@ -1229,4 +1690,670 @@ async function loadLedgerData() {
     }catch{
         console.log("Error");
     }
+    hideSkeleton();
+}
+
+/**
+ * Global Skeleton UI
+ * - DOM에 없으면 자동 생성
+ * - showSkeleton(): skeleton 노출
+ * - hideSkeleton(): skeleton fade-out 후 제거
+ */
+
+/**
+ * Content 영역을 안전하게 탐색하는 함수
+ * (default_layout 렌더링 구조 대응)
+ */
+function findContentArea() {
+    return (
+        document.querySelector("main.container > div") ||     // 최우선
+        document.querySelector("main .container > div") ||    // fallback
+        document.querySelector('[layout\\:fragment="content"]') // 혹시 direct 렌더링된 케이스
+    );
+}
+
+/** Skeleton DOM이 없으면 생성 */
+function ensureSkeletonDom() {
+    // 이미 존재하면 패스
+    if (document.getElementById("globalSkeleton")) return;
+
+    const contentArea = findContentArea();
+    if (!contentArea) {
+        console.warn("content 영역을 찾지 못했습니다. Skeleton 생성 실패");
+        return;
+    }
+
+    const div = document.createElement("div");
+    div.id = "globalSkeleton";
+    div.style.display = "none"; // 초기에는 보이지 않도록
+
+    div.innerHTML = `
+        <div class="singleSkeletonCard"></div>
+    `;
+
+    // content 최상단에 삽입
+    contentArea.insertBefore(div, contentArea.firstChild);
+}
+
+/** Skeleton 표시 */
+function showSkeleton() {
+    ensureSkeletonDom();
+
+    const skel = document.getElementById("globalSkeleton");
+    if (!skel) return;
+
+    // display 켜기
+    skel.style.display = "flex";
+
+    // transition 설정
+    skel.style.setProperty('transition', 'opacity 0.35s ease', 'important');
+
+    // opacity 0 초기화
+    skel.style.setProperty('opacity', '0', 'important');
+
+    // 페이드인
+    requestAnimationFrame(() => {
+        skel.style.setProperty('opacity', '1', 'important');
+    });
+}
+
+/** Skeleton 숨기기 */
+function hideSkeleton() {
+    const skel = document.getElementById("globalSkeleton");
+    if (!skel) return;
+
+    skel.style.setProperty('opacity', '0', 'important');
+
+    // [수정] remove() 하지 않고 display만 none으로 변경 (재사용을 위해)
+    setTimeout(() => {
+        if (skel) {
+            // skel.remove(); //  주석 처리 *******************
+            skel.style.display = "none";
+        }
+    }, 350);
+}
+// =========================================
+// [New] 입력 모달(Add Entry) 관련 로직
+// =========================================
+
+// [ledger.js] openAddEntryModal 대신 -> openEditModal (수정용)과 통합
+
+// [수정] 1. (기존) 추가 모드 열기
+function openAddEntryModal(dateStr) {
+    resetEntryForm();
+    closeDayListModal();
+
+    document.getElementById("inputDate").value = dateStr;
+    const now = new Date();
+    document.getElementById("inputTime").value = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+    // ★ [핵심] 버튼 글자를 강제로 '저장하기'로 변경
+    // (이전 수정 작업 때문에 '수정하기'로 남아있을 수 있음)
+    const btn = document.querySelector('#addEntryModal .btn-primary');
+    if(btn) btn.innerText = "저장하기";
+
+    showEntryModal("새 내역 추가");
+}
+
+// [수정] 2. (New) 수정 모드 열기
+function openEditModal(item) {
+    resetEntryForm();
+
+    document.getElementById("entryId").value = item.id;
+    document.getElementById("inputAmount").value = item.entryAmount;
+
+    // ... (중간 생략: 값 세팅 로직은 기존 유지) ...
+
+    // ★ [핵심] 버튼 글자를 '수정하기'로 변경
+    const btn = document.querySelector('#addEntryModal .btn-primary');
+    if(btn) btn.innerText = "수정하기";
+
+    document.getElementById("btnDelete").style.display = "block";
+    showEntryModal("내역 수정");
+}
+
+// 공통: 모달 보여주기
+function showEntryModal(title) {
+    const modal = document.getElementById("addEntryModal");
+    modal.querySelector("h3").innerText = title;
+    modal.classList.add("show");
+    modal.style.display = "flex";
+    // [추가] 모달이 열리는 순간에는 외부 클릭 감지 무시
+    modalJustOpened = true;
+    setTimeout(() => {
+        modalJustOpened = false;
+    }, 100);
+}
+
+// 공통: 폼 리셋
+function resetEntryForm() {
+    document.getElementById("entryId").value = ""; // ID 초기화
+    document.getElementById("inputAmount").value = "";
+    document.getElementById("inputPlace").value = "";
+    document.getElementById("inputMemo").value = "";
+    document.getElementById("btnDelete").style.display = "none"; // 삭제 버튼 숨기기
+}
+
+function closeAddEntryModal() {
+    const modal = document.getElementById("addEntryModal");
+    modal.style.display = "none";
+    modal.classList.remove("show");
+}
+async function deleteEntry() {
+    const id = document.getElementById("entryId").value;
+    if(!id) return;
+
+    if(!confirm("정말 이 내역을 삭제하시겠습니까?")) return;
+
+    try {
+        const res = await fetch(`/api/ledger/entry/${id}`, {
+            method: 'DELETE'
+        });
+
+        if (res.ok) {
+            alert("삭제되었습니다.");
+            closeAddEntryModal();
+            closeDayListModal();
+
+            const key = `${currentYear}-${currentMonth}`;
+            ledgerCache.delete(key);
+            updateChart();
+        } else {
+            alert("삭제 실패");
+        }
+    } catch(e) {
+        console.error(e);
+        alert("에러 발생");
+    }
+}
+// 4. 저장/삭제 로직 수정 (ID 유무에 따라 POST/PUT/DELETE 분기)
+async function submitNewEntry() {
+    const id = document.getElementById("entryId").value;
+    const url = id ? `/api/ledger/entry/${id}` : '/api/ledger/entry';
+    const method = id ? 'PUT' : 'POST';
+
+    // ... 값 가져오기 (기존 코드 동일) ...
+    const dateVal = document.getElementById("inputDate").value;
+    const timeVal = document.getElementById("inputTime").value;
+    const type = document.getElementById("inputType").value;
+    const category = document.getElementById("inputCategory").value;
+    const amount = document.getElementById("inputAmount").value;
+    const place = document.getElementById("inputPlace").value;
+    const memo = document.getElementById("inputMemo").value;
+    const payType = document.querySelector('input[name="payType"]:checked').value;
+
+    if (!amount || amount <= 0) {
+        alert("금액을 정확히 입력해주세요.");
+        return;
+    }
+
+    const fullDateTime = timeVal ? `${dateVal}T${timeVal}:00` : `${dateVal}T00:00:00`;
+
+    const payload = {
+        entryType: type,
+        amount: Number(amount),
+        dateTime: fullDateTime,
+        categoryName: category,
+        memo: memo,
+        place: place,
+        payType: payType
+    };
+
+    try {
+        let url = '/api/ledger/entry';
+        let method = 'POST';
+
+        // ★ ID가 있으면 수정 모드!
+        if (id) {
+            url = `/api/ledger/entry/${id}`;
+            method = 'PUT';
+        }
+
+        const res = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+// 성공 시 모달 둘 다 닫고 캐시 삭제 후 차트 갱신
+        if(res.ok) {
+            closeDayListModal();
+            closeAddEntryModal();
+            ledgerCache.delete(`${currentYear}-${currentMonth}`); //
+            updateChart();
+        } else {
+            alert("처리 실패");
+        }
+    } catch (e) {
+        console.error(e);
+        alert("에러 발생");
+    }
+}
+// =========================================
+// [추가] 연도 이동 로직 (상/하단 공통 사용)
+// =========================================
+async function moveYear(offset) {
+    currentYear += offset;
+    // 연도 변경 후 전체 차트/데이터 갱신
+    await updateChart();
+}
+// =========================================
+// [수정] 일별 리스트 모달 (Day List) 관련
+// =========================================
+async function openDayListModal(dateStr) {
+    const modal = document.getElementById("dayListModal");
+    const listGroup = document.getElementById("dayListGroup");
+
+    // 날짜 제목 설정 (예: 2025-10-15)
+    const dateTitle = document.getElementById("dayListDate");
+    if(dateTitle) dateTitle.innerText = dateStr;
+
+    // 로딩 표시
+    if(listGroup) {
+        listGroup.innerHTML = '<li class="list-group-item">로딩 중...</li>';
+    }
+
+    if(modal) {
+        modal.classList.add("show");
+        modal.style.display = "flex";
+
+        // 모달이 열리는 순간 외부 클릭으로 바로 닫히지 않도록 방어
+        modalJustOpened = true;
+        setTimeout(() => { modalJustOpened = false; }, 100);
+    }
+
+    try {
+        // API 호출
+        const res = await fetch(`/api/ledger/daily-list?date=${dateStr}`);
+
+        if (!res.ok) throw new Error("네트워크 응답 실패");
+
+        const list = await res.json();
+
+        if(listGroup) {
+            listGroup.innerHTML = ""; // 기존 내용 비우기
+
+            if(list.length === 0) {
+                listGroup.innerHTML = '<li class="list-group-item text-muted text-center py-4">내역이 없습니다.<br><small>새로운 내역을 추가해보세요!</small></li>';
+            } else {
+                list.forEach(item => {
+                    const li = document.createElement("li");
+                    li.className = "list-group-item list-group-item-action py-3";
+                    li.style.cursor = "pointer";
+                    // 클릭 시 수정 모달로 연결
+                    li.onclick = () => openEditModal(item);
+
+                    // 1. 시간 포맷팅
+                    let timeStr = "";
+                    if(item.occurredAt) {
+                        const dateObj = new Date(item.occurredAt);
+                        const hours = dateObj.getHours();
+                        const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+                        const ampm = hours >= 12 ? '오후' : '오전';
+                        const displayHour = hours % 12 || 12;
+                        timeStr = `${ampm} ${displayHour}:${minutes}`;
+                    }
+
+                    // 2. 제목 (사용처 우선, 없으면 카테고리)
+                    const mainTitle = item.placeOfUse ? item.placeOfUse : item.categoryName;
+
+                    // 3. 스타일 (지출:빨강, 수입:파랑)
+                    const isExpense = item.entryType === 'EXPENSE';
+                    const colorClass = isExpense ? 'text-danger' : 'text-primary';
+                    const sign = isExpense ? '-' : '+';
+                    const moneyStr = Number(item.entryAmount).toLocaleString();
+
+                    // 4. HTML 조립
+                    li.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex flex-column">
+                                <div class="d-flex align-items-baseline">
+                                    <span class="fw-bold me-2" style="font-size: 1.1rem; color: #333;">${mainTitle}</span>
+                                    <span class="text-muted small" style="font-size: 0.85rem;">${timeStr}</span>
+                                </div>
+                                ${item.memo ? `<div class="text-secondary mt-1" style="font-size: 0.8rem;">└ ${item.memo}</div>` : ''}
+                            </div>
+                            <div class="${colorClass} fw-bold" style="font-size: 1.1rem;">
+                                ${sign}${moneyStr}원
+                            </div>
+                        </div>
+                    `;
+                    listGroup.appendChild(li);
+                });
+            }
+        }
+    } catch (e) {
+        console.error(e);
+        if(listGroup) listGroup.innerHTML = '<li class="list-group-item text-danger">데이터를 불러오지 못했습니다.</li>';
+    }
+}
+
+
+
+function closeWelcomeModal() {
+    const modal = document.getElementById("welcomeModal");
+    modal.style.display = "none";
+    modal.classList.remove("show");
+
+    // 다시 보지 않기 설정
+    localStorage.setItem('welcome_done', 'true');
+}
+// =========================================
+// [누락된 함수 복구] 모달 닫기 기능
+// =========================================
+
+function closeDayListModal() {
+    const modal = document.getElementById("dayListModal");
+    if (modal) {
+        modal.style.display = "none";
+        modal.classList.remove("show");
+    }
+}
+
+
+//혹시 안될까봐
+// json 데이터 로드(개인 거래 내역)
+// async function loadLedgerData() {
+//     showSkeleton();
+//     try{
+//         const url = "/ledger/loadData";
+//         const res = await fetch(url, {
+//             method: "POST",
+//             headers: {"Accept": "application/json", "Content-Type": "application/json"},
+//         })
+//
+//         if(!res.ok){
+//             throw new Error("Failed to load ledger data")
+//         }
+//
+//         const result = await res.json();
+//         console.log("ledger data loaded:", result);
+//
+//     }catch{
+//         console.log("Error");
+//     }
+//     hideSkeleton();
+// }
+//
+// /**
+//  * Global Skeleton UI
+//  * - DOM에 없으면 자동 생성
+//  * - showSkeleton(): skeleton 노출
+//  * - hideSkeleton(): skeleton fade-out 후 제거
+//  */
+//
+// /**
+//  * Content 영역을 안전하게 탐색하는 함수
+//  * (default_layout 렌더링 구조 대응)
+//  */
+// function findContentArea() {
+//     return (
+//         document.querySelector("main.container > div") ||     // 최우선
+//         document.querySelector("main .container > div") ||    // fallback
+//         document.querySelector('[layout\\:fragment="content"]') // 혹시 direct 렌더링된 케이스
+//     );
+// }
+//
+// /** Skeleton DOM이 없으면 생성 */
+// function ensureSkeletonDom() {
+//     // 이미 존재하면 패스
+//     if (document.getElementById("globalSkeleton")) return;
+//
+//     const contentArea = findContentArea();
+//     if (!contentArea) {
+//         console.warn("content 영역을 찾지 못했습니다. Skeleton 생성 실패");
+//         return;
+//     }
+//
+//     const div = document.createElement("div");
+//     div.id = "globalSkeleton";
+//     div.style.display = "none"; // 초기에는 보이지 않도록
+//
+//     div.innerHTML = `
+//         <div class="singleSkeletonCard"></div>
+//     `;
+//
+//     // content 최상단에 삽입
+//     contentArea.insertBefore(div, contentArea.firstChild);
+// }
+//
+// /** Skeleton 표시 */
+// function showSkeleton() {
+//     ensureSkeletonDom();
+//
+//     const skel = document.getElementById("globalSkeleton");
+//     if (!skel) return;
+//
+//     // display 켜기
+//     skel.style.display = "flex";
+//
+//     // transition 설정
+//     skel.style.setProperty('transition', 'opacity 0.35s ease', 'important');
+//
+//     // opacity 0 초기화
+//     skel.style.setProperty('opacity', '0', 'important');
+//
+//     // 페이드인
+//     requestAnimationFrame(() => {
+//         skel.style.setProperty('opacity', '1', 'important');
+//     });
+// }
+//
+// /** Skeleton 숨기기 */
+// function hideSkeleton() {
+//     const skel = document.getElementById("globalSkeleton");
+//     if (!skel) return;
+//
+//     skel.style.setProperty('opacity', '0', 'important');
+//
+//     // fade-out 후 DOM 제거
+//     setTimeout(() => {
+//         if (skel && skel.parentNode) skel.remove();
+//     }, 350);
+// 드래그 앤 드랍
+function dragElement() {
+    const dropZone = document.getElementById('fileDropZone');
+    const fileInput = document.getElementById('fileInput');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('drag-over');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+
+        const file = e.dataTransfer.files[0];
+        handleFileUpload(file);
+    });
+
+    fileInput.addEventListener('change', () => {
+        const file = fileInput.files[0];
+        handleFileUpload(file);
+    });
+
+}
+
+function handleFileUpload(file) {
+    if (!file) return;
+
+    // 파일 확장자 소문자 추출
+    const ext = file.name.split('.').pop().toLowerCase();
+    const allowedExt = ["xls", "xlsx", "csv"];
+
+    if (!allowedExt.includes(ext)) {
+        alert("엑셀 파일(.xls, .xlsx, .csv)만 업로드 가능합니다!");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    fetch("/ledger/import/excel", {
+        method: "POST",
+        body: formData
+    })
+        .then(res => res.json())
+        .then(info => {
+            // 미리보기 데이터 저장
+            lastExcelRows = info;  // rows만 따로 저장
+
+            document.getElementById("fileName").textContent = "";
+            document.getElementById("fileSize").textContent = "";
+
+            const thead = document.querySelector("#sampleTable thead");
+            const tbody = document.querySelector("#sampleTable tbody");
+            if (thead) thead.innerHTML = "";
+            if (tbody) tbody.innerHTML = "";
+
+            showPreviewSection();
+
+            // Preview 출력
+            showPreview({
+                fileName: info.fileName,
+                fileSize: info.fileSize,
+                headers: info.headers,
+                rows: info.rows.slice(0, 3) // 화면에 보여줄 샘플만
+            });
+            // 데이터 전송 버튼 노출
+            const btn = document.getElementById("sendDataBtn");
+            if (btn) {
+                btn.style.display = "inline-block";
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("파일 미리보기 중 오류가 발생했습니다.");
+            hidePreviewSection();
+
+            // 에러 시 버튼 숨김
+            const btn = document.getElementById("sendDataBtn");
+            if (btn) {
+                btn.style.display = "none";
+            }
+        });
+}
+
+function showPreview(info) {
+    // 파일 정보 세팅
+    document.getElementById("fileName").textContent = info.fileName ?? "";
+    document.getElementById("fileSize").textContent = info.fileSize ?? "";
+
+    // Table DOM
+    const thead = document.querySelector("#sampleTable thead");
+    const tbody = document.querySelector("#sampleTable tbody");
+
+    thead.innerHTML = "";
+    tbody.innerHTML = "";
+
+    // BOM 제거 처리 (엑셀 헤더에서만)
+    const headers = (info.headers ?? []).map(h => h.replace("\ufeff", "").trim());
+
+    // Header Row 생성
+    const trHead = document.createElement("tr");
+    headers.forEach(h => {
+        const th = document.createElement("th");
+        th.textContent = h;
+        trHead.appendChild(th);
+    });
+    thead.appendChild(trHead);
+
+    // Sample Rows 생성
+    (info.rows ?? []).forEach(row => {
+        const tr = document.createElement("tr");
+
+        row.forEach(col => {
+            const td = document.createElement("td");
+            td.textContent = col ?? "";
+            tr.appendChild(td);
+        });
+
+        tbody.appendChild(tr);
+    });
+}
+
+// 데이터 전송(DB에 들어 갈 수 있도록 유효성 검사)
+document.addEventListener("DOMContentLoaded", () => {
+    const closeBtn = document.getElementById("previewCloseBtn");
+    if (closeBtn) {
+        closeBtn.addEventListener("click", () => {
+            hidePreviewSection();
+        });
+    }
+
+    const sendBtn = document.getElementById("sendDataBtn");
+    if (sendBtn) {
+        sendBtn.addEventListener("click", () => {
+            if (!lastExcelRows) {
+                alert("전송할 데이터가 없습니다. 먼저 파일을 업로드 해주세요.");
+                return;
+            }
+
+            fetch("/ledger/import/analyze", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(lastExcelRows)
+            })
+                .then(async res => {
+                    const data = await res.json().catch(() => null);
+
+                    // HTTP Status 자체가 오류인 경우
+                    if (!res.ok) {
+                        alert(data?.message || data?.error || "서버 처리 중 오류가 발생했습니다.");
+                        return;
+                    }
+
+                    // 서버 side에서 status=error 준 경우
+                    if (data.status === "error") {
+                        alert(data.message || "처리 중 오류가 발생했습니다.");
+                        return;
+                    }
+                    // 정상 처리
+                    alert("데이터 입력 완료!");
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("데이터 분석 요청 중 오류가 발생했습니다.");
+                });
+        });
+    }
+});
+
+// Preview 전체 영역 노출
+function showPreviewSection() {
+    document.getElementById("previewSection").style.display = "block";
+}
+
+// Preview 전체 영역 숨김 및 초기화
+function hidePreviewSection() {
+    const section = document.getElementById("previewSection");
+    section.style.display = "none";
+
+    // 기존 데이터 초기화
+    document.getElementById("fileName").textContent = "";
+    document.getElementById("fileSize").textContent = "";
+
+    const thead = document.querySelector("#sampleTable thead");
+    const tbody = document.querySelector("#sampleTable tbody");
+    if (thead) thead.innerHTML = "";
+    if (tbody) tbody.innerHTML = "";
+
+    // 분석 버튼 숨김
+    const btn = document.getElementById("sendDataBtn");
+    if (btn) btn.style.display = "none";
+
+    // 파일 input 리셋
+    const fileInput = document.getElementById("fileInput");
+    if (fileInput) fileInput.value = "";
+
+    // 내부 저장 데이터 초기화
+    lastExcelRows = null;
 }

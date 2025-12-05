@@ -1,54 +1,59 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html  lang="ko"
+       xmlns:th="http://www.thymeleaf.org"
+       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+       layout:decorate="~{layouts/default_layout}"
+        th:with="IS_LOGIN=false,CONTENT_TITLE='로그인 | 내돈내삶'">
 
 <head>
-    <meta charset="UTF-8">
-    <title>로그인</title>
-
-    <!-- CSS 반드시 포함! -->
     <link rel="stylesheet" th:href="@{/css/login.css}">
 </head>
 
-<body>
 
-<div class="login-container">
+<!-- 🔹 로그인 컨텐츠: 화면 중앙 정렬 -->
+<main layout:fragment="content"
+      class="container d-flex justify-content-center align-items-center"
+      style="min-height: 70vh;">
 
-    <h2>로그인</h2>
+    <div class="login-container">
 
-    <!-- 에러 메시지 -->
-    <p th:if="${error}" class="error-text" th:text="${error}"></p>
+        <h2>로그인</h2>
 
-    <form action="/login" method="post">
+        <!-- 에러 메시지 -->
+        <p th:if="${error}" class="error-text" th:text="${error}"></p>
 
-        <label>아이디</label>
-        <input type="text" name="memberId" required placeholder="ID를 입력해주세요">
+        <form action="/login" method="post">
 
-        <label>비밀번호</label>
-        <input type="password" name="password" required placeholder="PassWord를 입력해 주세요">
+            <label>아이디</label>
+            <input type="text" name="memberId" required placeholder="ID를 입력해주세요">
 
-        <button type="submit">로그인</button>
-    </form>
+            <label>비밀번호</label>
+            <input type="password" name="password" required placeholder="PassWord를 입력해 주세요">
 
-    <!-- 소셜 로그인 버튼 -->
-    <div class="social-login-box">
+            <button type="submit">로그인</button>
+        </form>
 
-        <button class="social-btn kakao" onclick="window.location.href='/user/kakao/authorize'">
-            <img src="/img/kakao_login_medium_narrow.png">
-        </button>
+        <!-- 소셜 로그인 버튼 -->
+        <div class="social-login-box">
 
-        <button class="social-btn naver" onclick="window.location.href='/user/naver/authorize'">
-            <img src="/img/naver_login_narrow.png">
-        </button>
+            <button class="social-btn kakao" type="button"
+                    onclick="window.location.href='/user/kakao/authorize'">
+                <img src="/img/kakao_login_medium_narrow.png" alt="카카오 로그인">
+            </button>
+
+            <button class="social-btn naver" type="button"
+                    onclick="window.location.href='/user/naver/authorize'">
+                <img src="/img/naver_login_narrow.png" alt="네이버 로그인">
+            </button>
+        </div>
+
+        <div class="login-links">
+            <a href="/find-id">아이디 찾기</a> |
+            <a href="/find-pw">비밀번호 찾기</a> |
+            <a href="/join/member">회원가입</a>
+        </div>
+
     </div>
 
-    <div class="login-links">
-        <a href="/find-id">아이디 찾기</a> |
-        <a href="/find-pw">비밀번호 찾기</a> |
-        <a href="/join/member">회원가입</a>
-    </div>
-
-</div>
-
-</body>
-
+</main>
 </html>

@@ -73,12 +73,13 @@ public interface LedgerRepository extends JpaRepository<LedgerEntry, Long> {
             @Param("endDate") LocalDateTime endDate
     );
 
-    // 2. 일별 합계
+    // 2. 일별 합계 및 건수 조회 [수정됨]
     @Query("""
         SELECT 
             CAST(l.occurredAt AS LocalDate) AS date, 
             l.entryType AS entryType, 
-            SUM(l.entryAmount) AS totalAmount
+            SUM(l.entryAmount) AS totalAmount,
+            COUNT(l) AS txnCount  /* [★ 여기 추가 ★] 콤마(,) 잊지 마세요! */
         FROM LedgerEntry l
         WHERE l.groupId = :group
           AND l.occurredAt BETWEEN :startDate AND :endDate
@@ -120,5 +121,5 @@ public interface LedgerRepository extends JpaRepository<LedgerEntry, Long> {
     Optional<Long> findGroupIdByMemberId(@Param("memberId") String memberId);
 
     @Query(value = "SELECT MAX(group_id) FROM LEDGER_ENTRY", nativeQuery = true)
-    Long findMaxGroupId(); 
+    Long findMaxGroupId();
 }

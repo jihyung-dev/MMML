@@ -1,35 +1,56 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<html  lang="ko"
+       xmlns:th="http://www.thymeleaf.org"
+       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+       layout:decorate="~{layouts/default_layout}"
+       th:with="IS_LOGIN=false,CONTENT_TITLE='로그인 | 내돈내삶'">
+<!-- 위에 내용 중 IS_LOGIN=false 는 로그인 없는 메인화면 상단   ,IS_LOGIN=true 는 로그인 있는 메인화면 상단 -->
+
 <head>
-    <meta charset="UTF-8">
-    <title>비밀번호 찾기</title>
     <link rel="stylesheet" th:href="@{/css/login.css}">
 </head>
-<body>
 
-<div class="login-container">
-    <h2>비밀번호 찾기</h2>
 
-    <p th:if="${error}" class="error-text" th:text="${error}"></p>
+<!-- 🔹 로그인 컨텐츠: 화면 중앙 정렬 -->
+<main layout:fragment="content"
+      class="container d-flex justify-content-center align-items-center"
+      style="min-height: 70vh;">
 
-    <!-- ID + 이름 + 이메일로 본인확인 -->
-    <form th:action="@{/find-pw}" method="post">
-        <label>아이디</label>
-        <input type="text" name="memberId" required>
+    <!-- 여기에 body 에 있는내용 넣으세요 -->
+    <div class="login-container">
+        <h2>비밀번호 찾기</h2>
 
-        <label>이름</label>
-        <input type="text" name="memberName" required>
+        <p th:if="${error}" class="error-text" th:text="${error}"></p>
 
-        <label>이메일</label>
-        <input type="email" name="email" required>
+        <!-- ID + 이름 + 이메일로 본인확인 -->
+        <form th:action="@{/find-pw}" method="post">
+            <label>아이디</label>
+            <input type="text" name="memberId" required>
 
-        <button type="submit">본인확인</button>
-    </form>
+            <label>이름</label>
+            <input type="text" name="memberName" required>
 
-    <div class="login-links">
-        <a th:href="@{/login}">로그인</a>
+            <label>이메일</label>
+            <input type="email" name="email" required>
+
+            <button type="submit">본인확인</button>
+        </form>
+
+        <div class="login-links">
+            <a th:href="@{/login}">로그인</a>
+        </div>
     </div>
-</div>
 
-</body>
+
+</main>
 </html>
+
+
+
+
+
+
+
+
+
+

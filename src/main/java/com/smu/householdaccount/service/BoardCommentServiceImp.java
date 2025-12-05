@@ -42,6 +42,7 @@ public class BoardCommentServiceImp implements BoardCommentService {
         BoardComment comment = new BoardComment();
         comment.setPost(post);
         comment.setWriter(writer);
+        comment.setWriterId(writer.getMemberId());
         comment.setCommentContent(content);
         comment.setCreatedAt(LocalDateTime.now());
         comment.setUpdatedAt(LocalDateTime.now());
