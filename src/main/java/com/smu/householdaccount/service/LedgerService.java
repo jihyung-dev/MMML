@@ -18,8 +18,8 @@ import com.smu.householdaccount.dto.python.TransactionResult;
 import com.smu.householdaccount.entity.BudgetGroup;
 import com.smu.householdaccount.entity.Category;
 import com.smu.householdaccount.entity.LedgerEntry;
-import com.smu.householdaccount.entity.Member;
-import com.smu.householdaccount.repository.*;
+import com.smu.householdaccount.repository.BudgetGroupRepository;
+import com.smu.householdaccount.repository.LedgerRepository;
 import com.smu.householdaccount.util.Log;
 import com.smu.householdaccount.util.Utility;
 import com.smu.householdaccount.web.SafeHttpClient;
@@ -63,7 +63,7 @@ public class LedgerService {
     private final ObjectMapper mapper;
 
 
-    public Double getExchangeRate() {
+    public Double getExchangeRate(){
         String url = host + "/latest?from=USD&to=KRW";
         HttpHeaders headers = new HttpHeaders();
         String response = http.get(url, headers, String.class);
@@ -80,21 +80,21 @@ public class LedgerService {
     /**
      * 사용자의 모든 거래 내역
      */
-    public List<LedgerEntry> getLedgerAll() {
+    public List<LedgerEntry> getLedgerAll(){
         BudgetGroup group = budgetGroupRepository.findById(1l).orElseThrow();
-        LocalDateTime start = LocalDateTime.of(2025, 8, 1, 0, 0, 0);
-        LocalDateTime end = LocalDateTime.of(2025, 8, 31, 0, 0, 0);
+        LocalDateTime start = LocalDateTime.of(2025, 8, 1,0,0,0);
+        LocalDateTime end   = LocalDateTime.of(2025, 8, 31,0,0,0);
         Log.d("데이터 확인", group.toString());
-        Log.d("그룹 : ", ledgerRepository.findByGroupAndDateRange(group, start, end).toString());
+        Log.d("그룹 : " , ledgerRepository.findByGroupAndDateRange(group, start, end).toString());
         return null;
     }
 
     /**
      * 월별 사용자의 거래 내역
      */
-    public LedgerSummaryDto getMonthLedger(int year, int month, int period) {
+    public LedgerSummaryDto getMonthLedger(int year, int month, int period){
         BudgetGroup group = budgetGroupRepository.findById(1l).orElseThrow(); // 수정 필요.하드코딩
-        LocalDateTime date = LocalDateTime.of(year, month, 1, 0, 0, 0);
+        LocalDateTime date = LocalDateTime.of(year, month, 1,0,0,0);
         // 기준이 되는 달의 1일
         LocalDate targetMonth = LocalDate.of(year, month, 1);
 
@@ -107,9 +107,9 @@ public class LedgerService {
         return getLedgerSummary(entries);
     }
 
-    public List<MonthlyLedgerDto> get6MonthLedger(int year, int month, int period) {
+    public List<MonthlyLedgerDto> get6MonthLedger(int year, int month, int period){
         BudgetGroup group = budgetGroupRepository.findById(1l).orElseThrow(); // 수정 필요.하드코딩
-        LocalDateTime date = LocalDateTime.of(year, month, 1, 0, 0, 0);
+        LocalDateTime date = LocalDateTime.of(year, month, 1,0,0,0);
         // 기준이 되는 달의 1일
         LocalDate targetMonth = LocalDate.of(year, month, 1);
 
@@ -124,8 +124,8 @@ public class LedgerService {
 
     public LedgerSummaryDto getMonthlyChart(int year, int month) {
         BudgetGroup group = budgetGroupRepository.findById(1l).orElseThrow(); // 수정 필요.하드코딩
-        LocalDateTime date_start = LocalDateTime.of(year, month, 1, 0, 0, 0);
-        LocalDateTime date_end = LocalDateTime.of(year, month, Utility.endOfMonth(year, month), 0, 0, 0);
+        LocalDateTime date_start = LocalDateTime.of(year, month, 1,0,0,0);
+        LocalDateTime date_end = LocalDateTime.of(year, month, Utility.endOfMonth(year, month),0,0,0);
         List<LedgerEntry> entries = ledgerRepository.findByGroupAndDateRange(group, date_start, date_end);
 
         return getLedgerSummary(entries);
@@ -133,7 +133,6 @@ public class LedgerService {
 
     /**
      * 1년치 데이터(1월 ~ 현재)
-     *
      * @param year
      * @param month
      * @return
@@ -149,21 +148,22 @@ public class LedgerService {
     }
 
 
-    public LedgerSummaryDto getLedgerSummary(List<LedgerEntry> entries) {
+
+    public LedgerSummaryDto getLedgerSummary(List<LedgerEntry> entries){
         BigDecimal totalExpense = BigDecimal.ZERO;
         BigDecimal totalIncome = BigDecimal.ZERO;
 
         Map<String, BigDecimal> categoryMap = new HashMap<>();
-        Map<LocalDateTime, DailySummary> dailyMap = new HashMap<>();
+        Map<LocalDateTime, DailySummary> dailyMap  = new HashMap<>();
 
-        for (LedgerEntry entry : entries) {
+        for(LedgerEntry entry : entries){
             LocalDateTime date = entry.getOccurredAt();
             dailyMap.putIfAbsent(date, LedgerSummaryDto.DailySummary.builder()
                     .date(date)
                     .expense(BigDecimal.ZERO)
                     .income(BigDecimal.ZERO).build());
             // 전체 지출 더하기
-            if (entry.getEntryType().equals("EXPENSE")) {
+            if(entry.getEntryType().equals("EXPENSE")){
                 totalExpense = totalExpense.add(entry.getEntryAmount());
 
                 // 카테고리
@@ -172,7 +172,7 @@ public class LedgerService {
                 categoryMap.put(category, categoryMap.getOrDefault(category, BigDecimal.ZERO).add(entry.getEntryAmount()));
                 // 데일리
                 dailyMap.get(date).setExpense(dailyMap.get(date).getExpense().add(entry.getEntryAmount()));
-            } else if (entry.getEntryType().equals("INCOME")) {
+            } else if(entry.getEntryType().equals("INCOME")){
                 totalIncome = totalIncome.add(entry.getEntryAmount());
 
                 dailyMap.get(date).setIncome(dailyMap.get(date).getIncome().add(entry.getEntryAmount()));

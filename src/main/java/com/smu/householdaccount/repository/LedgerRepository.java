@@ -121,5 +121,5 @@ public interface LedgerRepository extends JpaRepository<LedgerEntry, Long> {
     Optional<Long> findGroupIdByMemberId(@Param("memberId") String memberId);
 
     @Query(value = "SELECT MAX(group_id) FROM LEDGER_ENTRY", nativeQuery = true)
-    Long findMaxGroupId(); 
+    Long findMaxGroupId();
 }

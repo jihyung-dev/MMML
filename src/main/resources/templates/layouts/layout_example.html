@@ -1,16 +1,37 @@
-<!doctype html>
-<html lang="ko"
-      xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layouts/default_layout}">
+<!DOCTYPE html>
+<html  lang="ko"
+       xmlns:th="http://www.thymeleaf.org"
+       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+       layout:decorate="~{layouts/default_layout}"
+       th:with="IS_LOGIN=false,CONTENT_TITLE='로그인 | 내돈내삶'">
+           <!-- 위에 내용 중 IS_LOGIN=false 는 로그인 없는 메인화면 상단 , IS_LOGIN=false, 문구 전체삭제 로그인 있는 메인화면 상단 -->
+
+<head>
+
+</head>
 
 <style  layout:fragment="css">
-
+<!-- css 스타일 넣기 -->
 </style>
 
-<div layout:fragment="content">
+<!-- 🔹 로그인 컨텐츠: 화면 중앙 정렬 -->
+<main layout:fragment="content"
+      class="container d-flex justify-content-center align-items-center"
+      style="min-height: 70vh;">
 
-</div>
-<script layout:fragment="script">
-    //alert("script");
-</script>
+    <!-- 여기에 body 안에 있는 내용만 넣으세요 -->
+    <!-- 이건 넣으면 안됨!! <body> </body>  이안에 있는것만 넣으심 되요 -->
+    <!-- 스타일적용 할려면 위에 head 안에 넣으심 되요 -->
+
+
+    <script layout:fragment="script">
+        //alert("script"); 스크리븥 넣기
+    </script>
+
+
+
+
+
+
+</main>
+</html>

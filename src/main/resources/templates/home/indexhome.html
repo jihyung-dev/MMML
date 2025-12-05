@@ -3,97 +3,83 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layouts/default_layout}"
-      th:with="CONTENT_TITLE='내돈내삶 - 홈'">
-<head>
-<!--    주석처리, 오류있으면 살리기 -->
-    <!--<meta charset="UTF-8">
-    <title>내돈내삶 - 홈</title>
+      th:with="CONTENT_TITLE='로그인 | 내돈내삶'">
+<!-- 위에 내용 중 IS_LOGIN=false 는 로그인 없는 메인화면 상단, IS_LOGIN=true 는 로그인 있는 메인화면 상단 -->
 
-    &lt;!&ndash; Custom CSS &ndash;&gt;
-    <link rel="stylesheet" th:href="@{/css/indexhome.css}">-->
+<head>
+    <style>
+        /* 홈 화면 카드 이미지 공통 스타일 */
+        .feature-card-img {
+            width: 100%;
+            height: 220px;      /* 필요하면 200~260 사이로 조절 */
+            object-fit: contain; /* 이미지 전체 보이게 (안 잘리게) */
+            padding: 16px;       /* 이미지 박스 안쪽 여백 */
+            display: block;
+            margin: 0 auto;
+            background-color: #ffffff; /* 선택: 배경 흰색 */
+        }
+
+        .fw-bold{
+
+        }
+    </style>
 </head>
 
-<body>
-<!--    주석처리, 오류있으면 살리기 -->
-<!--
-&lt;!&ndash; ===== NAVBAR ===== &ndash;&gt;
-<nav class="main-navbar">
-    <div class="nav-container">
+<!-- 🔹 로그인 컨텐츠: 화면 중앙 정렬 + 세로 정렬 -->
+<main layout:fragment="content"
+      class="container d-flex flex-column justify-content-center align-items-center"
+      style="min-height: 70vh;">
 
-        &lt;!&ndash; Left: Brand &ndash;&gt;
-        <a href="/" class="nav-brand">내돈내삶</a>
+    <br><br><br>
 
-        &lt;!&ndash; Middle menu &ndash;&gt;
-        <ul class="nav-menu">
-            <li><a href="/ledger">가계부</a></li>
-            <li><a href="/board">게시판</a></li>
-            <li><a href="/hotdeal">핫딜</a></li>
-        </ul>
+    <!-- 🔹 제목: 위쪽 한 줄 전체 / 가운데 정렬 -->
+    <h2 class="text-center mb-4 fw-bold">Discover Our Core Features</h2>
 
-        &lt;!&ndash; Right: Login &ndash;&gt;
-        <div class="nav-right">
+    <!-- 🔹 카드 영역 -->
+    <div class="container py-5">
+        <div class="row g-4 justify-content-center">
 
-            &lt;!&ndash; 로그인 안 한 상태 &ndash;&gt;
-            <div th:if="${session.loginUser == null and session.sellerUser == null}">
-                <a href="/login" class="nav-login-btn">일반 로그인</a>
-                <a href="/seller/login" class="nav-login-btn">판매자 로그인</a>
-            </div>
-
-            &lt;!&ndash; 일반 회원 로그인 &ndash;&gt;
-            <div th:if="${session.loginUser != null}" class="nav-user-info">
-                <a href="/mypage">
-                    <span th:text="${session.loginUser.memberNickname + '님 환영합니다!'}"></span>
+            <div class="col-md-4">
+                <a href="/ledger" class="text-decoration-none">
+                    <div class="card h-100 shadow-sm mx-3">
+                        <img th:src="@{/img/undraw_investment-data_frxx.svg}"
+                             class="card-img-top feature-card-img"
+                             alt="Ledger">
+                        <div class="card-body text-center">
+                            <h5 class="card-title fw-bold">가계부</h5>
+                        </div>
+                    </div>
                 </a>
-                &nbsp; | &nbsp;
-                <a href="/logout" class="nav-logout-btn">로그아웃</a>
             </div>
 
-            &lt;!&ndash; 판매자 로그인 &ndash;&gt;
-            <div th:if="${session.sellerUser != null}" class="nav-user-info">
-                <a href="/seller">
-                    <span th:text="${session.sellerUser.member.memberNickname + '님(판매자) 환영합니다!'}"></span>
+            <div class="col-md-4">
+                <a href="/board" class="text-decoration-none">
+                    <div class="card h-100 shadow-sm mx-3">
+                        <img th:src="@{/img/undraw_collaborative-writing_ir40.svg}"
+                             class="card-img-top feature-card-img"
+                             alt="Board">
+                        <div class="card-body text-center">
+                            <h5 class="card-title fw-bold">게시판</h5>
+                        </div>
+                    </div>
                 </a>
-                &nbsp; | &nbsp;
-                <a href="/logout" class="nav-logout-btn">로그아웃</a>
             </div>
+
+            <div class="col-md-4">
+                <a href="/hotdeal" class="text-decoration-none">
+                    <div class="card h-100 shadow-sm mx-3">
+                        <img th:src="@{/img/undraw_web-shopping_xd5k.svg}"
+                             class="card-img-top feature-card-img"
+                             alt="Hot Deals">
+                        <div class="card-body text-center">
+                            <h5 class="card-title fw-bold">핫딜</h5>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
         </div>
     </div>
-</nav>
--->
 
-
-<div layout:fragment="content">
-<!-- ============================
-       FULL PAGE SECTIONS
-============================= -->
-
-    <section class="fullpage section1">
-        <a href="/ledger">
-            <img src="/img/home_ledger.jpg" class="section-img">
-            <div class="section-text">
-
-            </div>
-        </a>
-    </section>
-
-    <section class="fullpage section2">
-        <a href="/board">
-            <img src="/img/home_board.jpg" class="section-img">
-            <div class="section-text">
-
-            </div>
-        </a>
-    </section>
-
-    <section class="fullpage section3">
-        <a href="/hotdeal">
-            <img src="/img/home_hotdeal.jpg" class="section-img">
-            <div class="section-text">
-
-            </div>
-        </a>
-    </section>
-
-
-</div>
+</main>
 </html>

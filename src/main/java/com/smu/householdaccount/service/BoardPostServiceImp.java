@@ -34,6 +34,7 @@ public class BoardPostServiceImp implements BoardPostService {
         post.setPostTitle(title);
         post.setPostContent(content);
         post.setWriter(writer);
+        post.setWriterId(writer.getMemberId());
         post.setCreatedAt(LocalDateTime.now());
         post.setUpdatedAt(LocalDateTime.now());
         post.setViewCnt(0L);

@@ -1,8 +1,5 @@
 body {
     background: #f7f8fa;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     height: 100vh;
 }
 

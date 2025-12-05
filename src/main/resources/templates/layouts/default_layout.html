@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="ko"
       xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      th:with="isLogin=true">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <th:block layout:fragment="meta"></th:block>
 
     <!-- 페이지마다 타이틀을 동적으로 변경 (기본값: Commune) -->
-    <title layout:title-pattern="$CONTENT_TITLE | Commune">Commune</title>
+    <title th:text="${CONTENT_TITLE} ?: 'Commune'"></title>
     <!-- 프로젝트 내부 CSS -->
     <link th:href="@{/css/list.css}" rel="stylesheet"/>
 
@@ -40,60 +41,17 @@
         footer {
             margin-top: auto;
         }
+
+        /* 🔹 내돈내삶 로고 & 텍스트 보라색 */
+        .brand-purple {
+            color: #6960ff;  /* 주주님 전용 보라색 */
+        }
     </style>
+
 </head>
 <body class="bg-light text-dark">
-
 <!-- [공통] 헤더 -->
-<header class="navbar navbar-expand-md navbar-light bg-white shadow-sm sticky-top">
-    <div class="container">
-        <a class="navbar-brand d-flex align-items-center" href="/">
-            <svg fill="currentColor" viewBox="0 0 48 48" width="40" height="40">
-                <path d="M24 4H42V17.3333V30.6667H24V44H6V30.6667V17.3333H24V4Z"></path>
-            </svg>
-            <span class="ms-2 fw-bold">내돈내삶</span>
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navMenu">
-            <ul class="navbar-nav ms-auto mb-2 mb-md-0 align-items-center">
-                <li class="nav-item"><a class="nav-link" href="/board">Board</a></li>
-                <li class="nav-item"><a class="nav-link" href="/ledger">Ledger</a></li>
-                <li class="nav-item"><a class="nav-link text-warning" href="/hotdeal">Hot Deals</a></li>
-                <li class="nav-item ms-3">
-                    <!-- 로그인 안 한 상태 -->
-                    <nav class="main-navbar">
-                        <div class="nav-container">
-                            <!-- Right: Login -->
-                            <div class="nav-right">
-
-                                <!-- 로그인 안 한 상태 -->
-                                <div th:if="${session.loginUser == null and session.sellerUser == null}">
-                                    <a href="/login" class="nav-login-btn">UserLogin</a>
-                                </div>
-
-                                <!-- 일반 회원 로그인 -->
-                                <div th:if="${session.loginUser != null}" class="nav-user-info">
-                                    <a href="/mypage">
-                                        <span th:text="${session.loginUser.memberNickname + '님 환영합니다!'}"></span>
-                                    </a>
-                                    &nbsp; | &nbsp;
-                                    <a href="/logout" class="nav-logout-btn">LogOut</a>
-                                </div>
-
-                                <!-- 판매자 로그인 -->
-
-                            </div>
-                        </div>
-                    </nav>
-
-                </li>
-            </ul>
-        </div>
-    </div>
-</header>
-
+<th:block layout:insert="layouts/header_nav :: headerNav(${IS_LOGIN !=null} ? ${ISLOGIN} : ${isLogin})"></th:block>
 <!-- [변동] 메인 콘텐츠가 들어갈 자리 -->
 <main class="container">
     <div layout:fragment="content">
@@ -101,23 +59,8 @@
     </div>
 </main>
 
+<th:block layout:insert="layouts/footer :: footer"></th:block>
 <!-- [공통] 푸터 -->
-<footer class="bg-light border-top py-4">
-    <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-        <div class="d-flex align-items-center gap-2">
-            <svg fill="currentColor" viewBox="0 0 24 24" width="24" height="24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"></path>
-            </svg>
-            <span class="fw-bold text-muted">Commune</span>
-        </div>
-        <div class="text-muted text-center text-md-start">© 2024 Commune. All rights reserved.</div>
-        <div class="d-flex gap-3">
-            <a href="#" class="text-muted text-decoration-none">About Us</a>
-            <a href="#" class="text-muted text-decoration-none">Contact</a>
-            <a href="#" class="text-muted text-decoration-none">Privacy Policy</a>
-        </div>
-    </div>
-</footer>
 
 <!-- [공통] JS -->
 <!-- 페이지별 추가 JS가 들어갈 자리 -->

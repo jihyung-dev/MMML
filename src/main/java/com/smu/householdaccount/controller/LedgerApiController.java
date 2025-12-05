@@ -36,7 +36,7 @@ public class LedgerApiController {
             @RequestParam int year,
             @RequestParam int month
     ) {
-        // 서비스 메서드 호출 (이름 바꿨으니 맞춰주세요)
+// 서비스 메서드 호출 (이름 바꿨으니 맞춰주세요)
         return ResponseEntity.ok(ledgerService.getTransactionList(1L, year, month));
     }
     // [New] 단건 등록 API

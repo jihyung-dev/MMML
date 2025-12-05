@@ -9,8 +9,8 @@ Highcharts.setOptions({
 });
 const now = new Date();
 // 전역 상태
-let currentYear = 2025//now.getFullYear();
-let currentMonth = 10//now.getMonth() + 1;
+let currentYear = 2025  //now.getFullYear();
+let currentMonth = 10 //now.getMonth() + 1;
 
 let modalJustOpened = false; // 모달 팝업 플래그
 let modalChartInstance = null;
@@ -91,10 +91,6 @@ async function loadLedgerChart({ year, month }) {
     if(bundle.current.daily) initCalendar(bundle.current.daily);
 
     return bundle;
-
-
-
-
 }
 
 function drawCategoryPieChart(categories) {
@@ -301,7 +297,6 @@ function drawDailyLineChart(currentDaily, prevDaily) {
 
 
 // 월 표시 업데이트
-
 function updateMonthLabel() {
     const text = `${currentYear}년 ${currentMonth}월`;
 
@@ -316,6 +311,21 @@ function updateMonthLabel() {
     // 3. [핵심] 하단 테이블 위 라벨 업데이트 (이 부분이 없으면 숫자가 안 바뀝니다)
     const bottomLabel = document.getElementById("bottomMonthLabel");
     if(bottomLabel) bottomLabel.innerText = text;
+
+    // 기존 내용
+    // const text = `${currentYear}년 ${currentMonth}월`;
+    //
+    // // 1. 모바일용 라벨 업데이트 (있으면)
+    // const mobileLabel = document.getElementById("mobileLabel");
+    // if(mobileLabel) mobileLabel.innerText = text;
+    //
+    // // 2. PC용 라벨 업데이트 (있으면)
+    // const desktopLabel = document.getElementById("desktopLabel");
+    // if(desktopLabel) desktopLabel.innerText = text;
+    //
+    // // (구버전 호환성을 위해 기존 ID도 체크)
+    // const oldLabel = document.getElementById("currentMonthLabel");
+    // if(oldLabel) oldLabel.innerText = text;
 }
 
 
@@ -656,6 +666,13 @@ async function exportExcel(mail) {
         alert("엑셀 생성 실패");
         return;
     }
+
+    // 기존내용
+    // const blob = await res.blob();
+    // const a = document.createElement("a");
+    // a.href = window.URL.createObjectURL(blob);
+    // a.download = `ledger_${currentYear}-${currentMonth}.xlsx`;
+    // a.click();
 
 }
 // top 데이터 관련
@@ -1967,3 +1984,104 @@ function closeDayListModal() {
         modal.classList.remove("show");
     }
 }
+
+
+//혹시 안될까봐
+// json 데이터 로드(개인 거래 내역)
+// async function loadLedgerData() {
+//     showSkeleton();
+//     try{
+//         const url = "/ledger/loadData";
+//         const res = await fetch(url, {
+//             method: "POST",
+//             headers: {"Accept": "application/json", "Content-Type": "application/json"},
+//         })
+//
+//         if(!res.ok){
+//             throw new Error("Failed to load ledger data")
+//         }
+//
+//         const result = await res.json();
+//         console.log("ledger data loaded:", result);
+//
+//     }catch{
+//         console.log("Error");
+//     }
+//     hideSkeleton();
+// }
+//
+// /**
+//  * Global Skeleton UI
+//  * - DOM에 없으면 자동 생성
+//  * - showSkeleton(): skeleton 노출
+//  * - hideSkeleton(): skeleton fade-out 후 제거
+//  */
+//
+// /**
+//  * Content 영역을 안전하게 탐색하는 함수
+//  * (default_layout 렌더링 구조 대응)
+//  */
+// function findContentArea() {
+//     return (
+//         document.querySelector("main.container > div") ||     // 최우선
+//         document.querySelector("main .container > div") ||    // fallback
+//         document.querySelector('[layout\\:fragment="content"]') // 혹시 direct 렌더링된 케이스
+//     );
+// }
+//
+// /** Skeleton DOM이 없으면 생성 */
+// function ensureSkeletonDom() {
+//     // 이미 존재하면 패스
+//     if (document.getElementById("globalSkeleton")) return;
+//
+//     const contentArea = findContentArea();
+//     if (!contentArea) {
+//         console.warn("content 영역을 찾지 못했습니다. Skeleton 생성 실패");
+//         return;
+//     }
+//
+//     const div = document.createElement("div");
+//     div.id = "globalSkeleton";
+//     div.style.display = "none"; // 초기에는 보이지 않도록
+//
+//     div.innerHTML = `
+//         <div class="singleSkeletonCard"></div>
+//     `;
+//
+//     // content 최상단에 삽입
+//     contentArea.insertBefore(div, contentArea.firstChild);
+// }
+//
+// /** Skeleton 표시 */
+// function showSkeleton() {
+//     ensureSkeletonDom();
+//
+//     const skel = document.getElementById("globalSkeleton");
+//     if (!skel) return;
+//
+//     // display 켜기
+//     skel.style.display = "flex";
+//
+//     // transition 설정
+//     skel.style.setProperty('transition', 'opacity 0.35s ease', 'important');
+//
+//     // opacity 0 초기화
+//     skel.style.setProperty('opacity', '0', 'important');
+//
+//     // 페이드인
+//     requestAnimationFrame(() => {
+//         skel.style.setProperty('opacity', '1', 'important');
+//     });
+// }
+//
+// /** Skeleton 숨기기 */
+// function hideSkeleton() {
+//     const skel = document.getElementById("globalSkeleton");
+//     if (!skel) return;
+//
+//     skel.style.setProperty('opacity', '0', 'important');
+//
+//     // fade-out 후 DOM 제거
+//     setTimeout(() => {
+//         if (skel && skel.parentNode) skel.remove();
+//     }, 350);
