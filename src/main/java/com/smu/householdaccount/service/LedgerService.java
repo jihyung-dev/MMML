@@ -24,11 +24,13 @@ import com.smu.householdaccount.util.Log;
 import com.smu.householdaccount.util.Utility;
 import com.smu.householdaccount.web.SafeHttpClient;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,6 +53,9 @@ import java.util.stream.Collectors;
 public class LedgerService {
     @Value("${exchangerate.api-host}")
     private String host;
+
+    @Value("${render.render-host}")
+    private String renderHost;
 
     private final LedgerRepository ledgerRepository;
     private final BudgetGroupRepository budgetGroupRepository;
@@ -325,62 +330,54 @@ public class LedgerService {
     /**
      *
      */
-    public ClassifyTransactionResponse getLedgerTransaction(String memberId) {
-
-        // 더미 데이터 위치
-        String path = "C:\\Users\\kosmo\\Desktop\\project\\data\\dummy\\ledger\\ledger_dummy.json";
-        String url = "http://localhost:7004/ai/classify-transaction";
+    public ClassifyTransactionResponse getLedgerTransaction(
+            String memberId,
+            List<CategoryUpdateReq> externalTransactions // Excel 결과가 있으면 여기에 전달
+    ) {
+        String url = renderHost + "/ai/classify-transaction";
         Log.d("그룹 확인", ledgerRepository.findGroupIdByMemberId(memberId).toString());
+
         try {
-            // JSON → Map 리스트 로딩
-            ObjectMapper snakeMapper = new ObjectMapper();
-            snakeMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+            List<CategoryUpdateReq> dtoList;
+            // 1) 외부 데이터(excel→python 결과) 사용
+            if (externalTransactions != null && !externalTransactions.isEmpty()) {
+                dtoList = externalTransactions;
 
-            List<Map<String, Object>> rawList =
-                    snakeMapper.readValue(new File(path),
-                            new TypeReference<List<Map<String, Object>>>() {
-                            });
+            } else {
+                // 2) fallback: 더미 파일 사용
+                dtoList = loadDummyLedgerJson();
+            }
 
-            // Map → DTO 변환 (mapToDto 없이 직접 변환)
-            List<CategoryUpdateReq> dtoList = rawList.stream()
-                    .map(map -> {
-                        CategoryUpdateReq dto = new CategoryUpdateReq();
-                        dto.setEntryType((String) map.get("entry_type"));           // 지출/수입
-                        dto.setPayType((String) map.get("pay_type"));               // 결제 방식
-                        dto.setCardType((String) map.get("card_type"));             // 카드 타입
-                        dto.setEntryAmount(toBigDecimal(map.get("entry_amount")));  // BigDecimal 변환
-                        dto.setCurrency((String) map.getOrDefault("currency", "KRW")); // 통화 (없으면 기본 'KRW')
-                        dto.setOccurredAt((String) map.get("occurred_at"));         // 사용 일자
-                        dto.setPlaceOfUse((String) map.get("place_of_use"));        // 상점명
-                        dto.setMemo((String) map.getOrDefault("memo", null));       // 메모 optional
-                        // category는 merge 단계에서 세팅됨
-                        dto.setCategory(null);
-                        return dto;
-                    })
-                    .toList();
-
-            // Python 요청 객체 생성
+            // 3) Python 요청 객체 생성
             TransActionBulkReq req = new TransActionBulkReq();
             req.setTransActions(dtoList);
 
-            // HTTP 요청
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             String requestJson = mapper.writeValueAsString(req);
+            Log.d("📤 Sending for classify: {}", requestJson);
 
+            // 4) Python Classifier 호출
             ClassifyTransactionResponse response =
                     http.post(url, headers, requestJson, ClassifyTransactionResponse.class);
 
+            if (response == null) {
+                throw new RuntimeException("🔥 Classifier 응답이 null입니다!");
+            }
+            // 5) Python 결과 -> DTO merge
             mergePythonResult(dtoList, response.getResults());
+            Log.d("[data] :", dtoList.toString());
+            // 6) DB 저장
             ledgerSaveService.saveMergedLedger(dtoList, memberId);
 
             return response;
 
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new RuntimeException("Ledger Transaction 처리 중 오류", e);
         }
     }
+
 
     private BigDecimal toBigDecimal(Object obj) {
         if (obj == null) return null;
@@ -445,7 +442,6 @@ public class LedgerService {
     public List<Category> getCategories() {
         return categoryRepository.findByCategoryIdStartingWith("C");
     }
-
 
     /**
      * [New] 캘린더에서 단건 등록 (시간 포함)
@@ -566,5 +562,215 @@ public class LedgerService {
         LedgerEntry entry = ledgerRepository.findById(entryId).orElseThrow();
         if(!entry.getMember().getMemberId().equals(memberId)) throw new IllegalArgumentException("권한 없음");
         ledgerRepository.delete(entry);
+    }
+
+    public Map<String, Object> previewExcel(MultipartFile file) {
+
+        Map<String, Object> result = new HashMap<>();
+
+        String originalName = file.getOriginalFilename().toLowerCase();
+
+        try {
+            if (originalName.endsWith(".csv")) {
+                return previewCsv(file);  // 전체 CSV rows 반환
+            }
+
+            // === XLS/XLSX 처리 ===
+            Workbook workbook = WorkbookFactory.create(file.getInputStream());
+            Sheet sheet = workbook.getSheetAt(0);
+
+            Row headerRow = sheet.getRow(0);
+
+            List<String> headers = extractHeaderColumns(headerRow);
+            List<List<String>> rows = extractAllRows(sheet, headers.size()); // 전체 rows
+
+            result.put("fileName", originalName);
+            result.put("fileSize", (file.getSize()/1024) + " KB");
+            result.put("headers", headers);
+            result.put("rows", rows); // 전체 rows!
+
+            return result;
+
+        } catch (Exception ex) {
+            Log.e("Excel 파싱 실패, CSV 시도: {}", ex.getMessage());
+            return previewCsv(file);
+        }
+    }
+
+
+    private Map<String, Object> previewCsv(MultipartFile file) {
+        Map<String, Object> result = new HashMap<>();
+
+        try (Scanner scanner = new Scanner(file.getInputStream(), "UTF-8")) {
+
+            List<String> headers = new ArrayList<>();
+            List<List<String>> rows = new ArrayList<>();
+
+            int rowIndex = 0;
+
+            while (scanner.hasNextLine()) {
+
+                String line = scanner.nextLine();
+                String[] cols = line.split(",");
+
+                if (rowIndex == 0) {
+                    headers.addAll(Arrays.asList(cols));
+                } else {
+                    rows.add(Arrays.asList(cols));  // 🔥 전체 rows
+                }
+
+                rowIndex++;
+            }
+
+            result.put("fileName", file.getOriginalFilename());
+            result.put("fileSize", (file.getSize()/1024) + " KB");
+            result.put("headers", headers);
+            result.put("rows", rows);
+
+            return result;
+
+        } catch (Exception e) {
+            throw new RuntimeException("CSV 파일 분석 실패", e);
+        }
+    }
+
+    /** 헤더 추출 */
+    private List<String> extractHeaderColumns(Row headerRow) {
+        List<String> headers = new ArrayList<>();
+
+        for (Cell cell : headerRow) {
+            String value = convertCellToString(cell);
+            headers.add(value);
+        }
+
+        return headers;
+    }
+
+    private List<List<String>> extractAllRows(Sheet sheet, int colSize) {
+        List<List<String>> rows = new ArrayList<>();
+
+        int lastRow = sheet.getLastRowNum();
+
+        for (int i = 1; i <= lastRow; i++) {
+            Row row = sheet.getRow(i);
+            if (row == null) break;
+
+            List<String> rowData = new ArrayList<>();
+
+            for (int col = 0; col < colSize; col++) {
+                Cell cell = row.getCell(col);
+                rowData.add(convertCellToString(cell));
+            }
+            rows.add(rowData);
+        }
+
+        return rows;
+    }
+
+
+    /** POI Cell → String 변환 유틸 */
+    private String convertCellToString(Cell cell) {
+        if (cell == null) return "";
+
+        CellType type = cell.getCellType();
+
+        switch (type) {
+            case STRING:
+                return cell.getStringCellValue().trim();
+
+            case NUMERIC:
+                if (DateUtil.isCellDateFormatted(cell)) {
+                    return cell.getLocalDateTimeCellValue().toLocalDate().toString();
+                }
+                return String.valueOf(cell.getNumericCellValue());
+
+            case BOOLEAN:
+                return String.valueOf(cell.getBooleanCellValue());
+
+            case FORMULA:
+                try {
+                    return cell.getStringCellValue();
+                } catch (IllegalStateException e) {
+                    return String.valueOf(cell.getNumericCellValue());
+                }
+
+            case BLANK:
+            default:
+                return "";
+        }
+    }
+
+    // 파일로 불러오는 경우
+    private List<CategoryUpdateReq> loadDummyLedgerJson() throws IOException {
+        String path = "C:\\Users\\kosmo\\Desktop\\project\\data\\dummy\\ledger\\test_dummy.json";
+
+        ObjectMapper snakeMapper = new ObjectMapper();
+        snakeMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+
+        List<Map<String, Object>> rawList =
+                snakeMapper.readValue(new File(path), new TypeReference<>() {});
+
+        return rawList.stream()
+                .map(map -> {
+                    CategoryUpdateReq dto = new CategoryUpdateReq();
+                    dto.setEntryType((String) map.get("entry_type"));
+                    dto.setPayType((String) map.get("pay_type"));
+                    dto.setCardType((String) map.get("card_type"));
+                    dto.setEntryAmount(toBigDecimal(map.get("entry_amount")));
+                    dto.setCurrency((String) map.getOrDefault("currency", "KRW"));
+                    dto.setOccurredAt((String) map.get("occurred_at"));
+                    dto.setPlaceOfUse((String) map.get("place_of_use"));
+                    dto.setMemo((String) map.getOrDefault("memo", null));
+                    dto.setCategory(null);
+                    return dto;
+                })
+                .toList();
+    }
+
+    public ClassifyTransactionResponse handleExcelClassification(
+            String memberId,
+            Map<String, Object> pythonResult
+    ) {
+        try {
+            // 1) payload 추출
+            Map<String, Object> payload =
+                    (Map<String, Object>) pythonResult.get("payload");
+
+            if (payload == null || payload.isEmpty()) {
+                throw new IllegalArgumentException("payload가 없습니다.");
+            }
+            // 2) transActions 가져오기
+            List<Map<String, Object>> transMaps =
+                    (List<Map<String, Object>>) payload.get("transActions");
+
+            if (transMaps == null || transMaps.isEmpty()) {
+                throw new IllegalArgumentException("transActions 데이터가 없습니다.");
+            }
+            // 3) JSON Map → CategoryUpdateReq로 변환
+            List<CategoryUpdateReq> transList = transMaps.stream()
+                    .map(map -> mapper.convertValue(map, CategoryUpdateReq.class))
+                    .toList();
+
+            Log.i(" Excel 전처리 데이터 rows: {}", String.valueOf(transList.size()));
+            // 4) 기존 로직 호출
+            return getLedgerTransaction(memberId, transList);
+
+        } catch (Exception e) {
+            Log.e(" Excel 분류 처리 실패: {}", e.getMessage());
+            if(memberId == null){
+                throw new RuntimeException("로그인이 필요한 기능입니다.", e);
+            }
+            throw new RuntimeException("Excel 기반 카테고리 분류 처리 중 오류 발생", e);
+        }
+    }
+
+    // 시간 변환
+    private LocalDateTime normalizeDate(String input) {
+        if (input == null || input.length() < 10) {
+            throw new IllegalArgumentException("Invalid date format: " + input);
+        }
+
+        String dateOnly = input.substring(0, 10);
+        return LocalDateTime.parse(dateOnly + "T00:00:00");
     }
 }
