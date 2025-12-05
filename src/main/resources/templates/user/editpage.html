@@ -1,44 +1,10 @@
 <!DOCTYPE html>
-
-<html class="light" lang="ko"><head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Edit Profile</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
-    <script>
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "primary": "#0d273d",
-                        "background-light": "#f8f9fa",
-                        "background-dark": "#121a20",
-                        "text-light": "#212529",
-                        "text-dark": "#f8f9fa",
-                        "card-light": "#ffffff",
-                        "card-dark": "#1a242d",
-                        "border-light": "#dee2e6",
-                        "border-dark": "#343a40",
-                        "placeholder-light": "#6c757d",
-                        "placeholder-dark": "#adb5bd"
-                    },
-                    fontFamily: {
-                        "display": ["Manrope", "sans-serif"]
-                    },
-                    borderRadius: {
-                        "DEFAULT": "0.25rem",
-                        "lg": "0.5rem",
-                        "xl": "0.75rem",
-                        "full": "9999px"
-                    },
-                },
-            },
-        }
-    </script>
-    <style>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/my_layout}"
+      th:with="title='수정페이지'">
+<head>
+    <style layout:fragment="css">
         .material-symbols-outlined {
             font-variation-settings:
                     'FILL' 0,
@@ -49,162 +15,197 @@
     </style>
 </head>
 <body class="bg-background-light dark:bg-background-dark font-display text-text-light dark:text-text-dark">
-<div class="relative flex min-h-screen w-full">
+<div layout:fragment="content">
 
-    <!-- SideNavBar -->
-    <aside class="flex flex-col w-64 bg-card-light dark:bg-card-dark border-r border-border-light dark:border-border-dark">
-    <!--        로고      -->
-<!--        <div class="size-6 text-primary">-->
-<!--            <svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">-->
-<!--                <path clip-rule="evenodd" d="M24 4H42V17.3333V30.6667H24V44H6V30.6667V17.3333H24V4Z" fill="currentColor" fill-rule="evenodd"></path>-->
-<!--            </svg>-->
-<!--        </div>-->
-        <div class="flex flex-col items-center py-4">
-          <a href="/" class="text-xl font-extrabold text-primary dark:text-white;">내돈내삶</a>
-      </div>
-        <div class="flex flex-col justify-between h-full p-4">
-            <div class="flex flex-col gap-4">
-                <div class="flex items-center gap-3 p-2">
-                    <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="User avatar of John Doe" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBXRvCusazjgVnC4oIlEW_W_2_DL-N0llXEGwfPYxOkPCl-Z9AC2EVjSK20ifvUi9vYwQEX5ni7DnMJdmA40nxhvF7eMLtipfopr5L1XBaLMAk5mC5s0aQwF0TofGSo0v3B9hxMxLyhPeNflRqHw8CJ9_LFRvs8kajSgUmst39BdTr08F45xnRXjZI3q-WAby0JZs-AlIULr_Dpd9ZdVZ3BThGQhlgECxkhTSpQS2PknHfW88NbvMSicjMYQlc2Uz_r-LCRA8zUfAH8");'></div>
-                    <div class="flex flex-col">
-                        <h1 class="text-base font-bold text-text-light dark:text-text-dark" th:text="${member.memberName}">이름</h1>
-                        <p class="text-sm text-placeholder-light dark:text-placeholder-dark" th:text="${member.email}">이메일</p>
-                    </div>
-                </div>
-<!--                <nav class="flex flex-col gap-2 mt-4">-->
-<!--                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors" href="#">-->
-<!--                        <span class="material-symbols-outlined text-text-light dark:text-text-dark">dashboard</span>-->
-<!--                        <p class="text-sm font-medium">Dashboard</p>-->
+    <div class="relative flex min-h-screen w-full">
+
+<!--        &lt;!&ndash; SideNavBar &ndash;&gt;-->
+<!--        <aside class="flex flex-col w-64 bg-card-light dark:bg-card-dark border-r border-border-light dark:border-border-dark">-->
+<!--            &lt;!&ndash;        로고      &ndash;&gt;-->
+<!--            &lt;!&ndash;        <div class="size-6 text-primary">&ndash;&gt;-->
+<!--            &lt;!&ndash;            <svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">&ndash;&gt;-->
+<!--            &lt;!&ndash;                <path clip-rule="evenodd" d="M24 4H42V17.3333V30.6667H24V44H6V30.6667V17.3333H24V4Z" fill="currentColor" fill-rule="evenodd"></path>&ndash;&gt;-->
+<!--            &lt;!&ndash;            </svg>&ndash;&gt;-->
+<!--            &lt;!&ndash;        </div>&ndash;&gt;-->
+<!--            <div class="flex flex-col items-center py-4">-->
+<!--                <a href="/" class="text-xl font-extrabold text-primary dark:text-white;">내돈내삶</a>-->
+<!--            </div>-->
+<!--            <div class="flex flex-col justify-between h-full p-4">-->
+<!--                <div class="flex flex-col gap-4">-->
+<!--                    <div class="flex items-center gap-3 p-2">-->
+<!--                        <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="User avatar of John Doe" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBXRvCusazjgVnC4oIlEW_W_2_DL-N0llXEGwfPYxOkPCl-Z9AC2EVjSK20ifvUi9vYwQEX5ni7DnMJdmA40nxhvF7eMLtipfopr5L1XBaLMAk5mC5s0aQwF0TofGSo0v3B9hxMxLyhPeNflRqHw8CJ9_LFRvs8kajSgUmst39BdTr08F45xnRXjZI3q-WAby0JZs-AlIULr_Dpd9ZdVZ3BThGQhlgECxkhTSpQS2PknHfW88NbvMSicjMYQlc2Uz_r-LCRA8zUfAH8");'></div>-->
+<!--                        <div class="flex flex-col">-->
+<!--                            <h1 class="text-base font-bold text-text-light dark:text-text-dark" th:text="${member.memberName}">이름</h1>-->
+<!--                            <p class="text-sm text-placeholder-light dark:text-placeholder-dark" th:text="${member.email}">이메일</p>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                    &lt;!&ndash;                <nav class="flex flex-col gap-2 mt-4">&ndash;&gt;-->
+<!--                    &lt;!&ndash;                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors" href="#">&ndash;&gt;-->
+<!--                    &lt;!&ndash;                        <span class="material-symbols-outlined text-text-light dark:text-text-dark">dashboard</span>&ndash;&gt;-->
+<!--                    &lt;!&ndash;                        <p class="text-sm font-medium">Dashboard</p>&ndash;&gt;-->
+<!--                    &lt;!&ndash;                    </a>&ndash;&gt;-->
+<!--                    &lt;!&ndash;                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors" href="#">&ndash;&gt;-->
+<!--                    &lt;!&ndash;                        <span class="material-symbols-outlined text-text-light dark:text-text-dark">group</span>&ndash;&gt;-->
+<!--                    &lt;!&ndash;                        <p class="text-sm font-medium">Members</p>&ndash;&gt;-->
+<!--                    &lt;!&ndash;                    </a>&ndash;&gt;-->
+<!--                    &lt;!&ndash;                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors" href="#">&ndash;&gt;-->
+<!--                    &lt;!&ndash;                        <span class="material-symbols-outlined text-text-light dark:text-text-dark">view_kanban</span>&ndash;&gt;-->
+<!--                    &lt;!&ndash;                        <p class="text-sm font-medium">Board</p>&ndash;&gt;-->
+<!--                    &lt;!&ndash;                    </a>&ndash;&gt;-->
+<!--                    &lt;!&ndash;                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors" href="#">&ndash;&gt;-->
+<!--                    &lt;!&ndash;                        <span class="material-symbols-outlined text-text-light dark:text-text-dark">account_balance_wallet</span>&ndash;&gt;-->
+<!--                    &lt;!&ndash;                        <p class="text-sm font-medium">Ledger</p>&ndash;&gt;-->
+<!--                    &lt;!&ndash;                    </a>&ndash;&gt;-->
+<!--                    &lt;!&ndash;                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20" href="#">&ndash;&gt;-->
+<!--                    &lt;!&ndash;                        <span class="material-symbols-outlined text-primary dark:text-white">edit</span>&ndash;&gt;-->
+<!--                    &lt;!&ndash;                        <p class="text-sm font-bold text-primary dark:text-white">Edit Profile</p>&ndash;&gt;-->
 <!--                    </a>-->
+<!--                    </nav>-->
+<!--                </div>-->
+<!--                <div class="flex flex-col gap-1">-->
+<!--                    &lt;!&ndash;&lt;!&ndash;                <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors" href="#">&ndash;&gt;&ndash;&gt;-->
+<!--                    &lt;!&ndash;&lt;!&ndash;                    <span class="material-symbols-outlined text-text-light dark:text-text-dark">settings</span>&ndash;&gt;&ndash;&gt;-->
+<!--                    &lt;!&ndash;&lt;!&ndash;                    <p class="text-sm font-medium">Settings</p>&ndash;&gt;&ndash;&gt;-->
+<!--                    &lt;!&ndash;                </a>&ndash;&gt;-->
 <!--                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors" href="#">-->
-<!--                        <span class="material-symbols-outlined text-text-light dark:text-text-dark">group</span>-->
-<!--                        <p class="text-sm font-medium">Members</p>-->
+<!--                        <span class="material-symbols-outlined text-text-light dark:text-text-dark">logout</span>-->
+<!--                        <p class="text-sm font-medium">Logout</p>-->
 <!--                    </a>-->
-<!--                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors" href="#">-->
-<!--                        <span class="material-symbols-outlined text-text-light dark:text-text-dark">view_kanban</span>-->
-<!--                        <p class="text-sm font-medium">Board</p>-->
-<!--                    </a>-->
-<!--                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors" href="#">-->
-<!--                        <span class="material-symbols-outlined text-text-light dark:text-text-dark">account_balance_wallet</span>-->
-<!--                        <p class="text-sm font-medium">Ledger</p>-->
-<!--                    </a>-->
-<!--                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20" href="#">-->
-<!--                        <span class="material-symbols-outlined text-primary dark:text-white">edit</span>-->
-<!--                        <p class="text-sm font-bold text-primary dark:text-white">Edit Profile</p>-->
-                    </a>
-                </nav>
-            </div>
-            <div class="flex flex-col gap-1">
-<!--&lt;!&ndash;                <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors" href="#">&ndash;&gt;-->
-<!--&lt;!&ndash;                    <span class="material-symbols-outlined text-text-light dark:text-text-dark">settings</span>&ndash;&gt;-->
-<!--&lt;!&ndash;                    <p class="text-sm font-medium">Settings</p>&ndash;&gt;-->
-<!--                </a>-->
-                <a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 transition-colors" href="#">
-                    <span class="material-symbols-outlined text-text-light dark:text-text-dark">logout</span>
-                    <p class="text-sm font-medium">Logout</p>
-                </a>
-            </div>
-        </div>
-    </aside>
-    <!-- Main Content -->
-    <main class="flex-1 p-6 lg:p-10">
-<!--        수정 중 가운데로 화면 꽉 차게 하려고 <div class="w-full mx-auto">-->
-        <div class="mx-auto max-w-6xl w-full">
-            <!-- Page Heading -->
-            <div class="mb-8">
-                <h1 class="text-3xl lg:text-4xl font-black tracking-tight text-text-light dark:text-text-dark">수정 페이지</h1>
-                <p class="text-base text-placeholder-light dark:text-placeholder-dark mt-4">개인 정보와 보안 설정을 관리할 수 있습니다.</p>
-            </div>
-            <!-- Two Column Layout -->
-            <div class="grid grid-cols-1 gap-8 w-full">
-                <!-- Left Column: Profile Details -->
-                <div class="w-full">
-                    <div class="bg-card-light dark:bg-card-dark rounded-xl border border-border-light dark:border-border-dark shadow-sm">
-                        <!-- Section Header -->
-                        <div class="p-5 border-b border-border-light dark:border-border-dark">
-                            <h2 class="text-xl font-bold tracking-tight text-text-light dark:text-text-dark">프로필 상세 정보</h2>
-                        </div>
-                        <div class="p-5">
-                            <!-- Profile Header -->
-                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 pb-6 border-b border-border-light dark:border-border-dark">
-                                <div class="flex items-center gap-4">
-                                    <div class="relative">
-                                        <img src="/src/img/undraw_pic-profile_nr49.svg" class="rounded-circle" width="96" height="96" alt="Alex">
-                                    </div>
-                                    <div class="flex flex-col justify-center">
-                                        <p class="text-sm text-text-light dark:text-text-dark mb-1">닉네임</p>
-                                        <p class="text-xl font-bold text-text-light dark:text-text-dark">김개똥</p>
-                                        <p class="text-base text-placeholder-light dark:text-placeholder-dark">Member</p>
-                                    </div>
-                                </div>
-<!--                                 사진 수정할 수 있는 버튼 : 사용할 수 있게 이미 돼 있어서 일단 주석 처리함 -->
-<!--                                <button class="flex items-center justify-center rounded-lg h-10 px-4 bg-primary/20 text-primary dark:text-white dark:bg-primary/50 text-sm font-bold w-full sm:w-auto transition-colors hover:bg-primary/30">-->
-<!--                                    <span>Change Photo</span>-->
-<!--                                </button>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </aside>-->
+        <!-- Main Content -->
+        <main class="flex-1 p-6 lg:p-10">
+            <!--        수정 중 가운데로 화면 꽉 차게 하려고 <div class="w-full mx-auto">-->
+            <div class="mx-auto max-w-6xl w-full">
+                <!-- Page Heading -->
+<!--                <div class="mb-8">-->
+<!--                    <p class="text-base text-placeholder-light dark:text-placeholder-dark mt-4">개인 정보와 보안 설정을 관리할 수 있습니다.</p>-->
+<!--                </div>-->
+                <!-- Two Column Layout -->
+                <div class="grid grid-cols-1 gap-8 w-full">
+                    <!-- Left Column: Profile Details -->
+                    <div class="w-full">
+                        <div class="bg-card-light dark:bg-card-dark rounded-xl border border-border-light dark:border-border-dark shadow-sm">
+                            <!-- Section Header -->
+                            <div class="p-5 border-b border-border-light dark:border-border-dark">
+                                <h2 class="text-xl font-bold tracking-tight text-text-light dark:text-text-dark">프로필 상세 정보</h2>
                             </div>
-                            <!-- Profile Form -->
-                            <form class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div class="md:col-span-2">
-                                    <label class="flex flex-col">
-                                        <p class="text-sm font-medium pb-2">이름</p>
-                                        <input class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark placeholder:text-placeholder-light dark:placeholder:text-placeholder-dark focus:border-primary focus:ring-primary h-12 px-4 text-base" value="김가은"/>
-                                    </label>
+                            <div class="p-5">
+                                <!-- Profile Header -->
+                                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 pb-6 border-b border-border-light dark:border-border-dark">
+                                    <div class="flex items-center gap-4">
+                                        <div class="relative">
+                                            <img src="/src/img/undraw_pic-profile_nr49.svg" class="rounded-circle" width="96" height="96" alt="Alex">
+                                        </div>
+                                        <div class="flex flex-col justify-center">
+                                            <p class="text-sm text-text-light dark:text-text-dark mb-1">닉네임</p>
+                                            <p class="text-xl font-bold text-text-light dark:text-text-dark">김개똥</p>
+                                            <p class="text-base text-placeholder-light dark:text-placeholder-dark">Member</p>
+                                        </div>
+                                    </div>
+                                    <!--                                 사진 수정할 수 있는 버튼 : 사용할 수 있게 이미 돼 있어서 일단 주석 처리함 -->
+                                    <!--                                <button class="flex items-center justify-center rounded-lg h-10 px-4 bg-primary/20 text-primary dark:text-white dark:bg-primary/50 text-sm font-bold w-full sm:w-auto transition-colors hover:bg-primary/30">-->
+                                    <!--                                    <span>Change Photo</span>-->
+                                    <!--                                </button>-->
                                 </div>
-<!--                                비밀번호 수정-->
-                                <div class="md:col-span-2">
-                                <p class="text-sm font-medium pb-2">비밀번호 변경</p>
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <div>
-                                        <label>
-                                            <span class="sr-only">현재 비밀번호</span>
-                                            <input class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark placeholder:text-placeholder-light dark:placeholder:text-placeholder-dark focus:border-primary focus:ring-primary h-12 px-4 text-base" placeholder="현재 비밀번호" type="password"/>
+                                <!-- Profile Form -->
+<form class="grid grid-cols-1 md:grid-cols-2 gap-6" method="post" th:action="@{/mypage/edit}">
+                                    <div class="md:col-span-2">
+                                        <label class="flex flex-col">
+                                            <p class="text-sm font-medium pb-2">이름</p>
+                                            <input name="memberName" class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark placeholder:text-placeholder-light dark:placeholder:text-placeholder-dark focus:border-primary focus:ring-primary h-12 px-4 text-base" value="김가은"/>
+                                        </label>
+                                    </div>
+                                    <!--                                비밀번호 수정-->
+                                    <div class="md:col-span-2">
+                                        <p class="text-sm font-medium pb-2">비밀번호 변경</p>
+                                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                            <div>
+                                                <label>
+                                                    <span class="sr-only">현재 비밀번호</span>
+                                                    <input name="currentpw" class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark placeholder:text-placeholder-light dark:placeholder:text-placeholder-dark focus:border-primary focus:ring-primary h-12 px-4 text-base" placeholder="현재 비밀번호" type="password"/>
+                                                </label>
+                                            </div>
+                                            <div>
+                                                <label>
+                                                    <span class="sr-only">새로운 비밀번호</span>
+                                                    <input name="newpw" class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark placeholder:text-placeholder-light dark:placeholder:text-placeholder-dark focus:border-primary focus:ring-primary h-12 px-4 text-base" placeholder="새로운 비밀번호" type="password"/>
+                                                </label>
+                                            </div>
+                                            <div>
+                                                <label>
+                                                    <span class="sr-only">새 비밀번호 재입력</span>
+                                                    <input name="newpw2" class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark placeholder:text-placeholder-light dark:placeholder:text-placeholder-dark focus:border-primary focus:ring-primary h-12 px-4 text-base" placeholder="새 비밀번호 재입력" type="password"/>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="flex flex-col">
+                                            <p class="text-sm font-medium pb-2">이메일 주소</p>
+                                            <input class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light/50 dark:bg-background-dark/50 text-placeholder-light dark:text-placeholder-dark h-12 px-4 text-base cursor-not-allowed" readonly="" value="john.doe@email.com"/>
                                         </label>
                                     </div>
                                     <div>
-                                        <label>
-                                            <span class="sr-only">새로운 비밀번호</span>
-                                            <input class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark placeholder:text-placeholder-light dark:placeholder:text-placeholder-dark focus:border-primary focus:ring-primary h-12 px-4 text-base" placeholder="새로운 비밀번호" type="password"/>
+                                        <label class="flex flex-col">
+                                            <p class="text-sm font-medium pb-2">휴대폰 번호</p>
+                                            <input name="phone" class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark placeholder:text-placeholder-light dark:placeholder:text-placeholder-dark focus:border-primary focus:ring-primary h-12 px-4 text-base" value="010-2345-6789"/>
                                         </label>
                                     </div>
                                     <div>
-                                        <label>
-                                            <span class="sr-only">새 비밀번호 재입력</span>
-                                            <input class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark placeholder:text-placeholder-light dark:placeholder:text-placeholder-dark focus:border-primary focus:ring-primary h-12 px-4 text-base" placeholder="새 비밀번호 재입력" type="password"/>
+                                        <label class="flex flex-col">
+                                            <p class="text-sm font-medium pb-2">주소</p>
+                                            <input name="address" class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark placeholder:text-placeholder-light dark:placeholder:text-placeholder-dark focus:border-primary focus:ring-primary h-12 px-4 text-base" value="경기도 오산시 까마귀로"/>
                                         </label>
                                     </div>
-                                </div>
-                        </div>
-                                <div class="md:col-span-2">
-                                    <label class="flex flex-col">
-                                        <p class="text-sm font-medium pb-2">이메일 주소</p>
-                                        <input class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light/50 dark:bg-background-dark/50 text-placeholder-light dark:text-placeholder-dark h-12 px-4 text-base cursor-not-allowed" readonly="" value="john.doe@email.com"/>
-                                    </label>
-                                </div>
-                                <div>
-                                    <label class="flex flex-col">
-                                        <p class="text-sm font-medium pb-2">휴대폰 번호</p>
-                                        <input class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark placeholder:text-placeholder-light dark:placeholder:text-placeholder-dark focus:border-primary focus:ring-primary h-12 px-4 text-base" value="010-2345-6789"/>
-                                    </label>
-                                </div>
-                                <div>
-                                    <label class="flex flex-col">
-                                        <p class="text-sm font-medium pb-2">주소</p>
-                                        <input class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark placeholder:text-placeholder-light dark:placeholder:text-placeholder-dark focus:border-primary focus:ring-primary h-12 px-4 text-base" value="경기도 오산시 까마귀로"/>
-                                    </label>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="p-5 border-t border-border-light dark:border-border-dark flex justify-end">
-                            <button class="flex items-center justify-center rounded-lg h-11 px-6 bg-primary text-white text-sm font-bold transition-opacity hover:opacity-90">
-                                <span>Save Changes</span>
-                            </button>
+                                </form>
+                            </div>
+                            <div class="p-5 border-t border-border-light dark:border-border-dark flex justify-end">
+                                <button class="flex items-center justify-center rounded-lg h-11 px-6 bg-primary text-white text-sm font-bold transition-opacity hover:opacity-90">
+                                    <span>Save Changes</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
 
                 </div>
             </div>
 
-    </main>
+        </main>
+    </div>
+</body>
 </div>
-</body></html>
+<script layout:fragment="script">
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                colors: {
+                    "primary": "#0d273d",
+                    "background-light": "#f8f9fa",
+                    "background-dark": "#121a20",
+                    "text-light": "#212529",
+                    "text-dark": "#f8f9fa",
+                    "card-light": "#ffffff",
+                    "card-dark": "#1a242d",
+                    "border-light": "#dee2e6",
+                    "border-dark": "#343a40",
+                    "placeholder-light": "#6c757d",
+                    "placeholder-dark": "#adb5bd"
+                },
+                fontFamily: {
+                    "display": ["Manrope", "sans-serif"]
+                },
+                borderRadius: {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+                },
+            },
+        },
+    }
+</script>
+</body>
+</html>

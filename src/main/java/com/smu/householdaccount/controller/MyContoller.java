@@ -55,4 +55,5 @@ public class MyContoller {
         model.addAttribute("member", loginUser);
         return "user/editpage";
     }
+
 }
