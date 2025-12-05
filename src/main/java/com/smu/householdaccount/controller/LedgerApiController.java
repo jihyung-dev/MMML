@@ -1,13 +1,14 @@
 package com.smu.householdaccount.controller;
 
+import com.smu.householdaccount.dto.ledger.LedgerDetailDto;
+import com.smu.householdaccount.dto.ledger.LedgerSaveRequest;
+import com.smu.householdaccount.dto.ledger.LedgerSummaryDto;
 import com.smu.householdaccount.dto.ledger.LedgerSummaryDto.DailySummary;
+import com.smu.householdaccount.entity.LedgerEntry;
 import com.smu.householdaccount.service.LedgerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -21,21 +22,67 @@ import java.util.List;
 public class LedgerApiController {
 
     private final LedgerService ledgerService;
-
-    /**
-     * 캘린더 UI에 표시할 월별 일자별 수입/지출 소계 데이터를 JSON으로 반환합니다.
-     * (FullCalendar의 events source로 사용됩니다.)
-     * URL: /api/ledger/calendar?year=2025&month=10
-     */
-    @GetMapping("/calendar")
-    public ResponseEntity<List<DailySummary>> getCalendarEvents(
+    // [New] 대시보드(차트+캘린더) 데이터 통합 API
+    @GetMapping("/dashboard-data")
+    public ResponseEntity<LedgerSummaryDto> getDashboardData(
+            @RequestParam("year") int year,
+            @RequestParam("month") int month
+    ) {
+        return ResponseEntity.ok(ledgerService.getDashboardDataNew(year, month));
+    }
+    // [수정] DataTables용 상세 내역 리스트 API
+    @GetMapping("/transaction-list")
+    public ResponseEntity<List<LedgerDetailDto>> getTransactionList(
             @RequestParam int year,
             @RequestParam int month
     ) {
-        // Service에서 계산된 List<DailySummary>를 반환합니다.
-        List<DailySummary> dailyStats = ledgerService.getCalendarDailyStats(year, month);
-        return ResponseEntity.ok(dailyStats);
+        // 서비스 메서드 호출 (이름 바꿨으니 맞춰주세요)
+        return ResponseEntity.ok(ledgerService.getTransactionList(1L, year, month));
+    }
+    // [New] 단건 등록 API
+    @PostMapping("/entry")
+    public ResponseEntity<String> addLedgerEntry(
+            @RequestBody LedgerSaveRequest requestDto,
+            @SessionAttribute(name = "loginUserId", required = false) String memberId
+    ) {
+        if (memberId == null) memberId = "testuser"; // 테스트용
+
+        ledgerService.addSingleEntry(requestDto, memberId);
+
+        return ResponseEntity.ok("Saved successfully");
     }
 
-    // (기존 LedgerController에 있던 /chart 등의 API도 이쪽으로 옮겨오는 것이 아키텍처상 더 깔끔합니다.)
+    // 1. 일별 상세 리스트 조회
+    @GetMapping("/daily-list")
+    public ResponseEntity<List<LedgerDetailDto>> getDailyList(
+            @RequestParam String date,
+            @SessionAttribute(name = "loginUserId", required = false) String memberId
+    ) {
+        if (memberId == null) memberId = "testuser";
+        return ResponseEntity.ok(ledgerService.getDailyTransactionList(memberId, date));
+    }
+
+    // 2. 수정 API
+    @PutMapping("/entry/{id}")
+    public ResponseEntity<String> updateEntry(
+            @PathVariable Long id,
+            @RequestBody LedgerSaveRequest req,
+            @SessionAttribute(name = "loginUserId", required = false) String memberId
+    ) {
+        if (memberId == null) memberId = "testuser";
+        ledgerService.updateEntry(id, req, memberId);
+        return ResponseEntity.ok("Updated");
+    }
+
+    // 3. 삭제 API
+    @DeleteMapping("/entry/{id}")
+    public ResponseEntity<String> deleteEntry(
+            @PathVariable Long id,
+            @SessionAttribute(name = "loginUserId", required = false) String memberId
+    ) {
+        if (memberId == null) memberId = "testuser";
+        ledgerService.deleteEntry(id, memberId);
+        return ResponseEntity.ok("Deleted");
+    }
+
 }

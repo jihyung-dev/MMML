@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -18,6 +19,7 @@ import java.util.Set;
 @Setter
 @Entity
 @Table(name = "BOARD_COMMENT")
+@ToString(exclude = {"post", "writer", "boardComments","parentComment"})
 public class BoardComment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,9 +32,12 @@ public class BoardComment {
     @JoinColumn(name = "POST_ID", nullable = false)
     private BoardPost post;
 
+    @Column(name = "WRITER_ID", nullable = false, length = 50)
+    private String writerId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.RESTRICT)
-    @JoinColumn(name = "WRITER_ID")
+    @JoinColumn(name = "WRITER_ID",insertable = false, updatable = false)
     private Member writer;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -53,6 +58,7 @@ public class BoardComment {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "parentComment")
-    private Set<BoardComment> boardComments = new LinkedHashSet<>();
+    private java.util.List<BoardComment> boardComments = new java.util.ArrayList<>();
+
 
 }

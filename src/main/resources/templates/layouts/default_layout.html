@@ -5,6 +5,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <th:block layout:fragment="meta"></th:block>
+
     <!-- 페이지마다 타이틀을 동적으로 변경 (기본값: Commune) -->
     <title layout:title-pattern="$CONTENT_TITLE | Commune">Commune</title>
     <!-- 프로젝트 내부 CSS -->
@@ -60,7 +62,32 @@
                 <li class="nav-item"><a class="nav-link" href="/ledger">Ledger</a></li>
                 <li class="nav-item"><a class="nav-link text-warning" href="/hotdeal">Hot Deals</a></li>
                 <li class="nav-item ms-3">
-                    <a href="/member/login.do" class="btn primary-btn">Login / Join</a>
+                    <!-- 로그인 안 한 상태 -->
+                    <nav class="main-navbar">
+                        <div class="nav-container">
+                            <!-- Right: Login -->
+                            <div class="nav-right">
+
+                                <!-- 로그인 안 한 상태 -->
+                                <div th:if="${session.loginUser == null and session.sellerUser == null}">
+                                    <a href="/login" class="nav-login-btn">UserLogin</a>
+                                </div>
+
+                                <!-- 일반 회원 로그인 -->
+                                <div th:if="${session.loginUser != null}" class="nav-user-info">
+                                    <a href="/mypage">
+                                        <span th:text="${session.loginUser.memberNickname + '님 환영합니다!'}"></span>
+                                    </a>
+                                    &nbsp; | &nbsp;
+                                    <a href="/logout" class="nav-logout-btn">LogOut</a>
+                                </div>
+
+                                <!-- 판매자 로그인 -->
+
+                            </div>
+                        </div>
+                    </nav>
+
                 </li>
             </ul>
         </div>
@@ -68,7 +95,7 @@
 </header>
 
 <!-- [변동] 메인 콘텐츠가 들어갈 자리 -->
-<main>
+<main class="container">
     <div layout:fragment="content">
         <!-- 각 페이지의 실제 내용이 여기에 들어옵니다 -->
     </div>

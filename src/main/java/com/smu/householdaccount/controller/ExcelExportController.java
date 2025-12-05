@@ -36,7 +36,7 @@ public class ExcelExportController {
             ){
 
         // chart API와 동일한 DTO 조회
-        List<LedgerEntry> summary = ledgerService.getMonthlyToExcel(year, month);
+        List<LedgerEntry> summary = ledgerService.getYearDataToExcel(year, month);
 
         byte[] file = excelService.buildMonthlyLedgerExcel(summary, year, month);
 
@@ -54,13 +54,13 @@ public class ExcelExportController {
     ) {
         try {
             // chart API와 동일한 DTO 조회
-            List<LedgerEntry> summary = ledgerService.getMonthlyToExcel(year, month);
+            List<LedgerEntry> summary = ledgerService.getYearDataToExcel(year, month);
 
             byte[] excelFile = excelService.buildMonthlyLedgerExcel(summary, year, month);
 
             emailService.sendExcelFile(
                     email,
-                    year + "년 " + month + "월 가계부 내역",
+                    year + "년 " + " 가계부 내역",
                     "첨부된 엑셀 파일을 확인해 주세요.",
                     excelFile
             );

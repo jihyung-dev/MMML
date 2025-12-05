@@ -1,27 +1,31 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/my_layout}">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <style layout:fragment="css"></style>
 </head>
 <body>
-
-    <h1>판매자 상세</h1>
-    <ul>
-        <li>
-            사업자번호 : <span th:text="${seller.bizNo}"></span>
-        </li> <li>
+    <div layout:fragment="content">
+        <h1>판매자 상세</h1>
+        <ul>
+            <li>
+                사업자번호 : <span th:text="${seller.bizNo}"></span>
+            </li> <li>
             업태 : <span th:text="${seller.bizType}"></span>
         </li>
-    </ul>
-    <hr>
-    <nav>
-        <ul>
-<!--       /seller/{orderId}/order :상세     -->
-            <li><a href="/seller/order">주문 받은 내역(OrderMain)</a></li>
-            <li><a href="/seller/item">등록한 상품(Item)</a></li>
-            <li><a href="/seller/qna">문의사항 (미정)</a></li>
         </ul>
-    </nav>
+        <hr>
+        <nav>
+            <ul>
+                <!--       /seller/{orderId}/order :상세     -->
+                <li><a href="/seller/order">주문 받은 내역(OrderMain)</a></li>
+                <li><a href="/seller/item">등록한 상품(Item)</a></li>
+<!--           안 쓰기로 해서 주석 처리함     <li><a href="/seller/qna">문의사항 (미정)</a></li>-->
+            </ul>
+        </nav>
+
+    </div>
+    <script layout:fragment="script"></script>
 </body>
 </html>

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>회원가입</title>
     <link rel="stylesheet" th:href="@{/css/login.css}">
+    <script src="/js/login/login.js"></script>
 </head>
 <body>
 
@@ -12,7 +13,10 @@
 
     <p th:if="${error}" class="error-text" th:text="${error}"></p>
 
-    <form action="/join/member" method="post" th:object="${member}">
+    <form th:action="@{/join/member}"
+          method="post"
+          th:object="${member}"
+          id="joinForm">
 
         <label>아이디</label>
         <input type="text" th:field="*{memberId}" placeholder="아이디" required>
@@ -24,7 +28,7 @@
         <input type="text" th:field="*{memberName}" placeholder="이름" required>
 
         <label>닉네임</label>
-        <input type="text" th:field="*{memberNickname}" placeholder="닉네임">
+        <input type="text" th:field="*{memberNickname}" placeholder="닉네임" required>
 
         <label>휴대폰번호</label>
         <input type="text" th:field="*{phone}" placeholder="010-0000-0000">
@@ -32,13 +36,41 @@
         <label>주소</label>
         <input type="text" th:field="*{address}" placeholder="주소를 입력하세요">
 
+        <!-- 🔹 이메일 (인증 필수) -->
+        <label>이메일</label>
+        <input type="email" th:field="*{email}" id="emailInput" placeholder="이메일을 입력하세요" required>
+
+        <!-- 이메일 인증 여부 저장 -->
+        <input type="hidden" id="isEmailVerified" name="isEmailVerified" value="false">
+
+        <!-- 인증번호 요청 -->
+        <button type="button" onclick="sendEmailAuth()">이메일 인증번호 요청</button>
+
+        <!-- 인증번호 입력 UI -->
+        <div id="authCodeBox">
+            <input type="text" id="authCodeInput" placeholder="인증번호 입력">
+            <button type="button" onclick="sendAuthMail()">인증하기</button>
+        </div>
+
+        <!-- 성별 -->
+        <label>성별</label>
+        <select th:field="*{gender}">
+            <option value="">선택</option>
+            <option value="M">남자</option>
+            <option value="F">여자</option>
+            <option value="U">선택안함</option>
+        </select>
+
+        <!-- 🔹 나이 (선택값, 정수) -->
+        <label>나이</label>
+        <input type="number" th:field="*{age}" min="0" max="120" placeholder="나이">
+
         <button type="submit">가입하기</button>
     </form>
 
     <div class="login-links">
-        <a href="/login">이미 계정이 있으신가요? 로그인</a>
+        <a th:href="@{/login}">이미 계정이 있으신가요? 로그인</a>
     </div>
 </div>
-
 </body>
 </html>

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
@@ -23,14 +24,12 @@ public class LedgerEntry {
     @Column(name = "ENTRY_ID", nullable = false)
     private Long id;
 
-    @Column(name = "GROUP_ID", nullable = false)
-    private Long groupId;
-
+    @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.RESTRICT)
     @JsonIgnore
-    @JoinColumn(name = "GROUP_ID", insertable = false, updatable = false)
-    private BudgetGroup group;
+    @JoinColumn(name = "GROUP_ID", nullable = false)
+    private BudgetGroup groupId;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -56,7 +55,7 @@ public class LedgerEntry {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.RESTRICT)
     @JoinColumn(name = "CATEGORY_ID", nullable = false)
-    @JsonIgnore
+//    @JsonIgnore
     private Category category;
 
     @NotNull

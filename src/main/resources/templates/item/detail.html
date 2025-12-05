@@ -1,30 +1,404 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/default_layout}"
+      th:with="CONTENT_TITLE=${item.itemName} + ' | Hotdeal'">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <!-- 프로젝트 CSS -->
+    <link  layout:fragment="css" th:href="@{/css/item-detail.css}" rel="stylesheet"/>
 </head>
-<body>
-    <h1>상세</h1>
-    <p th:text="${item}"></p>
 
-    <ul>
-        <li th:each="img : ${item.images}"  >
-            <img th:src="${img.getImageUrl()}" th:alt="${img.getImageUrl()}">
-        </li>
-    </ul>
-    <ul>
-        <li th:each="opt : ${item.hotdealOptions}"  >
-            <span th:text="${opt.getOptionValue()}"></span> |
-            <span th:text="${opt.getOptionType()}"></span>
-        </li>
-    </ul>
-    <ul>
-        <li >
-            <span th:text="${item.seller.getBizNo()}"></span> |
-            <span th:text="${item.seller.getBizType()}"></span>
-        </li>
-    </ul>
+<!--<body class="bg-light">-->
+<body>
+
+<!--<div class="container py-4">-->
+<div layout:fragment="content" class="mt-4">
+<!-- 상단 메뉴 / 뒤로가기 -->
+    <!--<div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <a th:href="@{/hotdeal}" class="btn btn-outline-secondary btn-sm">← 목록으로</a>
+        </div>
+        <div class="d-flex gap-2">
+            <a th:href="@{/mypage}" class="btn btn-outline-secondary btn-sm">마이페이지</a>
+            <a th:href="@{/hotdeal}" class="btn btn-primary btn-sm">핫딜 홈</a>
+        </div>
+    </div>--> <!--나중에 쓸 일 없으면 삭제하겠음-->
+
+    <div class="row g-4">
+        <!-- 이미지 / 캐러셀 -->
+        <div class="col-12 col-lg-6">
+            <div th:if="${item.images != null and #lists.size(item.images) > 0}">
+                <div id="itemCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        <div th:each="img, idx : ${item.images}"
+                             th:classappend="${idx.index == 0} ? 'carousel-item active' : 'carousel-item'">
+                            <img th:src="${img.imageUrl}" th:alt="${item.itemName}" class="d-block w-100 thumb"
+                                 onerror="this.onerror=null;this.src='/img/no-image.png'"/>
+                        </div>
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#itemCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#itemCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+            </div>
+            <!-- images가 있을 때만 반복 -->
+            <th:block th:if="${item.images != null}">
+                <div th:each="img : ${item.images}">
+                    <img th:src="@{${img.imageUrl}}" />
+                </div>
+            </th:block>
+            <div th:if="${item.images == null or #lists.size(item.images) == 0}" class="no-image">
+                이미지 없음
+            </div>
+        </div>
+
+        <!-- 상품 정보 / 옵션 -->
+        <div class="col-12 col-lg-6">
+            <div class="card">
+                <div class="card-body">
+                    <!-- 상품 이름 -->
+                    <h3 class="card-title" th:text="${item.itemName}">상품명</h3>
+
+                    <!-- 가격 표시 -->
+                    <div class="mb-2">
+                        <!-- 원래 가격: 있을 때만 보여줌, 취소선 표시 -->
+                        <span class="original-price text-muted text-decoration-line-through"
+                              th:if="${item.originalPrice != null}"
+                              th:text="${item.formattedOriginalPrice}">0원</span>
+
+                        <!-- 현재 가격(세일 가격): 항상 보여줌, 강조 표시 -->
+                        <span class="price-strong text-danger ms-2"
+                              th:text="${item.formattedPrice}">0원</span>
+                    </div>
+
+                    <div class="mb-2 text-muted">
+                        <!-- 세일 기간 -->
+                        <span th:if="${item.saleStartAt != null and item.saleEndAt != null}">
+                            세일 기간:
+                        <span th:text="${#temporals.format(item.saleStartAt, 'yyyy-MM-dd')}"></span>
+                            ~
+                        <span th:text="${#temporals.format(item.saleEndAt, 'yyyy-MM-dd')}"></span>
+                        </span>
+                        <br/>
+
+                        <!-- 판매 상태 -->
+                        <span th:if="${item.saleStatus != null}">
+                            판매 상태:
+                        <span th:class="${item.saleStatus == 'ON_SALE' ? 'text-success' : item.saleStatus == 'SOLD_OUT' ? 'text-warning' : 'text-secondary'}"
+                              th:text="${item.saleStatus == 'ON_SALE' ? '세일중' : item.saleStatus == 'SOLD_OUT' ? '매진' : '판매종료'}"></span>
+                        </span>
+                    </div>
+
+                    <div class="mb-2 text-muted">
+                        조회수: <span th:text="${item.viewCount}">0</span>
+                        &nbsp;·&nbsp; 인기도: <span th:text="${item.popularityScore}">0</span>
+                    </div>
+
+                    <hr/>
+
+                    <!-- 옵션 선택 (두 가지 처리: optionGroups 가 있을 때 -> 여러 select, 없을 때 -> single select로 모든 옵션 노출) -->
+                    <form id="purchaseForm" th:action="@{/hotdeal/order}" method="post" class="mb-3">
+                        <input type="hidden" name="itemId" th:value="${item.id}"/>
+
+                        <!-- 안내 메시지: 판매 종료 또는 매진 시 -->
+                        <div th:if="${item.saleStatus != 'ON_SALE'}" class="alert alert-warning">
+                            이 상품은 현재 <span th:text="${item.saleStatus == 'SOLD_OUT' ? '매진' : '판매 종료'}"></span> 상태로, 옵션 선택 및 구매가 불가능합니다.
+                        </div>
+
+                        <!-- 옵션 그룹별 select -->
+                        <div th:if="${optionGroups != null}">
+                            <div th:each="group : ${optionGroups}" class="mb-2">
+                                <div class="option-label" th:text="${group.name}">옵션</div>
+                                <select class="form-select option-group" th:data-group-name="${group.name}"
+                                        th:disabled="${item.saleStatus != 'ON_SALE'}">
+                                    <option value="" style="color:#ccc">선택하세요</option>
+                                    <option th:each="opt : ${group.options}"
+                                            th:value="${opt.id}"
+                                            th:text="${opt.optionType + ' - ' + opt.optionValue + opt.formattedAdditionalPrice}"
+                                            th:data-additional-price="${opt.additionalPrice}"
+                                            th:data-stock="${opt.stock}"
+                                            th:data-option-type="${opt.optionType}"
+                                            th:data-option-value="${opt.optionValue}"
+                                            th:disabled="${opt.stock == 0 || item.saleStatus != 'ON_SALE'}">
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- 단일 옵션 fallback -->
+                        <div th:if="${optionGroups == null}">
+                            <div class="mb-2">
+                                <div class="option-label">옵션</div>
+                                <select class="form-select single-option"
+                                        th:disabled="${item.saleStatus != 'ON_SALE'}">
+                                    <option value="" style="color: #ccc">선택하세요</option>
+                                    <option th:each="opt : ${item.hotdealOptions}"
+                                            th:value="${opt.id}"
+                                            th:text="${opt.optionType + ' - ' + opt.optionValue + opt.formattedAdditionalPrice}"
+                                            th:data-additional-price="${opt.additionalPrice}"
+                                            th:data-stock="${opt.stock}"
+                                            th:disabled="${opt.stock == 0 || item.saleStatus != 'ON_SALE'}"></option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- 수량 -->
+                        <div class="mb-3 d-flex align-items-center gap-2">
+                            <!--<label class="option-label mb-0">수량</label>-->
+                            <!--<input id="qtyInput" name="quantity" type="number" min="1" value="1" class="form-control" style="width:100px;"/>-->
+                            <div class="ms-3 text-muted">남은재고: <span id="stockDisplay">—</span></div>
+                        </div>
+
+                        <!-- 옵션별 금액
+                        <div class="mb-3">
+                            <div>총 예상결제금액: <strong id="currentPrice" th:text="${item.formattedPrice}" data-base-price="${item.itemSalePrice}">0원</strong></div>
+                        </div>-->
+
+
+                        <!-- 장바구니 표시 영역 -->
+                        <div id="semiCart" class="mb-3">
+                            <h5>리스트</h5>
+                            <ul id="semiCartList" class="list-group"></ul>
+                        </div>
+
+                        <!-- 추가금액 / 총합 -->
+                        <div class="mb-3">
+                            <small class="text-muted">추가금액: <span id="additionalPrice">0원</span></small>
+                            <div>총 결제금액: <strong id="cartTotalPrice">0원</strong></div>
+                        </div>
+
+                        <!-- 버튼 -->
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn" id="wishBtn"
+                                    th:data-item-id="${item.id}"
+                                    th:data-is-wished="${isWished}"
+                                    th:classappend="${isWished} ? 'btn-danger' : 'btn-outline-primary'">
+                                <span th:text="${isWished} ? '♡ 찜 취소':'♥ 찜하기'"></span></button>
+                            <button type="submit" class="btn btn-success" th:disabled="${item.saleStatus != 'ON_SALE'}" id="buyBtn">구매하기</button>
+                            <!--<button type="button" class="btn btn-primary" id="cartBtn">담기</button>-->
+                        </div>
+                    </form>
+
+                    <hr/>
+
+                    <!-- 판매자 정보 -->
+                    <div class="seller-box mt-3">
+                        <!-- 클릭하는 상단 영역 -->
+                        <div class="seller-header" onclick="toggleSellerInfo()">
+                            <a href="#seller-info" data-bs-toggle="collapse" style="text-decoration:none; color:inherit;">
+                                <strong th:text="${item.seller != null ? item.seller.bizName : '판매자' }"></strong>
+                                <span id="arrow">▼</span>
+                            </a>
+                        </div>
+
+                        <!-- 접히는 영역 -->
+                        <div id="seller-info" class="collapse" th:if="${item.seller != null}">
+                            사업자번호: <span th:text="${item.seller.bizNo}"></span><br/>
+                            업종: <span th:text="${item.seller.bizType}"></span>
+                        </div>
+
+                        <div th:if="${item.seller == null}" class="text-muted">
+                            판매자 정보 없음
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- 상세 설명 (간단) -->
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h5>상품 상세정보</h5>
+                    <div th:utext="${item.description != null}">
+                        <p th:utext="${item.description}">상세 설명 영역</p>
+                    </div>
+                    <div th:unless="${item.description != null}" class="text-muted">상세 설명이 없습니다.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script layout:fragment="script">
+    document.addEventListener('DOMContentLoaded', () => {
+        const cart = [];
+        const semiCartList = document.getElementById('semiCartList');
+        const additionalPriceDisplay = document.getElementById('additionalPrice');
+        const cartTotalPriceDisplay = document.getElementById('cartTotalPrice');
+        const stockDisplay = document.getElementById('stockDisplay');
+
+        const basePriceEl = document.querySelector('.price-strong');
+        const parsePrice = txt => Number(String(txt).replace(/[^0-9.-]+/g,"")) || 0;
+        const currencyFmt = num => String(num).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + '원';
+        const basePrice = basePriceEl ? parsePrice(basePriceEl.innerText) : 0;
+
+        function addOptionToCart() {
+            let optionText = "";
+            let optionId = "";
+            let additionalPrice = 0;
+            let stock = null;
+
+            const groupSelects = document.querySelectorAll('.option-group');
+            if(groupSelects.length > 0){
+                for(const sel of groupSelects){
+                    if(!sel.value) return; // 선택 안 된 옵션 무시
+                    const opt = sel.options[sel.selectedIndex];
+                    optionText += `${opt.text} / `;
+                    optionId += sel.value + ",";
+                    additionalPrice += parseInt(opt.dataset.additionalPrice || 0);
+                    stock = stock === null ? parseInt(opt.dataset.stock || 0) : Math.min(stock, parseInt(opt.dataset.stock || 0));
+                }
+                optionText = optionText.slice(0, -3);
+                optionId = optionId.slice(0, -1);
+            } else {
+                const sel = document.querySelector('.single-option');
+                if(!sel.value) return;
+                const opt = sel.options[sel.selectedIndex];
+                optionText = opt.text;
+                optionId = sel.value;
+                additionalPrice = parseInt(opt.dataset.additionalPrice || 0);
+                stock = parseInt(opt.dataset.stock || 0);
+            }
+
+            // 장바구니에 같은 옵션 있으면 수량 1 증가
+            const existing = cart.find(c => c.optionId === optionId);
+            if(existing){
+                if(existing.quantity + 1 > stock){
+                    alert("재고가 부족합니다.");
+                    return;
+                }
+                existing.quantity += 1;
+            } else {
+                cart.push({ optionId, optionText, quantity: 1, additionalPrice, basePrice, stock });
+            }
+
+            renderCart();
+            updateStockDisplay();
+        }
+
+        function renderCart() {
+            semiCartList.innerHTML = "";
+            let totalCartPrice = 0;
+            let totalAdd = 0;
+
+            cart.forEach((item, index) => {
+                const itemTotal = (item.basePrice + item.additionalPrice) * item.quantity;
+                totalCartPrice += itemTotal;
+                totalAdd += item.additionalPrice * item.quantity;
+
+                const li = document.createElement('li');
+                li.className = "list-group-item d-flex justify-content-between align-items-center";
+
+                li.innerHTML = `
+                <div>
+                    <strong>${item.optionText}</strong>
+                    <br>
+                    <small>${currencyFmt(item.basePrice + item.additionalPrice)} / 개</small>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-sm btn-outline-secondary cart-minus" data-index="${index}"
+                             style="padding:0.2rem 0.3rem; font-size:0.6rem; line-height:2; width: 1.5rem; min-width:0;">-</button>
+                    <span>${item.quantity}</span>
+                    <button class="btn btn-sm btn-outline-secondary cart-plus" data-index="${index}"
+                            style="padding:0.2rem 0.3rem; font-size:0.6rem; line-height:2; width: 1.5rem; min-width:0;">+</button>
+                    <strong class="ms-2">${currencyFmt(itemTotal)}</strong>
+                </div>
+            `;
+                semiCartList.appendChild(li);
+            });
+
+            cartTotalPriceDisplay.textContent = currencyFmt(totalCartPrice);
+            additionalPriceDisplay.textContent = currencyFmt(totalAdd);
+
+            document.querySelectorAll('.cart-plus').forEach(btn => {
+                btn.addEventListener('click', () => changeQty(btn.dataset.index, +1));
+            });
+            document.querySelectorAll('.cart-minus').forEach(btn => {
+                btn.addEventListener('click', () => changeQty(btn.dataset.index, -1));
+            });
+        }
+
+        // 찜하기
+        const wishBtn = document.getElementById('wishBtn');
+        if (wishBtn) {
+            const itemId = wishBtn.dataset ? wishBtn.dataset.itemId : null;
+            wishBtn.addEventListener('click', async (e) => {
+                if (!itemId) { alert('아이템 정보가 없습니다.'); return; }
+                try {
+                    const res = await fetch(`/hotdeal/wishlist/${itemId}`, { method: 'POST' });
+                    if (!res.ok) {
+                        if (res.status === 401) { alert('로그인이 필요합니다.'); window.location.href = '/login'; return; }
+                        throw new Error('network response not ok');
+                    }
+                    const json = await res.json();
+                    if (json) updateWishButton(wishBtn, json.wished);
+                } catch(err) { console.error('wish error', err); alert('찜하기 처리 중 오류가 발생했습니다.'); }
+            });
+
+            function updateWishButton(button, wished) {
+                if (wished) {
+                    button.classList.remove('btn-outline-primary');
+                    button.classList.add('btn-primary', 'text-white');
+                    button.innerText = '♥ 찜함';
+                } else {
+                    button.classList.remove('btn-primary', 'text-white', 'btn-danger');
+                    button.classList.add('btn-outline-primary');
+                    button.innerText = '♥ 찜하기';
+                }
+            }
+        }
+
+        function changeQty(idx, diff) {
+            const item = cart[idx];
+            const newQty = item.quantity + diff;
+
+            if(newQty < 1){
+                alert("최소 수량은 1개입니다!");
+                return;
+            }
+            if(newQty > item.stock){
+                alert("재고보다 많이 담을 수 없습니다.");
+                return;
+            }
+
+            item.quantity = newQty;
+            renderCart();
+        }
+
+        function updateStockDisplay() {
+            let minStock = null;
+            const groupSelects = document.querySelectorAll('.option-group');
+            if(groupSelects.length > 0){
+                groupSelects.forEach(sel => {
+                    const opt = sel.options[sel.selectedIndex];
+                    if(opt?.dataset){
+                        const st = parseInt(opt.dataset.stock || 0);
+                        minStock = minStock === null ? st : Math.min(minStock, st);
+                    }
+                });
+            } else {
+                const sel = document.querySelector('.single-option');
+                if(sel?.value){
+                    const opt = sel.options[sel.selectedIndex];
+                    minStock = parseInt(opt.dataset.stock || 0);
+                }
+            }
+            stockDisplay.textContent = minStock !== null ? minStock : '—';
+        }
+
+        // 옵션 선택 시 바로 장바구니에 추가
+        document.querySelectorAll('.option-group, .single-option').forEach(sel => {
+            sel.addEventListener('change', addOptionToCart);
+        });
+    });
+
+</script>
 
 </body>
 </html>

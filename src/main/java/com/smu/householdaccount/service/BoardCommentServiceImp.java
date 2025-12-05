@@ -7,6 +7,9 @@ import com.smu.householdaccount.repository.BoardCommentRepository;
 import com.smu.householdaccount.repository.BoardPostRepository;
 import com.smu.householdaccount.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,7 +46,7 @@ public class BoardCommentServiceImp implements BoardCommentService {
         comment.setCreatedAt(LocalDateTime.now());
         comment.setUpdatedAt(LocalDateTime.now());
 
-        // 대댓글이면 parent 설정
+        // 대댓글이면 부모 설정
         if (parentCommentId != null) {
             BoardComment parent = commentRepository.findById(parentCommentId)
                     .orElseThrow(() -> new RuntimeException("부모 댓글이 존재하지 않습니다."));
@@ -62,10 +65,28 @@ public class BoardCommentServiceImp implements BoardCommentService {
         BoardComment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new RuntimeException("댓글이 존재하지 않습니다."));
 
-        if (!comment.getWriter().getMemberId().equals(loginUserId)) {
+        if (comment.getWriter() == null ||
+                !comment.getWriter().getMemberId().equals(loginUserId)) {
             throw new RuntimeException("본인 댓글만 삭제할 수 있습니다.");
         }
 
         commentRepository.delete(comment);
+    }
+
+    /**
+     * 특정 게시글의 부모 댓글 페이지네이션
+     * page: 0부터 시작
+     * size: 한 페이지당 부모 댓글 수
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<BoardComment> getParentComments(Long postId, int page, int size) {
+        PageRequest pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Direction.ASC, "createdAt")
+        );
+
+        return commentRepository.findByPost_IdAndParentCommentIsNull(postId, pageable);
     }
 }

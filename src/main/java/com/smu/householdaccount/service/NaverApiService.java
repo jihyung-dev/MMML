@@ -7,6 +7,9 @@ import org.json.simple.JSONValue;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -61,6 +64,7 @@ public class NaverApiService {
                 .queryParam("client_id", clientId)
                 .queryParam("redirect_uri", redirectUri)
                 .queryParam("state", getStateToken())
+                .queryParam("scope", "name,email")
                 .toUriString();
     }
 
@@ -84,21 +88,32 @@ public class NaverApiService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        String body = "grant_type=authorization_code"
-                + "&client_id=" + clientId
-                + "&client_secret=" + clientSecret
-                + "&code=" + code
-                + "&state=" + state;
+        MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
+        form.add("grant_type", "authorization_code");
+        form.add("client_id", clientId);
+        form.add("client_secret", clientSecret);
+        form.add("code", code);
+        form.add("state", state);
+        form.add("redirect_uri", redirectUri);
 
-        String result = http.post(naverNauthHost + "/oauth2.0/token", headers, body);
+        RestClient client = RestClient.create();
 
-        if (result == null) return null; // API 오류
+        String result = client.post()
+                .uri(naverNauthHost + "/oauth2.0/token")
+                .headers(h -> h.addAll(headers))
+                .body(form)
+                .retrieve()
+                .body(String.class);
 
+        // 반드시 access_token 저장해야 함
         JSONObject json = (JSONObject) JSONValue.parse(result);
-        String token = (String) json.get("access_token");
+        String accessToken = (String) json.get("access_token");
+        saveAccessToken(accessToken);
 
-        saveAccessToken(token);
-        return token;
+        System.out.println("=== NAVER ACCESS TOKEN STORED ===");
+        System.out.println(accessToken);
+
+        return result;
     }
 
     // 🔥 사용자 정보 요청 (SafeHttpClient 적용)

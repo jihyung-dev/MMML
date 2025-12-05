@@ -17,16 +17,20 @@ public class BoardLike {
     @Column(name = "BOARD_LIKE_ID", nullable = false)
     private Long id;
 
-    @NotNull
+    @Column(name = "POST_ID", nullable = false)
+    private Long postId;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "POST_ID", nullable = false)
+    @JoinColumn(name = "POST_ID", insertable = false, updatable = false)
     private BoardPost post;
 
-    @NotNull
+    @Column(name = "MEMBER_ID", nullable = false, length = 50)
+    private String memberId;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "MEMBER_ID", nullable = false)
+    @JoinColumn(name = "MEMBER_ID", insertable = false, updatable = false)
     private Member member;
 
 }

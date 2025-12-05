@@ -1,52 +1,0 @@
-<!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
-
-<head>
-    <meta charset="UTF-8">
-    <title>판매자 로그인</title>
-    <link rel="stylesheet" th:href="@{/css/login.css}">
-</head>
-
-<body>
-
-<div class="login-container">
-
-    <h2>판매자 로그인</h2>
-
-    <!-- 에러 메시지 -->
-    <p th:if="${error}" class="error-text" th:text="${error}"></p>
-
-    <form action="/seller/login" method="post">
-
-        <label>아이디</label>
-        <input type="text" name="memberId" required placeholder="회원 ID">
-
-        <label>비밀번호</label>
-        <input type="password" name="password" required placeholder="비밀번호">
-
-        <label>사업자번호</label>
-        <input type="text" name="bizNo" required placeholder="사업자번호">
-
-        <button type="submit">판매자 로그인</button>
-    </form>
-
-    <!-- 🔹 아래에 각종 링크들 -->
-    <div class="login-links">
-        <!-- 공통(회원) 기능 -->
-        <a href="/find-id">아이디 찾기</a> |
-        <a href="/find-pw">비밀번호 찾기</a> |
-        <!-- 판매자 전용 -->
-        <a href="/seller/find-biz">사업자번호 찾기</a> |
-        <a href="/seller/join">판매자 회원가입</a>
-    </div>
-
-    <div class="login-links">
-        <!-- 일반 로그인으로 이동 링크도 하나 있으면 좋음 -->
-        <a href="/login">일반 회원 로그인으로 가기</a>
-    </div>
-
-</div>
-
-</body>
-
-</html>

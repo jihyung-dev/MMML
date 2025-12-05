@@ -1,0 +1,22 @@
+[
+  {
+    "entry_type": "EXPENSE",
+    "pay_type": "CARD",
+    "card_type": "CREDIT",
+    "entry_amount": 58300,
+    "currency": "KRW",
+    "occurred_at": "2025-07-09",
+    "place_of_use": "스타벅스",
+    "memo": "아이스 라떼"
+  },
+  {
+    "entry_type": "EXPENSE",
+    "pay_type": "CARD",
+    "card_type": "CHECK",
+    "entry_amount": 14200,
+    "currency": "KRW",
+    "occurred_at": "2025-07-10",
+    "place_of_use": "세븐일레븐",
+    "memo": null
+  }
+]

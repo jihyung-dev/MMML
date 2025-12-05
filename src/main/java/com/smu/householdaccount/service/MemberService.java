@@ -1,15 +1,13 @@
 package com.smu.householdaccount.service;
 
 import com.smu.householdaccount.entity.Member;
-import com.smu.householdaccount.entity.Seller;
 
 public interface MemberService {
-    Seller sellerLogin(String memberId, String rawPassword, String bizNo);
 
     // 🔹 일반 회원가입
     Member registerUser(Member member);
 
-    // 🔹 로그인 확인
+    // 🔹 로그인 (일반/판매자 공통)
     Member login(String memberId, String rawPassword);
 
     // 🔹 아이디 중복 체크
@@ -21,12 +19,27 @@ public interface MemberService {
     // 🔹 전화번호 중복 체크
     boolean existsByPhone(String phone);
 
-    // 🔹 아이디 찾기
-    String findMemberId(String memberName, String phone);
+    // 🔹 (선택) 이메일 중복 체크
+    boolean existsByEmail(String email);
 
-    // 🔹 비밀번호 재설정 (찾기 후 새 비밀번호 설정)
+    // 🔹 아이디 찾기 (이름 + 이메일)
+    String findMemberId(String memberName, String email);
+
+    // 🔹 비밀번호 찾기 검증용 (ID + 이름 + 이메일)
+    boolean verifyMemberForPasswordReset(String memberId, String memberName, String email);
+
+    // 🔹 비밀번호 재설정
     void resetPassword(String memberId, String newPassword);
 
-    // 🔹 비밀번호 찾기 검증용
-    boolean verifyMemberForPasswordReset(String memberId, String memberName, String phone);
+    // 회원 등록 여부 확인
+    boolean isMember(String memberId);
+
+    // oAuth 회원용 아이디
+    String buildSimpleOauthKey(String provider, String oauthId);
+
+    // 소셜 회원가입
+    void registerOAuthUser(Member member);
+
+    // 회원 정보 받아오기
+    Member getMember(String memberId);
 }

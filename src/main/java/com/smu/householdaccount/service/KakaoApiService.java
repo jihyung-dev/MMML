@@ -2,17 +2,24 @@ package com.smu.householdaccount.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smu.householdaccount.dto.KakaoTokenResponse;
+import com.smu.householdaccount.util.Log;
 import com.smu.householdaccount.web.SafeHttpClient;
 import jakarta.servlet.http.HttpSession;
+import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.util.UriComponentsBuilder;
 
+@Slf4j
 @Service
 public class KakaoApiService {
 
@@ -76,15 +83,14 @@ public class KakaoApiService {
      */
     private KakaoTokenResponse getToken(String code) throws Exception {
 
-        String body = "grant_type=authorization_code" +
-                "&client_id=" + clientId +
-                "&client_secret=" + clientSecret +
-                "&code=" + code;
+        MultiValueMap<String,String> form = new LinkedMultiValueMap<>();
+        form.add("grant_type", "authorization_code");
+        form.add("client_id", clientId);
+        form.add("client_secret", clientSecret);
+        form.add("redirect_uri", redirectUri);
+        form.add("code", code);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Type", "application/json");
-
-        String result = http.post(kauthHost + "/oauth/token", headers, body);
+        String result = http.postForm(kauthHost + "/oauth/token", form);
 
         if (result == null) return null;
 

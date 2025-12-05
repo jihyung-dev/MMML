@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 
@@ -17,8 +18,8 @@ public class SafeHttpClient {
 
     public SafeHttpClient() {
         HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
-        factory.setConnectTimeout(3000);
-        factory.setReadTimeout(3000);
+        factory.setConnectTimeout(10000);
+        factory.setReadTimeout(10000);
 
         this.client = RestClient.builder()
                 .requestFactory(factory)
@@ -88,6 +89,27 @@ public class SafeHttpClient {
             return null;
         } catch (Exception e) {
             log.error("❗ API CONNECTION FAILED {}: {}", url, e.getMessage());
+            return null;
+        }
+    }
+
+    public String postForm(String url, MultiValueMap<String,String> form) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Content-Type", "application/x-www-form-urlencoded;charset=utf-8");
+
+            return client.post()
+                    .uri(url)
+                    .headers(h -> h.addAll(headers))
+                    .body(form)  // ⬅ 핵심!!
+                    .retrieve()
+                    .body(String.class);
+
+        } catch (RestClientResponseException e) {
+            log.error("❗ API ERROR [{}] {}: {}", e.getRawStatusCode(), url, e.getResponseBodyAsString());
+            return null;
+        } catch (Exception e) {
+            log.error("❗ API FAILED {}: {}", url, e.getMessage());
             return null;
         }
     }
