@@ -1,14 +1,14 @@
 package com.smu.householdaccount.entity;
 
 import jakarta.persistence.*;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.*;
+import org.springframework.data.annotation.CreatedDate;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -57,10 +57,13 @@ public class  OrderMain {
     @Column(name = "ORDER_STATUS", nullable = false, length = 20)
     private String orderStatus;
 
-    @ColumnDefault("SYSTIMESTAMP")
+    //@ColumnDefault("SYSTIMESTAMP")
+    @CreationTimestamp
     @Column(name = "CREATED_AT")
+    @CreatedDate
     private LocalDateTime createdAt;
 
+    @UpdateTimestamp
     @Column(name = "UPDATED_AT")
     private LocalDateTime updatedAt;
 

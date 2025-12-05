@@ -21,4 +21,8 @@ public interface OrderMainRepository extends JpaRepository<OrderMain, Long> {
     <S extends OrderMain> S save(S entity);
 
     List<OrderMain> findByBuyerId (String buyerId);
+
+
+
+    Optional<OrderMain> findWithItemsById(Long id);
 }

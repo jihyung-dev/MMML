@@ -27,7 +27,7 @@
             <div th:if="${order != null}">
                 <div class="mb-3">
                     <small class="muted-small">주문번호 (merchantUid)</small>
-                    <div class="fw-bold" th:text="${order != null ? '주문 #' + order.id : 'order-unknown'}">order-xxxxxxxx-xxxx</div>
+                    <div class="fw-bold" th:text="${order != null ? '#' + order.id : 'order-unknown'}">order-xxxxxxxx-xxxx</div>
                 </div>
 
                 <div class="mb-3">
@@ -42,8 +42,8 @@
                                 </div>
                             </div>
                             <div class="text-end">
-                                <div class="h5 text-danger" th:text="${amount} + '원'">10,000원</div>
-                                <div class="muted-small">결제 예정 금액</div>
+                                <div class="h5 text-danger" th:text="${#numbers.formatInteger(amount, 3, 'COMMA')} + '원'">10,000원</div>
+                                <div class="muted-small">최종 결제 금액</div>
                             </div>
                         </div>
 
@@ -67,8 +67,10 @@
                                 <li th:if="${order.orderItems == null or #lists.isEmpty(order.orderItems)}"
                                     class="list-group-item">
                                     <div class="d-flex justify-content-between">
-                                        <div>핫딜 상품</div>
-                                        <div th:text="${amount} + '원'">10,000원</div>
+                                        <div th:text="${#lists.isEmpty(order.orderItems) ? '' : order.orderItems[0].item.itemName}">
+                                        상품명
+                                        </div>
+                                        <div th:text="${#numbers.formatInteger(amount, 3, 'COMMA')} + '원'">10,000원</div>
                                     </div>
                                 </li>
                             </ul>
@@ -79,7 +81,8 @@
                 <div class="mb-3">
                     <small class="muted-small">결제 수단</small>
                     <div class="mt-2 d-flex gap-2">
-                        <button id="payBtn" class="btn btn-primary pay-btn">카드 결제 (결제창 열기)</button>
+                        <button id="payBtn" class="btn btn-primary pay-btn">결제하기</button>
+                        <button id="modifyBtn" class="btn btn-warning">주문 수정</button>
                         <button id="cancelBtn" class="btn btn-outline-secondary">주문 취소</button>
                     </div>
                 </div>

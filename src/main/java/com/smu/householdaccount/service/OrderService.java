@@ -1,6 +1,7 @@
 package com.smu.householdaccount.service;
 
 
+import com.smu.householdaccount.dto.HotdealOrderBean;
 import com.smu.householdaccount.entity.OrderMain;
 
 import java.math.BigDecimal;
@@ -11,6 +12,7 @@ public interface OrderService { //핫딜 전용 service(주문 생성, 재고 �
     //주문 생성(결제 전 단계) - 주문레코드 + 주문아이템 생성, 재고 예약 등
     //반환: 생성된 OrderMain 엔티티 또는 orderId*/
     OrderMain createHotdealOrder(String buyerId, Long itemId, Long optionId, int qty);
+    OrderMain createHotdealOrder(HotdealOrderBean hotdealOrderBean);
 
 
     //주문 취소(주문 상태만 변경, 또는 PG 취소 연동 포함)

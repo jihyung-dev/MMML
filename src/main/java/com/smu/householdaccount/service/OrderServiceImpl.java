@@ -1,5 +1,6 @@
 package com.smu.householdaccount.service;
 
+import com.smu.householdaccount.dto.HotdealOrderBean;
 import com.smu.householdaccount.entity.HotdealOption;
 import com.smu.householdaccount.entity.Item;
 import com.smu.householdaccount.entity.OrderItem;
@@ -15,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -63,6 +66,54 @@ public class OrderServiceImpl implements OrderService{
         orderItemRepository.save(oi);
 
         return saved;
+    }
+    @Transactional
+    @Override
+    public OrderMain createHotdealOrder(HotdealOrderBean hotdealOrderBean) {
+        Optional<Item> itemOpt = itemRepository.findById(hotdealOrderBean.getItemId());
+        if(itemOpt.isEmpty()){
+            throw new IllegalStateException("삭제된 아이템 입니다.");
+        }
+        Long originalPrice=itemOpt.get().getOriginalPrice().longValue();
+        Long salePrice=itemOpt.get().getItemSaleprice().longValue();
+        List<HotdealOption> options = hotdealOptionRepository.findAllById(hotdealOrderBean.getOptionId());
+        if(options==null || options.size()==0){
+            throw new IllegalArgumentException("삭제된 아이템 옵션 입니다.");
+        }
+
+        List<OrderItem> orderItems=new ArrayList<>();
+        long totalAmout=0;
+        for(int i=0; i<options.size(); i++){
+            HotdealOption option=options.get(i);
+            long additionalPrice=option.getAdditionalPrice().longValue();
+            long quantity=hotdealOrderBean.getQuantity().get(i);
+            //[1,2]
+            long amount=( (additionalPrice+salePrice) * quantity);
+            totalAmout+=amount;
+
+            OrderItem orderItem=new OrderItem();
+            orderItem.setItemId(option.getItemId());
+            orderItem.setQty(hotdealOrderBean.getQuantity().get(i));
+            orderItem.setPrice(BigDecimal.valueOf(amount));
+            orderItems.add(orderItem);
+            orderItem.setOptionId(option.getId());
+
+
+        }
+        OrderMain orderMain=new OrderMain();
+        orderMain.setBuyerId(hotdealOrderBean.getBuyerId());
+        orderMain.setTotalAmount(totalAmout);
+        orderMain.setSellerId(hotdealOrderBean.getSellerId());
+        orderMain.setOrderStatus("PADDING");
+        orderMain.setMerchantUid("order-"+UUID.randomUUID());
+        orderMain=orderMainRepository.save(orderMain);
+
+        for(OrderItem orderItem:orderItems){
+            orderItem.setOrderId(orderMain.getId());
+        }
+        orderItemRepository.saveAll(orderItems);
+//        orderMain.setOrderItems(orderItems.stream().collect(java.util.stream.Collectors.toSet()));
+        return orderMain;
     }
 
     @Override
