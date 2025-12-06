@@ -1,10 +1,14 @@
-package com.smu.householdaccount.repository;
+package com.smu.householdaccount.service;
 
 import com.smu.householdaccount.dto.CategoryUpdateReq;
 import com.smu.householdaccount.entity.BudgetGroup;
 import com.smu.householdaccount.entity.Category;
 import com.smu.householdaccount.entity.LedgerEntry;
 import com.smu.householdaccount.entity.Member;
+import com.smu.householdaccount.repository.BudgetGroupRepository;
+import com.smu.householdaccount.repository.CategoryRepository;
+import com.smu.householdaccount.repository.LedgerRepository;
+import com.smu.householdaccount.repository.MemberRepository;
 import com.smu.householdaccount.util.Log;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
