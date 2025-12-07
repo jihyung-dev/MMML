@@ -177,9 +177,10 @@
                         <div class="d-flex gap-2">
                             <button type="button" class="btn" id="wishBtn"
                                     th:data-item-id="${item.id}"
-                                    th:data-is-wished="${isWished}"
-                                    th:classappend="${isWished} ? 'btn-danger' : 'btn-outline-primary'">
-                                <span th:text="${isWished} ? '♡ 찜 취소':'♥ 찜하기'"></span></button>
+                                    th:data-is-wished="${item.isLiked}"
+                                    th:classappend="${item.isLiked} ? 'btn-primary text-white' : 'btn-outline-primary'">
+                                <span th:text="${item.isLiked} ? '♥ 찜함' : '♥ 찜하기'"></span>
+                            </button>
                             <button type="submit" class="btn btn-success" th:disabled="${item.saleStatus != 'ON_SALE'}" id="buyBtn">구매하기</button>
                             <!--<button type="button" class="btn btn-primary" id="cartBtn">담기</button>-->
                         </div>
@@ -343,10 +344,12 @@
 
             function updateWishButton(button, wished) {
                 if (wished) {
+                    // 찜 했을 때 스타일 (파란색 채움)
                     button.classList.remove('btn-outline-primary');
-                    button.classList.add('btn-primary', 'text-white');
+                    button.classList.add('btn-primary', 'text-white'); // btn-danger 대신 통일감 있게
                     button.innerText = '♥ 찜함';
                 } else {
+                    // 찜 취소했을 때 스타일 (파란색 테두리)
                     button.classList.remove('btn-primary', 'text-white', 'btn-danger');
                     button.classList.add('btn-outline-primary');
                     button.innerText = '♥ 찜하기';
