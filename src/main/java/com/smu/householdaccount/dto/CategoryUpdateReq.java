@@ -1,12 +1,9 @@
 package com.smu.householdaccount.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.smu.householdaccount.entity.LedgerEntry;
-import com.smu.householdaccount.entity.Member;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)

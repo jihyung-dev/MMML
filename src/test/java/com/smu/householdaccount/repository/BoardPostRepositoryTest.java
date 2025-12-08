@@ -1,6 +1,7 @@
 package com.smu.householdaccount.repository;
 
-import com.smu.householdaccount.entity.BoardPost;
+import com.smu.householdaccount.entity.board.BoardPost;
+import com.smu.householdaccount.repository.board.BoardPostRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -8,7 +9,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 class BoardPostRepositoryTest {
 

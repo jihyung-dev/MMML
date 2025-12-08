@@ -1,9 +1,7 @@
 package com.smu.householdaccount.interceptor;
 
-import com.smu.householdaccount.entity.Member;
-import com.smu.householdaccount.entity.Seller;
-import com.smu.householdaccount.service.MemberService;
-import com.smu.householdaccount.service.SellerService;
+import com.smu.householdaccount.entity.common.Member;
+import com.smu.householdaccount.service.common.MemberService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;

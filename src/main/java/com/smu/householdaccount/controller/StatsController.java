@@ -1,6 +1,6 @@
 package com.smu.householdaccount.controller;
 
-import com.smu.householdaccount.service.StatsService;
+import com.smu.householdaccount.service.account.StatsService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;

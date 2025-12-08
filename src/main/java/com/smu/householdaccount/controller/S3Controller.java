@@ -1,6 +1,6 @@
 package com.smu.householdaccount.controller;
 
-import com.smu.householdaccount.service.S3Service;
+import com.smu.householdaccount.service.common.S3Service;
 import com.smu.householdaccount.util.Utility;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;

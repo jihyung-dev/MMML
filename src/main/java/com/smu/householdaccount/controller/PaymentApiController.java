@@ -1,6 +1,6 @@
 package com.smu.householdaccount.controller;
 
-import com.smu.householdaccount.service.OrderService;
+import com.smu.householdaccount.service.hotdeal.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

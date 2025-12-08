@@ -1,6 +1,7 @@
 package com.smu.householdaccount.repository;
 
-import com.smu.householdaccount.entity.Item;
+import com.smu.householdaccount.entity.hotdeal.Item;
+import com.smu.householdaccount.repository.hotdeal.ItemRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -9,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 class ItemRepositoryTest {
     @Autowired

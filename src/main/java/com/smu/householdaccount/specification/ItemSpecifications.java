@@ -3,14 +3,13 @@ package com.smu.householdaccount.specification;
 //Specification<T>은 JPA Criteria API를 편리하게 래핑한 동적 쿼리 빌더 ⇒ 핫딜게시판 필터 정렬을 위해서...
 
 
-import com.smu.householdaccount.entity.Item;
+import com.smu.householdaccount.entity.hotdeal.Item;
 import jakarta.persistence.criteria.*;
 import org.springframework.data.jpa.domain.Specification;
 
 //import javax.persistence.criteria.Path;
 import jakarta.persistence.criteria.Path;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class ItemSpecifications {

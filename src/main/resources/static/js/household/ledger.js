@@ -67,6 +67,39 @@ function initCharts() {
     });
 }
 
+/**
+ * 월별 총 수입과 지출을 계산하여 화면에 표시합니다.
+ * @param {object} data - 현재 월의 데이터 객체 (daily 배열 포함)
+ */
+function updateMonthlyTotals(data) {
+    const container = document.getElementById('categorySummary');
+    if (!container || !data || !data.daily) return;
+
+    // daily 데이터를 사용하여 총액 계산
+    const totalIncome = data.daily.reduce((sum, d) => sum + d.income, 0);
+    const totalExpense = data.daily.reduce((sum, d) => sum + d.expense, 0);
+
+    const incomeColor = '#3781d1';
+    const expenseColor = '#db6767';
+
+    container.innerHTML = `
+        <div style="font-weight: bold; padding: 10px 0; border-top: 1px solid #eee;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                <span>수입 소계</span>
+                <span style="color: ${incomeColor}; font-size: 1.1em;">
+                    +${totalIncome.toLocaleString()} 원
+                </span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span>지출 소계</span>
+                <span style="color: ${expenseColor}; font-size: 1.1em;">
+                    -${totalExpense.toLocaleString()} 원
+                </span>
+            </div>
+        </div>
+    `;
+}
+
 async function loadLedgerChart({ year, month }) {
     const key = `${year}-${month}`;
 
@@ -88,6 +121,9 @@ async function loadLedgerChart({ year, month }) {
     drawCategoryPieChart(bundle.current.categories);
     drawDailyLineChart(bundle.current.daily, bundle.prev1.daily);
     await renderFullCategoryChart();
+
+    // [New] 소계 업데이트 // 추가!
+    if(bundle.current.daily) updateMonthlyTotals(bundle.current);
 
     // [추가 2] 데이터를 새로 가져왔을 때 캘린더 그리기
     if(bundle.current.daily) initCalendar(bundle.current.daily);
@@ -1837,35 +1873,118 @@ function openAddEntryModal(dateStr) {
     showEntryModal("새 내역 추가");
 }
 
+// =========================================
+// [누락된 함수 복구] 폼 초기화 함수
+// =========================================
+function resetEntryForm() {
+    // 1. ID 값 초기화 (수정 모드인지 판별용)
+    const idField = document.getElementById("entryId");
+    if(idField) idField.value = "";
+
+    // 2. 입력 필드들 비우기
+    const amount = document.getElementById("inputAmount");
+    if(amount) amount.value = "";
+
+    const place = document.getElementById("inputPlace");
+    if(place) place.value = "";
+
+    const memo = document.getElementById("inputMemo");
+    if(memo) memo.value = "";
+
+    // 3. 시간은 현재 시간으로 리셋 (선택사항)
+    const now = new Date();
+    const timeField = document.getElementById("inputTime");
+    if(timeField) {
+        timeField.value = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    }
+
+    // 4. 삭제 버튼 숨기기 (새로 등록일 때를 대비해 기본 숨김)
+    const btnDelete = document.getElementById("btnDelete");
+    if(btnDelete) btnDelete.style.display = "none";
+}
+
 // [수정] 2. (New) 수정 모드 열기
 function openEditModal(item) {
+    // 1. 기존 리스트 모달 닫기 (모달 겹침 방지)
+    closeDayListModal();
+
+    // 2. 폼 초기화
     resetEntryForm();
 
     document.getElementById("entryId").value = item.id;
     document.getElementById("inputAmount").value = item.entryAmount;
+    document.getElementById("inputPlace").value = item.placeOfUse || "";
+    document.getElementById("inputMemo").value = item.memo || "";
+    document.getElementById("inputCategory").value = item.categoryName; // 카테고리
 
-    // ... (중간 생략: 값 세팅 로직은 기존 유지) ...
+    // 날짜/시간 세팅
+    if (item.occurredAt) {
+        const dt = new Date(item.occurredAt);
+        const y = dt.getFullYear();
+        const m = String(dt.getMonth() + 1).padStart(2, '0');
+        const d = String(dt.getDate()).padStart(2, '0');
+        document.getElementById("inputDate").value = `${y}-${m}-${d}`;
+
+        const hh = String(dt.getHours()).padStart(2, '0');
+        const mm = String(dt.getMinutes()).padStart(2, '0');
+        document.getElementById("inputTime").value = `${hh}:${mm}`;
+    }
+
+    // 타입(수입/지출) 라디오 버튼
+    const typeVal = item.entryType; // INCOME or EXPENSE
+    document.getElementById("inputType").value = typeVal;
+
+    // 결제수단 라디오 버튼
+    const payVal = item.payType; // CARD, CASH, TRANSFER
+    const radios = document.getElementsByName("payType");
+    for (let r of radios) {
+        if (r.value === payVal) r.checked = true;
+    }
 
     // ★ [핵심] 버튼 글자를 '수정하기'로 변경
     const btn = document.querySelector('#addEntryModal .btn-primary');
-    if(btn) btn.innerText = "수정하기";
+    if (btn) btn.innerText = "수정하기";
 
     document.getElementById("btnDelete").style.display = "block";
     showEntryModal("내역 수정");
-}
+ }
 
-// 공통: 모달 보여주기
-function showEntryModal(title) {
-    const modal = document.getElementById("addEntryModal");
-    modal.querySelector("h3").innerText = title;
-    modal.classList.add("show");
-    modal.style.display = "flex";
-    // [추가] 모달이 열리는 순간에는 외부 클릭 감지 무시
-    modalJustOpened = true;
-    setTimeout(() => {
-        modalJustOpened = false;
-    }, 100);
-}
+// 공통: 모달 보여주기 (Z-Index 강력 보정)
+    function showEntryModal(title) {
+        const modal = document.getElementById("addEntryModal");
+        const listModal = document.getElementById("dayListModal");
+
+        modal.querySelector("h3").innerText = title;
+        modal.classList.add("show");
+
+        // ★ [핵심 해결] Z-Index 계층 정리
+        // 기본적으로 부트스트랩 모달은 1050 정도지만,
+        // 투어 기능(Driver.js)이 실행되면 리스트 모달이 100000 이상으로 올라갑니다.
+        // 따라서 현재 리스트 모달의 Z-Index를 구해서 무조건 그보다 높게 설정해야 합니다.
+
+        let targetZIndex = 1060; // 최소 안전값
+
+        if (listModal && window.getComputedStyle(listModal).display !== 'none') {
+            const listZ = window.getComputedStyle(listModal).zIndex;
+
+            // 'auto'가 아니고 숫자라면 파싱
+            const currentListZ = (listZ === 'auto' || isNaN(parseInt(listZ)))
+                ? 1050
+                : parseInt(listZ);
+
+            // 리스트 모달보다 50 더 높게 설정 (확실하게 위로 올림)
+            targetZIndex = currentListZ + 50;
+        }
+
+        modal.style.zIndex = targetZIndex;
+        modal.style.display = "flex";
+
+        // 모달이 열리는 순간에는 외부 클릭 감지 무시 (닫힘 방지)
+        modalJustOpened = true;
+        setTimeout(() => {
+            modalJustOpened = false;
+        }, 100);
+    }
 
 // 공통: 폼 리셋
 function resetEntryForm() {
@@ -1897,17 +2016,18 @@ async function deleteEntry() {
             closeAddEntryModal();
             closeDayListModal();
 
-            const key = `${currentYear}-${currentMonth}`;
-            ledgerCache.delete(key);
-            updateChart();
-        } else {
-            alert("삭제 실패");
+                const key = `${currentYear}-${currentMonth}`;
+                ledgerCache.delete(key);
+                updateChart();
+            } else {
+                alert("삭제 실패");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("에러 발생");
         }
-    } catch(e) {
-        console.error(e);
-        alert("에러 발생");
     }
-}
+
 // 4. 저장/삭제 로직 수정 (ID 유무에 따라 POST/PUT/DELETE 분기)
 async function submitNewEntry() {
     const id = document.getElementById("entryId").value;
@@ -1975,13 +2095,14 @@ async function submitNewEntry() {
 // =========================================
 // [추가] 연도 이동 로직 (상/하단 공통 사용)
 // =========================================
-async function moveYear(offset) {
-    currentYear += offset;
-    // 연도 변경 후 전체 차트/데이터 갱신
-    await updateChart();
-}
+    async function moveYear(offset) {
+        currentYear += offset;
+        // 연도 변경 후 전체 차트/데이터 갱신
+        await updateChart();
+    }
+
 // =========================================
-// [수정] 일별 리스트 모달 (Day List) 관련
+// [수정] 일별 리스트 모달 (Day List) - 스켈레톤 + 최소 높이 적용
 // =========================================
 async function openDayListModal(dateStr) {
     const modal = document.getElementById("dayListModal");
@@ -1993,7 +2114,29 @@ async function openDayListModal(dateStr) {
 
     // 로딩 표시
     if(listGroup) {
-        listGroup.innerHTML = '<li class="list-group-item">로딩 중...</li>';
+        // ★ [핵심 1] 리스트 컨테이너의 '최소 높이'를 강제로 고정합니다. (약 3개 높이)
+        // 데이터가 0~2개여도 이 높이는 유지됩니다.
+        listGroup.style.minHeight = "250px";
+
+        // 스켈레톤 UI (로딩 바)
+        const skeletonItem = `
+            <li class="list-group-item py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex flex-column w-100 me-3">
+                        <div class="placeholder-glow mb-1">
+                            <span class="placeholder col-6 rounded"></span>
+                        </div>
+                        <div class="placeholder-glow">
+                            <span class="placeholder col-4 rounded bg-secondary"></span>
+                        </div>
+                    </div>
+                    <div class="placeholder-glow text-end" style="width: 80px;">
+                        <span class="placeholder col-12 rounded"></span>
+                    </div>
+                </div>
+            </li>
+        `;
+        listGroup.innerHTML = skeletonItem.repeat(3);
     }
 
     if(modal) {
@@ -2017,7 +2160,13 @@ async function openDayListModal(dateStr) {
             listGroup.innerHTML = ""; // 기존 내용 비우기
 
             if(list.length === 0) {
-                listGroup.innerHTML = '<li class="list-group-item text-muted text-center py-4">내역이 없습니다.<br><small>새로운 내역을 추가해보세요!</small></li>';
+                // ★ [핵심 2] 데이터가 없을 때, 250px 높이의 '정중앙'에 메시지 배치
+                // h-100, d-flex, justify-content-center, align-items-center 사용
+                listGroup.innerHTML = `
+                    <li class="list-group-item text-muted text-center h-100 d-flex flex-column justify-content-center align-items-center border-0">
+                        <div style="font-size: 3rem; margin-bottom: 10px;">📭</div>
+                        <div>내역이 없습니다.<br><small>새로운 내역을 추가해보세요!</small></div>
+                    </li>`;
             } else {
                 list.forEach(item => {
                     const li = document.createElement("li");

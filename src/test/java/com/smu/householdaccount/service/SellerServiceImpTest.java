@@ -1,9 +1,9 @@
 package com.smu.householdaccount.service;
 
-import com.smu.householdaccount.entity.Item;
-import com.smu.householdaccount.entity.Seller;
-import com.smu.householdaccount.repository.ItemRepository;
-import com.smu.householdaccount.repository.SellerRepository;
+import com.smu.householdaccount.entity.hotdeal.Item;
+import com.smu.householdaccount.repository.hotdeal.ItemRepository;
+import com.smu.householdaccount.repository.hotdeal.SellerRepository;
+import com.smu.householdaccount.service.hotdeal.SellerServiceImp;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
