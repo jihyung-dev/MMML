@@ -1104,47 +1104,99 @@ function closeWelcomeModal() {
         localStorage.setItem('welcome_done_v2', 'true');
     }
 }*/
+// ledger.js - startExtendedTour (최종_완성_v10: X버튼 위치 고정 / 텍스트 줄바꿈 수정)
 
-// ledger.js - startExtendedTour (최종 수정판: 종료 버튼 필승법 적용)
+// [핵심] 투어 종료 전역 함수
+window.finishTour = function() {
+    document.querySelectorAll('.neon-active').forEach(el => el.classList.remove('neon-active'));
+    if(typeof closeAddEntryModal === 'function') closeAddEntryModal();
+    if(typeof closeDayListModal === 'function') closeDayListModal();
 
-// ledger.js - startExtendedTour (최종 수정판: CSS 자동 주입 + 종료 버튼 필승 로직)
+    const driverOverlay = document.getElementById('driver-popover-item');
+    if(driverOverlay) driverOverlay.remove();
 
-// ledger.js - startExtendedTour (TypeError 완벽 수정판)
+    if (window.driverObjInstance) {
+        window.driverObjInstance.destroy();
+    } else {
+        document.body.classList.remove('driver-active');
+        document.querySelectorAll('.driver-overlay').forEach(el => el.remove());
+        document.querySelectorAll('.driver-popover').forEach(el => el.remove());
+    }
+}
 
 function startExtendedTour() {
-    // if (localStorage.getItem('tour_complete_final_v5')) return;
+    // if (localStorage.getItem('tour_complete_final_v16')) return;
 
-    // 1. 투어용 CSS 주입 (기존 유지)
+    // 1. 투어용 CSS 주입
     const styleId = 'driver-custom-style';
     if (!document.getElementById(styleId)) {
         const style = document.createElement('style');
         style.id = styleId;
         style.innerHTML = `
-            @keyframes neonPulse {
-                0% { box-shadow: 0 0 5px #4a90e2; border-color: #4a90e2; }
-                100% { box-shadow: 0 0 15px #00d2ff, inset 0 0 5px #00d2ff; border-color: #00d2ff; }
+            /* 버튼 가시성 강제 확보 */
+            button.btn-primary.neon-active {
+                background-color: #0d6efd !important;
+                color: #ffffff !important;
+                border-color: #0d6efd !important;
+                opacity: 1 !important;
             }
+
+            /* 네온 애니메이션 */
+            @keyframes neonPulse {
+                0% { box-shadow: 0 0 0 0 rgba(255, 0, 153, 0.7); border-color: #FF0099; transform: scale(1); }
+                70% { box-shadow: 0 0 0 10px rgba(255, 0, 153, 0); border-color: #FF0099; transform: scale(1.02); }
+                100% { box-shadow: 0 0 0 0 rgba(255, 0, 153, 0); border-color: #FF0099; transform: scale(1); }
+            }
+            
+            /* 기본 네온 클래스 */
             .neon-active {
-                position: relative;
-                z-index: 100001 !important;
-                animation: neonPulse 1s infinite alternate;
-                background-color: transparent !important; 
+                position: relative; /* 일반 요소는 relative */
+                z-index: 100010 !important;
+                border-radius: 6px;
+                animation: neonPulse 1.5s infinite;
                 pointer-events: auto !important; 
             }
-            .tour-close-btn {
-                position: absolute;
-                top: 10px;
-                right: 15px;
-                font-size: 20px;
-                color: #999;
-                cursor: pointer;
-                z-index: 1000002;
-                font-family: Arial, sans-serif;
+
+            /* [수정 1] 닫기 버튼 전용 네온 스타일 (위치 튕김 방지) */
+            /* absolute 요소에 relative가 적용되어 위치가 깨지는 것을 방지함 */
+            .close-btn.neon-active {
+                position: absolute !important; 
+                top: 15px !important; 
+                right: 20px !important;
+                border-radius: 50%; /* 원형 유지 */
             }
-            .tour-close-btn:hover { color: #ff4d4d; }
-            div#driver-popover-item { z-index: 100000 !important; }
-            .driver-active-element { z-index: 100000 !important; }
-            .driver-overlay { z-index: 99999 !important; }
+
+            /* 모달 컨텐츠 기준점 */
+            .modal-content { position: relative !important; }
+
+            /* 모달 닫기 버튼(X) 기본 스타일 */
+            .close-btn {
+                position: absolute !important;
+                top: 15px !important; right: 20px !important;
+                font-size: 24px !important; color: #555;
+                cursor: pointer; z-index: 100020;
+                background: transparent;
+                width: 30px; height: 30px; line-height: 1; text-align: center;
+            }
+            .close-btn:hover { color: #ff4d4d; }
+
+            /* 투어 팝업 닫기 버튼 */
+            .tour-close-btn {
+                position: absolute; top: 20px; right: 20px;
+                font-size: 20px; color: #999; cursor: pointer; z-index: 1000002;
+            }
+
+            /* 스크롤 허용 및 폰트 확대 */
+            body.driver-active {
+                overflow: visible !important; position: static !important; height: auto !important;
+            }
+            .driver-popover-title { font-size: 24px !important; font-weight: 700 !important; margin: 5px 0 10px 0 !important; }
+            .driver-popover-description { font-size: 18px !important; line-height: 1.6 !important; }
+
+            /* 계층 구조 */
+            .modal-overlay, .modal { z-index: 100005 !important; }
+            .modal-backdrop { opacity: 0 !important; z-index: -1 !important; }
+            div#driver-popover-item { z-index: 100006 !important; } 
         `;
         document.head.appendChild(style);
     }
@@ -1159,42 +1211,27 @@ function startExtendedTour() {
         nextBtnText: '네, 좋아요! >',
         prevBtnText: '< 이전',
 
-        // ★ [오류 수정] 인자로 들어오는 popover 객체 대신, 실제 DOM을 직접 찾습니다.
         onPopoverRendered: (popoverObj) => {
-            // 1. 화면에 떠있는 팝업창(HTML 요소)을 직접 찾는다.
             const popoverNode = document.querySelector('.driver-popover');
-
-            // 2. 팝업이 없거나, 이미 X버튼이 있으면 패스
             if (!popoverNode || popoverNode.querySelector('.tour-close-btn')) return;
 
-            // 3. X 버튼 생성
             const closeBtn = document.createElement('div');
             closeBtn.className = 'tour-close-btn';
             closeBtn.innerHTML = '&#10005;';
-            closeBtn.title = '투어 종료';
-
             closeBtn.onclick = (e) => {
                 e.stopPropagation();
                 if (confirm('투어를 종료하시겠습니까?')) {
-                    document.querySelectorAll('.neon-active').forEach(el => el.classList.remove('neon-active'));
-                    if(typeof closeAddEntryModal === 'function') closeAddEntryModal();
-                    if(typeof closeDayListModal === 'function') closeDayListModal();
-                    driverObj.destroy();
+                    window.finishTour();
                 }
             };
-
-            // 4. 팝업창에 버튼 부착
             popoverNode.appendChild(closeBtn);
         },
 
         steps: [
-            // [Step 0] 오프닝
+            // [Step 0] ~ [Step 10] (기존 동일)
             {
-                element: 'body',
                 popover: { title: '👋 환영합니다!', description: '가계부의 핵심 기능을<br>빠르게 체험해볼까요?', align: 'center' }
             },
-
-            // [Step 1] 데이터 불러오기
             {
                 element: 'button[onclick="loadLedgerData()"]',
                 popover: { title: '1. 데이터 연동', description: '먼저 데이터를 가져옵니다.<br><b>이 버튼을 클릭하세요!</b>', side: "bottom", showButtons: [] },
@@ -1206,31 +1243,27 @@ function startExtendedTour() {
                     }, { once: true });
                 }
             },
-
-            // [Step 2] 캘린더 조회
             {
-                element: '#calendar',
-                popover: { title: '2. 캘린더 조회', description: '<b>아무 날짜나 클릭</b>해주세요.', side: "top", showButtons: [] },
+                element: '.fc-daygrid-day[data-date="2025-10-01"]',
+                popover: { title: '2. 캘린더 조회', description: '<b>10월 1일</b>을 클릭하여<br>상세 내역을 확인해보세요.', side: "top", showButtons: [] },
                 onHighlightStarted: (el) => {
-                    el.classList.add('neon-active');
-                    const dayCells = document.querySelectorAll('.fc-daygrid-day');
-                    dayCells.forEach(cell => {
-                        cell.addEventListener('click', () => {
+                    if (!el) { const firstDay = document.querySelector('.fc-daygrid-day'); if(firstDay) el = firstDay; }
+                    if (el) {
+                        el.classList.add('neon-active');
+                        el.addEventListener('click', () => {
                             el.classList.remove('neon-active');
                             setTimeout(() => driverObj.moveNext(), 800);
                         }, { once: true });
-                    });
+                    } else { driverObj.moveNext(); }
                 }
             },
-
-            // [Step 3] 추가 버튼 누르기
             {
                 element: '#dayListModal button.btn-primary',
                 popover: { title: '3. 내역 등록', description: '새 내역을 등록해봅시다.<br><b>[+추가하기] 버튼을 클릭!</b>', side: "top", showButtons: [] },
                 onHighlightStarted: (el) => {
                     const listModal = document.getElementById("dayListModal");
                     if(listModal.style.display !== 'flex') openDayListModal('2025-10-01');
-
+                    listModal.style.zIndex = "100005";
                     el.classList.add('neon-active');
                     el.addEventListener('click', () => {
                         el.classList.remove('neon-active');
@@ -1238,16 +1271,9 @@ function startExtendedTour() {
                     }, { once: true });
                 }
             },
-
-            // [Step 4] 정보 입력 & 저장
             {
                 element: '#addEntryModal .modal-content',
-                popover: {
-                    title: '4. 정보 입력',
-                    description: '데이터는 제가 입력해드릴게요.<br><b>[저장하기] 버튼을 눌러보세요!</b>',
-                    side: "right",
-                    showButtons: []
-                },
+                popover: { title: '4. 정보 입력', description: '데이터는 제가 입력해드릴게요.<br><b>하단의 [저장하기] 버튼을 눌러보세요!</b>', side: "right", showButtons: [] },
                 onHighlightStarted: (el) => {
                     const addModal = document.getElementById("addEntryModal");
                     if (!addModal || addModal.style.display === 'none') {
@@ -1255,122 +1281,70 @@ function startExtendedTour() {
                         openAddEntryModal(dateText);
                     }
                     addModal.style.zIndex = "100005";
-
                     document.getElementById("inputAmount").value = "5000";
                     document.getElementById("inputPlace").value = "투어 체험용 커피";
                     document.getElementById("inputMemo").value = "자동 입력됨";
-
                     const saveBtn = addModal.querySelector('.btn-primary');
                     const newBtn = saveBtn.cloneNode(true);
-                    newBtn.onclick = null;
-                    newBtn.removeAttribute("onclick");
+                    newBtn.removeAttribute('onclick'); newBtn.onclick = null;
                     saveBtn.parentNode.replaceChild(newBtn, saveBtn);
                     newBtn.classList.add('neon-active');
-
                     newBtn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-
+                        e.preventDefault(); e.stopPropagation();
                         newBtn.classList.remove('neon-active');
                         addModal.style.zIndex = "";
                         closeAddEntryModal();
-
                         const listModal = document.getElementById("dayListModal");
+                        listModal.style.display = "flex"; listModal.classList.add("show"); listModal.style.zIndex = "100005";
                         const listGroup = document.getElementById("dayListGroup");
-
-                        listModal.style.display = "flex";
-                        listModal.classList.add("show");
-
-                        if(listGroup) {
-                            listGroup.innerHTML = `
-                                <li id="tour-item" class="list-group-item list-group-item-action py-3" style="cursor:pointer; background:#f0f8ff;">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div class="d-flex flex-column">
-                                            <div class="d-flex align-items-baseline">
-                                                <span class="fw-bold me-2" style="font-size: 1.1rem; color: #333;">☕ 투어 체험용 커피</span>
-                                                <span class="text-muted small" style="font-size: 0.85rem;">방금 전</span>
-                                            </div>
-                                            <div class="text-secondary mt-1" style="font-size: 0.8rem;">└ 자동 입력됨</div>
-                                        </div>
-                                        <div class="text-danger fw-bold" style="font-size: 1.1rem;">-5,000원</div>
-                                    </div>
-                                </li>
-                            `;
-                        }
-                        setTimeout(() => driverObj.moveNext(), 600);
+                        if(listGroup) { listGroup.innerHTML = `<li id="tour-item" class="list-group-item list-group-item-action py-3" style="cursor:pointer; background:#fff0e6;"><div class="d-flex justify-content-between align-items-center"><div class="d-flex flex-column"><span class="fw-bold me-2" style="font-size: 1.1rem; color: #333;">☕ 투어 체험용 커피</span></div><div class="text-danger fw-bold" style="font-size: 1.1rem;">-5,000원</div></div></li>`; }
+                        setTimeout(() => driverObj.moveNext(), 800);
                     }, { once: true });
                 }
             },
-
-            // [Step 5] 등록 확인 & 클릭 유도
             {
                 element: '#tour-item',
-                popover: {
-                    title: '5. 등록 확인',
-                    description: '리스트에 내역이 추가되었습니다.<br><b>항목을 클릭해보세요.</b>',
-                    side: "left",
-                    showButtons: []
-                },
+                popover: { title: '5. 등록 확인', description: '리스트에 내역이 추가되었습니다.<br><b>항목을 클릭해보세요.</b>', side: "left", showButtons: [] },
                 onHighlightStarted: (el) => {
+                    const listModal = document.getElementById("dayListModal");
+                    if (listModal.style.display === 'none') { listModal.style.display = 'flex'; listModal.classList.add('show'); const listGroup = document.getElementById("dayListGroup"); if(listGroup && listGroup.innerHTML.trim() === "") listGroup.innerHTML = `<li id="tour-item">...</li>`; }
+                    listModal.style.zIndex = "100005";
                     el.classList.add('neon-active');
                     el.addEventListener('click', () => {
                         el.classList.remove('neon-active');
-
-                        const fakeItem = {
-                            id: 9999, entryAmount: 5000, occurredAt: '2025-10-01T12:30:00',
-                            entryType: 'EXPENSE', categoryName: '식비', placeOfUse: '투어 체험용 커피',
-                            memo: '자동 입력됨', payType: 'CARD'
-                        };
+                        closeDayListModal();
+                        const fakeItem = { id: 9999, entryAmount: 5000, occurredAt: '2025-10-01T12:30:00', entryType: 'EXPENSE', categoryName: '식비', placeOfUse: '투어 체험용 커피', memo: '자동 입력됨', payType: 'CARD' };
                         openEditModal(fakeItem);
-
                         setTimeout(() => driverObj.moveNext(), 500);
                     }, { once: true });
                 }
             },
-
-            // [Step 6] 수정/삭제 설명 -> [X] 누르면 바로 차트로 이동
             {
-                element: '#addEntryModal .modal-content',
-                popover: { title: '6. 수정 및 삭제', description: '여기서 내용을 고치거나 삭제합니다.<br>확인하셨으면 <b>[X]로 닫아주세요.</b>', side: "right", showButtons: [] },
+                element: '#addEntryModal .close-btn',
+                popover: { title: '6. 수정 및 삭제', description: '내용을 확인하셨으면<br>우측 상단 <b>[X] 버튼을 눌러 닫아주세요.</b>', side: "left", showButtons: [] },
                 onHighlightStarted: (el) => {
+                    closeDayListModal();
                     const addModal = document.getElementById("addEntryModal");
                     addModal.style.zIndex = "100005";
-
-                    const closeBtn = addModal.querySelector('.close-btn');
-                    if(closeBtn) {
-                        closeBtn.classList.add('neon-active');
-                        closeBtn.addEventListener('click', () => {
-                            closeBtn.classList.remove('neon-active');
-                            addModal.style.zIndex = "";
-
-                            closeAddEntryModal();
-                            closeDayListModal();
-
-                            setTimeout(() => driverObj.moveNext(), 800);
-                        }, { once: true });
-                    }
+                    el.classList.add('neon-active');
+                    el.addEventListener('click', () => {
+                        el.classList.remove('neon-active');
+                        addModal.style.zIndex = "";
+                        closeAddEntryModal();
+                        setTimeout(() => driverObj.moveNext(), 800);
+                    }, { once: true });
                 }
             },
-
-            // [Step 7] 카테고리 (2개 이상 선택 유도)
             {
                 element: '#categorySelectList',
-                popover: {
-                    title: '7. 카테고리 분석',
-                    description: '비교하고 싶은 카테고리를<br><b>2개 이상 클릭</b>해주세요!',
-                    side: "top",
-                    showButtons: []
-                },
+                popover: { title: '7. 카테고리 분석', description: '비교하고 싶은 카테고리를<br><b>2개 이상 클릭</b>해주세요!', side: "top", showButtons: [] },
                 onHighlightStarted: (el) => {
                     const btns = el.querySelectorAll('.category-btn');
-                    // 모든 버튼 네온 효과
                     btns.forEach(btn => btn.classList.add('neon-active'));
-
                     btns.forEach(btn => {
                         btn.addEventListener('click', function checkCondition() {
                             setTimeout(() => {
-                                const activeCount = el.querySelectorAll('.category-btn.active').length;
-                                if (activeCount >= 2) {
+                                if (el.querySelectorAll('.category-btn.active').length >= 2) {
                                     btns.forEach(b => b.classList.remove('neon-active'));
                                     driverObj.moveNext();
                                 }
@@ -1379,67 +1353,96 @@ function startExtendedTour() {
                     });
                 }
             },
-
-            // [Step 8] 차트 하이라이트
             {
                 element: '#categoryStatsCharts',
-                popover: { title: '📊 차트 생성 완료!', description: '선택한 카테고리의<br>비교 데이터가 생성되었습니다.<br>확인 후 <b>[다음]</b>을 눌러주세요.', side: "top" },
+                popover: { title: '📊 차트 생성 완료!', description: '확인 후 <b>[다음]</b>을 눌러주세요.', side: "top" },
                 onHighlightStarted: (el) => {
                     el.classList.add('open');
                     if(typeof genderChart !== 'undefined') genderChart.reflow();
                     if(typeof ageChart !== 'undefined') ageChart.reflow();
                 }
             },
-
-            // [Step 9] 하단 리스트 펼치기
             {
-                element: '.table-wrapper',
+                element: '.table-wrapper [data-bs-toggle="collapse"]',
                 popover: { title: '9. 전체 리스트 확인', description: '마지막으로 <b>화살표(▼)를 눌러</b><br>이번 달 전체 내역을 확인해보세요.', side: "top", showButtons: [] },
                 onHighlightStarted: (el) => {
-                    const toggleArea = el.querySelector('[data-bs-toggle="collapse"]');
-                    toggleArea.classList.add('neon-active');
-                    toggleArea.addEventListener('click', () => {
-                        toggleArea.classList.remove('neon-active');
+                    el.classList.add('neon-active');
+                    el.addEventListener('click', () => {
+                        el.classList.remove('neon-active');
                         setTimeout(() => driverObj.moveNext(), 600);
                     }, { once: true });
                 }
             },
-
-            // [Step 10] 하단 리스트 안내
             {
-                element: '#transactionCollapse',
-                popover: { title: '상세 내역 관리', description: '여기서도 날짜를 이동하거나<br>항목을 눌러 <b>수정/삭제</b>가 가능합니다!', side: "top" }
+                element: '#ledgerTable tbody tr:first-child',
+                popover: { title: '10. 상세 내역 관리', description: '리스트를 클릭하여<br><b>수정 화면을 띄워보세요.</b>', side: "top", showButtons: [] },
+                onHighlightStarted: (el) => {
+                    if(!el) {
+                        const tbody = document.querySelector('#ledgerTable tbody');
+                        if(tbody) {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = '<td>10-01</td><td><span class="badge bg-danger">지출</span></td><td>식비</td><td>투어용</td><td>투어용</td><td>카드</td><td>10,000원</td>';
+                            tbody.prepend(tr);
+                            el = tr;
+                        }
+                    }
+                    if(el) {
+                        el.classList.add('neon-active');
+                        el.addEventListener('click', () => {
+                            el.classList.remove('neon-active');
+                            const fakeItem = { id: 8888, entryAmount: 15000, occurredAt: '2025-10-05T14:00:00', entryType: 'EXPENSE', categoryName: '쇼핑', placeOfUse: '투어용 쇼핑', memo: '상세 내역 클릭 테스트', payType: 'CARD' };
+                            openEditModal(fakeItem);
+                            setTimeout(() => driverObj.moveNext(), 500);
+                        }, { once: true });
+                    } else {
+                        driverObj.moveNext();
+                    }
+                }
+            },
+            {
+                element: '#addEntryModal .close-btn',
+                popover: { title: '11. 수정 완료', description: '내역을 확인하셨다면<br><b>[X] 버튼을 눌러 닫아주세요.</b>', side: "left", showButtons: [] },
+                onHighlightStarted: (el) => {
+                    const addModal = document.getElementById("addEntryModal");
+                    addModal.style.zIndex = "100005";
+                    el.classList.add('neon-active');
+                    el.addEventListener('click', () => {
+                        el.classList.remove('neon-active');
+                        addModal.style.zIndex = "";
+                        closeAddEntryModal();
+                        setTimeout(() => driverObj.moveNext(), 800);
+                    }, { once: true });
+                }
             },
 
-            // [Step 11] 종료 (종료 버튼 필승 로직)
+            // [Step 12] 종료 (텍스트 줄바꿈 수정)
             {
-                element: 'body',
                 popover: {
                     title: '🎉 투어 완료!',
-                    description: '준비가 끝났습니다.<br>이제 효율적으로 자산을 관리해보세요!<br><br><button id="tour-finish-btn" class="driver-popover-done-btn" style="padding:8px 20px; font-weight:bold; cursor:pointer;">가계부 시작하기</button>',
+                    description: `
+                        <div style="text-align: center; margin-top: 10px;">
+                            준비가 끝났습니다.<br>이제 효율적으로<br>자산을 관리해보세요!<br><br>
+                            <button class="driver-popover-done-btn" onclick="window.finishTour()"
+                                    style="padding: 12px 30px; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 8px;">
+                                가계부 시작하기
+                            </button>
+                        </div>
+                    `,
                     align: 'center',
                     side: "center",
                     showButtons: []
-                },
-                onHighlightStarted: (el) => {
-                    setTimeout(() => {
-                        const finishBtn = document.getElementById('tour-finish-btn');
-                        if (finishBtn) {
-                            finishBtn.onclick = function() {
-                                driverObj.destroy();
-                            };
-                        }
-                    }, 100);
                 }
             }
         ],
 
         onDestroyStarted: () => {
-            document.querySelectorAll('.neon-active').forEach(el => el.classList.remove('neon-active'));
-            localStorage.setItem('tour_complete_final_v5', 'true');
+            window.finishTour();
+            localStorage.setItem('tour_complete_final_v16', 'true');
         }
     });
 
+    window.driverObjInstance = driverObj;
+    window.scrollTo(0, 0);
     driverObj.drive();
 }
 

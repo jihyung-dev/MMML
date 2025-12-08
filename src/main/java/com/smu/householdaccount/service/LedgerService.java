@@ -11,7 +11,6 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.smu.householdaccount.dto.CategoryUpdateReq;
 import com.smu.householdaccount.dto.TransActionBulkReq;
 import com.smu.householdaccount.dto.ledger.LedgerSummaryDto;
-import com.smu.householdaccount.dto.ledger.LedgerSummaryDto.*;
 import com.smu.householdaccount.dto.ledger.MonthlyLedgerDto;
 import com.smu.householdaccount.dto.python.ClassifyTransactionResponse;
 import com.smu.householdaccount.dto.python.TransactionResult;
@@ -32,9 +31,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.math.BigDecimal;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -597,33 +600,34 @@ public class LedgerService {
         }
     }
 
-
     private Map<String, Object> previewCsv(MultipartFile file) {
         Map<String, Object> result = new HashMap<>();
 
-        try (Scanner scanner = new Scanner(file.getInputStream(), "UTF-8")) {
+        try {
+            String csvContent = readCsvAsUtf8(file);
+
+            BufferedReader reader =
+                    new BufferedReader(new StringReader(csvContent));
 
             List<String> headers = new ArrayList<>();
             List<List<String>> rows = new ArrayList<>();
 
+            String line;
             int rowIndex = 0;
 
-            while (scanner.hasNextLine()) {
-
-                String line = scanner.nextLine();
+            while ((line = reader.readLine()) != null) {
                 String[] cols = line.split(",");
 
                 if (rowIndex == 0) {
                     headers.addAll(Arrays.asList(cols));
                 } else {
-                    rows.add(Arrays.asList(cols));  // 🔥 전체 rows
+                    rows.add(Arrays.asList(cols));
                 }
-
                 rowIndex++;
             }
 
             result.put("fileName", file.getOriginalFilename());
-            result.put("fileSize", (file.getSize()/1024) + " KB");
+            result.put("fileSize", (file.getSize() / 1024) + " KB");
             result.put("headers", headers);
             result.put("rows", rows);
 
@@ -773,4 +777,25 @@ public class LedgerService {
         String dateOnly = input.substring(0, 10);
         return LocalDateTime.parse(dateOnly + "T00:00:00");
     }
+
+    // 포맷 체크
+    private String readCsvAsUtf8(MultipartFile file) throws IOException {
+        byte[] raw = file.getBytes();
+
+        // 1차: UTF-8 시도
+        String utf8 = new String(raw, StandardCharsets.UTF_8);
+
+        // 깨짐 감지 → CP949 fallback
+        if (looksBroken(utf8)) {
+            return new String(raw, Charset.forName("CP949"));
+        }
+
+        return utf8;
+    }
+
+    private boolean looksBroken(String text) {
+        return text.contains("�")
+                || text.matches(".*[ìíëêð].*");
+    }
+
 }

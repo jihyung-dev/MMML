@@ -1,5 +1,6 @@
 package com.smu.householdaccount.service;
 
+import com.smu.householdaccount.dto.item.ItemResponseDto;
 import com.smu.householdaccount.entity.Category;
 import com.smu.householdaccount.entity.HotdealOption;
 import com.smu.householdaccount.entity.Item;
@@ -67,7 +68,9 @@ public interface ItemService {
     //상품 상세 조회 → 이미지&옵션을 함께 로드하고 조회수 증가
     Optional<Item> getItemDetailAndIncrementView(Long id, String viewerMemberId);
 
+    // ★ [New] DTO 변환 메서드 선언 (껍데기)
+    Page<ItemResponseDto> convertToDto(Page<Item> itemPage, String memberId);
 
-
-
+    // ★ [New] 상세 조회용 DTO 변환 메서드 추가
+    ItemResponseDto getItemDetailDto(Long id, String memberId);
 }

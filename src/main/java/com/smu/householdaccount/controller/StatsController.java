@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.time.LocalDateTime;
+
 @Controller
 @RequestMapping("/stats")
 public class StatsController {
@@ -17,8 +19,11 @@ public class StatsController {
     }
 
     @GetMapping("/save")
-    public ResponseEntity<?> save(){
-        statsService.updateCategoryStats();
+    public ResponseEntity<?> save(
+            @RequestParam LocalDateTime start,
+            @RequestParam LocalDateTime end
+            ){
+        statsService.updateCategoryStats(start, end);
         return ResponseEntity.ok("");
     }
 

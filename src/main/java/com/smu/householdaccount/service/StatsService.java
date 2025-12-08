@@ -10,6 +10,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -22,12 +24,20 @@ public class StatsService {
         this.ledgerRepository = ledgerRepository;
     }
 
-    public void updateCategoryStats() {
+    public void updateCategoryStats(LocalDateTime start, LocalDateTime end) {
 
-        List<CategoryStatsDto> stats = ledgerRepository.getCategoryStats();
-        Log.d("Redis", stats.toString());
+        List<CategoryStatsDto> stats =
+                ledgerRepository.getCategoryStats(start, end);
+
+        // ✅ 카테고리별 전체 누적용
+        Map<String, BigDecimal> globalSumMap = new HashMap<>();
+        Map<String, Long> globalCountMap = new HashMap<>();
+
         for (CategoryStatsDto s : stats) {
-            // 성별, 나이별, 카테고리별 저장
+
+            // ----------------------------
+            // 1️⃣ 성별 + 연령대 + 카테고리
+            // ----------------------------
             String key = String.format(
                     "category:stats:%s:%d:%s",
                     s.getGender(),
@@ -36,22 +46,58 @@ public class StatsService {
             );
 
             Map<String, String> map = new HashMap<>();
-            map.put("sum",   String.valueOf(s.getTotal()));
-            map.put("avg",   String.valueOf(s.getAvgAmount().intValue()));
-            map.put("count", String.valueOf(s.getTxnCount()));
+            map.put("sum",   s.getTotal().toString());
+            map.put("avg",   s.getAvgAmount().intValue() + "");
+            map.put("count", s.getTxnCount() + "");
 
             redisTemplate.opsForHash().putAll(key, map);
 
-            // 카테고리 별 전체 평균
-            String globalKey = String.format(
-                    "category:stats:global:%s",
-                    s.getCategory()
+            // ----------------------------
+            // 2️⃣ 글로벌 누적 (중요)
+            // ----------------------------
+            globalSumMap.merge(
+                    s.getCategory(),
+                    s.getTotal(),
+                    BigDecimal::add
             );
 
-            redisTemplate.opsForHash().putAll(globalKey, map);
+            globalCountMap.merge(
+                    s.getCategory(),
+                    Long.valueOf(s.getTxnCount()),
+                    Long::sum
+            );
         }
 
-        Log.d("[Redis]", "데이터 저장 완료");
+        // ----------------------------
+        // 3️⃣ 카테고리별 "전체 평균" 계산 & 저장
+        // ----------------------------
+        for (String category : globalSumMap.keySet()) {
+
+            BigDecimal total = globalSumMap.get(category);
+            long count = globalCountMap.getOrDefault(category, 0L);
+
+            if (count == 0) continue;
+
+            BigDecimal avg = total.divide(
+                    BigDecimal.valueOf(count),
+                    0,
+                    RoundingMode.HALF_UP
+            );
+
+            String globalKey = String.format(
+                    "category:stats:global:%s",
+                    category
+            );
+
+            Map<String, String> globalMap = new HashMap<>();
+            globalMap.put("sum", total.toString());
+            globalMap.put("avg", avg.toString());
+            globalMap.put("count", String.valueOf(count));
+
+            redisTemplate.opsForHash().putAll(globalKey, globalMap);
+        }
+
+        Log.d("[Redis]", "카테고리 통계(성별/연령/전체) 저장 완료");
     }
 
     public CategoryStatDto getStatsFromRedis(String gender, int ageGroup, String category) {
