@@ -37,6 +37,8 @@ let ageChart = null;
 
 // 카테고리 별 연령대 배열
 let AGE_LABELS = [];
+// 엑셀 데이터
+let lastExcelRows = null;
 
 function prepareAgeLabels() {
     const ageSet = new Set();
@@ -1064,6 +1066,7 @@ async function startDocu() {
     buildCategorySelectList();
     initCharts();
     prepareAgeLabels();
+    dragElement();
     hideSkeleton();
 
 // ★ 확장된 인터랙티브 투어 시작
@@ -2149,3 +2152,211 @@ function closeDayListModal() {
 //     setTimeout(() => {
 //         if (skel && skel.parentNode) skel.remove();
 //     }, 350);
+// 드래그 앤 드랍
+function dragElement() {
+    const dropZone = document.getElementById('fileDropZone');
+    const fileInput = document.getElementById('fileInput');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('drag-over');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+
+        const file = e.dataTransfer.files[0];
+        handleFileUpload(file);
+    });
+
+    fileInput.addEventListener('change', () => {
+        const file = fileInput.files[0];
+        handleFileUpload(file);
+    });
+
+}
+
+function handleFileUpload(file) {
+    if (!file) return;
+
+    // 파일 확장자 소문자 추출
+    const ext = file.name.split('.').pop().toLowerCase();
+    const allowedExt = ["xls", "xlsx", "csv"];
+
+    if (!allowedExt.includes(ext)) {
+        alert("엑셀 파일(.xls, .xlsx, .csv)만 업로드 가능합니다!");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    fetch("/ledger/import/excel", {
+        method: "POST",
+        body: formData
+    })
+        .then(res => res.json())
+        .then(info => {
+            // 미리보기 데이터 저장
+            lastExcelRows = info;  // rows만 따로 저장
+
+            document.getElementById("fileName").textContent = "";
+            document.getElementById("fileSize").textContent = "";
+
+            const thead = document.querySelector("#sampleTable thead");
+            const tbody = document.querySelector("#sampleTable tbody");
+            if (thead) thead.innerHTML = "";
+            if (tbody) tbody.innerHTML = "";
+
+            showPreviewSection();
+
+            // Preview 출력
+            showPreview({
+                fileName: info.fileName,
+                fileSize: info.fileSize,
+                headers: info.headers,
+                rows: info.rows.slice(0, 3) // 화면에 보여줄 샘플만
+            });
+            // 데이터 전송 버튼 노출
+            const btn = document.getElementById("sendDataBtn");
+            if (btn) {
+                btn.style.display = "inline-block";
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("파일 미리보기 중 오류가 발생했습니다.");
+            hidePreviewSection();
+
+            // 에러 시 버튼 숨김
+            const btn = document.getElementById("sendDataBtn");
+            if (btn) {
+                btn.style.display = "none";
+            }
+        });
+}
+
+function showPreview(info) {
+    // 파일 정보 세팅
+    document.getElementById("fileName").textContent = info.fileName ?? "";
+    document.getElementById("fileSize").textContent = info.fileSize ?? "";
+
+    // Table DOM
+    const thead = document.querySelector("#sampleTable thead");
+    const tbody = document.querySelector("#sampleTable tbody");
+
+    thead.innerHTML = "";
+    tbody.innerHTML = "";
+
+    // BOM 제거 처리 (엑셀 헤더에서만)
+    const headers = (info.headers ?? []).map(h => h.replace("\ufeff", "").trim());
+
+    // Header Row 생성
+    const trHead = document.createElement("tr");
+    headers.forEach(h => {
+        const th = document.createElement("th");
+        th.textContent = h;
+        trHead.appendChild(th);
+    });
+    thead.appendChild(trHead);
+
+    // Sample Rows 생성
+    (info.rows ?? []).forEach(row => {
+        const tr = document.createElement("tr");
+
+        row.forEach(col => {
+            const td = document.createElement("td");
+            td.textContent = col ?? "";
+            tr.appendChild(td);
+        });
+
+        tbody.appendChild(tr);
+    });
+}
+
+// 데이터 전송(DB에 들어 갈 수 있도록 유효성 검사)
+document.addEventListener("DOMContentLoaded", () => {
+    const closeBtn = document.getElementById("previewCloseBtn");
+    if (closeBtn) {
+        closeBtn.addEventListener("click", () => {
+            hidePreviewSection();
+        });
+    }
+
+    const sendBtn = document.getElementById("sendDataBtn");
+    if (sendBtn) {
+        sendBtn.addEventListener("click", () => {
+            if (!lastExcelRows) {
+                alert("전송할 데이터가 없습니다. 먼저 파일을 업로드 해주세요.");
+                return;
+            }
+
+            fetch("/ledger/import/analyze", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(lastExcelRows)
+            })
+                .then(async res => {
+                    const data = await res.json().catch(() => null);
+
+                    // HTTP Status 자체가 오류인 경우
+                    if (!res.ok) {
+                        alert(data?.message || data?.error || "서버 처리 중 오류가 발생했습니다.");
+                        return;
+                    }
+
+                    // 서버 side에서 status=error 준 경우
+                    if (data.status === "error") {
+                        alert(data.message || "처리 중 오류가 발생했습니다.");
+                        return;
+                    }
+                    // 정상 처리
+                    alert("데이터 입력 완료!");
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("데이터 분석 요청 중 오류가 발생했습니다.");
+                });
+        });
+    }
+});
+
+// Preview 전체 영역 노출
+function showPreviewSection() {
+    document.getElementById("previewSection").style.display = "block";
+}
+
+// Preview 전체 영역 숨김 및 초기화
+function hidePreviewSection() {
+    const section = document.getElementById("previewSection");
+    section.style.display = "none";
+
+    // 기존 데이터 초기화
+    document.getElementById("fileName").textContent = "";
+    document.getElementById("fileSize").textContent = "";
+
+    const thead = document.querySelector("#sampleTable thead");
+    const tbody = document.querySelector("#sampleTable tbody");
+    if (thead) thead.innerHTML = "";
+    if (tbody) tbody.innerHTML = "";
+
+    // 분석 버튼 숨김
+    const btn = document.getElementById("sendDataBtn");
+    if (btn) btn.style.display = "none";
+
+    // 파일 input 리셋
+    const fileInput = document.getElementById("fileInput");
+    if (fileInput) fileInput.value = "";
+
+    // 내부 저장 데이터 초기화
+    lastExcelRows = null;
+}
