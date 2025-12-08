@@ -37,7 +37,20 @@
     <div id="globalSkeleton">
         <div class="singleSkeletonCard "></div>
     </div>
-    <button onclick="loadLedgerData()">json 데이터 불러오기</button>
+    <!-- 🔵 메인 데이터 불러오기 영역 -->
+    <div class="import-main-section">
+        <button
+                type="button"
+                class="primary-import-btn"
+                onclick="loadLedgerData()"
+        >
+            <span class="icon">💳</span>
+            <span class="text">
+                <strong>내 카드 사용 내역 불러오기</strong>
+                <small>최근 거래내역을 자동으로 정리해드려요</small>
+            </span>
+        </button>
+    </div>
 
     <div class="container">
     <!-- 드래그 앤 드랍 & 파일 업로드 -->
@@ -55,7 +68,6 @@
     </div>
     <div class="required-columns mt-2 text-muted small">
         <strong>📌 카테고리 : 자동 분류</strong>
-        <span class="text-primary">결제수단, 메모</span>
     </div>
     <!-- 파일 미리보기 -->
     <div class="upload-preview-container mt-4" id="previewSection" style="display:none;">

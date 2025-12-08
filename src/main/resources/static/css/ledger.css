@@ -1575,3 +1575,67 @@ div#driver-popover-item {
 .sample-table tbody td {
     color: #444;
 }
+
+.primary-import-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+
+    width: 100%;
+    max-width: 520px;
+
+    padding: 16px 20px;
+
+    background: linear-gradient(135deg, #0d6efd, #4d8dff);
+    color: #fff;
+
+    border: none;
+    border-radius: 12px;
+
+    cursor: pointer;
+    text-align: left;
+
+    box-shadow: 0 6px 16px rgba(13, 110, 253, 0.25);
+
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.primary-import-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(13, 110, 253, 0.35);
+}
+
+.primary-import-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2);
+}
+
+.primary-import-btn .icon {
+    font-size: 28px;
+    line-height: 1;
+}
+
+.primary-import-btn .text {
+    display: flex;
+    flex-direction: column;
+}
+
+.primary-import-btn .text strong {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.primary-import-btn .text small {
+    font-size: 13px;
+    opacity: 0.9;
+}
+
+.import-main-section {
+    max-width: 100%;
+    margin: 10px;
+}
+
+.primary-import-btn {
+    width: 100%;
+    max-width: 100%; /* container 기준 */
+}
