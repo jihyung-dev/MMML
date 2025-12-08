@@ -100,7 +100,7 @@
                                         </div>
                                         <div class="flex flex-col justify-center">
                                             <p class="text-sm text-text-light dark:text-text-dark mb-1">닉네임</p>
-                                            <p class="text-xl font-bold text-text-light dark:text-text-dark">김개똥</p>
+                                            <p class="text-xl font-bold text-text-light dark:text-text-dark" th:text="${member.memberNickname}"></p>
                                             <p class="text-base text-placeholder-light dark:text-placeholder-dark">Member</p>
                                         </div>
                                     </div>
@@ -110,61 +110,62 @@
                                     <!--                                </button>-->
                                 </div>
                                 <!-- Profile Form -->
-<form class="grid grid-cols-1 md:grid-cols-2 gap-6" method="post" th:action="@{/mypage/edit}">
+                                <form class="grid grid-cols-1 md:grid-cols-2 gap-6" method="post" th:action="@{/mypage/user/editpage}">
                                     <div class="md:col-span-2">
                                         <label class="flex flex-col">
                                             <p class="text-sm font-medium pb-2">이름</p>
-                                            <input name="memberName" class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark placeholder:text-placeholder-light dark:placeholder:text-placeholder-dark focus:border-primary focus:ring-primary h-12 px-4 text-base" value="김가은"/>
+                                            <input name="memberName" class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark placeholder:text-placeholder-light dark:placeholder:text-placeholder-dark focus:border-primary focus:ring-primary h-12 px-4 text-base" th:value="${member.memberName}"/>
                                         </label>
                                     </div>
-                                    <!--                                비밀번호 수정-->
+                                    <!-- 비밀번호 변경 -->
                                     <div class="md:col-span-2">
                                         <p class="text-sm font-medium pb-2">비밀번호 변경</p>
                                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                                             <div>
                                                 <label>
                                                     <span class="sr-only">현재 비밀번호</span>
-                                                    <input name="currentpw" class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark placeholder:text-placeholder-light dark:placeholder:text-placeholder-dark focus:border-primary focus:ring-primary h-12 px-4 text-base" placeholder="현재 비밀번호" type="password"/>
+                                                    <input name="currentpw" placeholder="현재 비밀번호" type="password" class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark placeholder:text-placeholder-light dark:placeholder:text-placeholder-dark focus:border-primary focus:ring-primary h-12 px-4 text-base"/>
                                                 </label>
                                             </div>
                                             <div>
                                                 <label>
                                                     <span class="sr-only">새로운 비밀번호</span>
-                                                    <input name="newpw" class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark placeholder:text-placeholder-light dark:placeholder:text-placeholder-dark focus:border-primary focus:ring-primary h-12 px-4 text-base" placeholder="새로운 비밀번호" type="password"/>
+                                                    <input name="newpw" placeholder="새로운 비밀번호" type="password" class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark placeholder:text-placeholder-light dark:placeholder:text-placeholder-dark focus:border-primary focus:ring-primary h-12 px-4 text-base"/>
                                                 </label>
                                             </div>
                                             <div>
                                                 <label>
                                                     <span class="sr-only">새 비밀번호 재입력</span>
-                                                    <input name="newpw2" class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark placeholder:text-placeholder-light dark:placeholder:text-placeholder-dark focus:border-primary focus:ring-primary h-12 px-4 text-base" placeholder="새 비밀번호 재입력" type="password"/>
+                                                    <input name="newpw2" placeholder="새 비밀번호 재입력" type="password" class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark placeholder:text-placeholder-light dark:placeholder:text-placeholder-dark focus:border-primary focus:ring-primary h-12 px-4 text-base"/>
                                                 </label>
                                             </div>
                                         </div>
                                     </div>
+                                    <!-- 나머지 필드: 이메일, 전화번호, 주소 -->
                                     <div class="md:col-span-2">
                                         <label class="flex flex-col">
                                             <p class="text-sm font-medium pb-2">이메일 주소</p>
-                                            <input class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light/50 dark:bg-background-dark/50 text-placeholder-light dark:text-placeholder-dark h-12 px-4 text-base cursor-not-allowed" readonly="" value="john.doe@email.com"/>
+                                            <input class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light/50 dark:bg-background-dark/50 text-placeholder-light dark:text-placeholder-dark h-12 px-4 text-base cursor-not-allowed" th:value="${member.email}"/>
                                         </label>
                                     </div>
                                     <div>
                                         <label class="flex flex-col">
                                             <p class="text-sm font-medium pb-2">휴대폰 번호</p>
-                                            <input name="phone" class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark placeholder:text-placeholder-light dark:placeholder:text-placeholder-dark focus:border-primary focus:ring-primary h-12 px-4 text-base" value="010-2345-6789"/>
+                                            <input name="phone" class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark placeholder:text-placeholder-light dark:placeholder:text-placeholder-dark focus:border-primary focus:ring-primary h-12 px-4 text-base" th:value="${member.phone}"/>
                                         </label>
                                     </div>
                                     <div>
                                         <label class="flex flex-col">
                                             <p class="text-sm font-medium pb-2">주소</p>
-                                            <input name="address" class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark placeholder:text-placeholder-light dark:placeholder:text-placeholder-dark focus:border-primary focus:ring-primary h-12 px-4 text-base" value="경기도 오산시 까마귀로"/>
+                                            <input name="address" class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark placeholder:text-placeholder-light dark:placeholder:text-placeholder-dark focus:border-primary focus:ring-primary h-12 px-4 text-base" th:value="${member.address}"/>
                                         </label>
                                     </div>
+                                    <div class="p-5 border-t border-border-light dark:border-border-dark flex justify-end">
+                                        <button type="submit" class="flex items-center justify-center rounded-lg h-11 px-6 bg-primary text-white text-sm font-bold transition-opacity hover:opacity-90">
+                                            <span>Save Changes</span>
+                                        </button>
+                                    </div>
                                 </form>
-                            </div>
-                            <div class="p-5 border-t border-border-light dark:border-border-dark flex justify-end">
-                                <button class="flex items-center justify-center rounded-lg h-11 px-6 bg-primary text-white text-sm font-bold transition-opacity hover:opacity-90">
-                                    <span>Save Changes</span>
-                                </button>
                             </div>
                         </div>
                     </div>

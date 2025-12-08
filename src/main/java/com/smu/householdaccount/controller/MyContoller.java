@@ -6,6 +6,7 @@ import com.smu.householdaccount.entity.Member;
 import com.smu.householdaccount.repository.BoardCommentRepository;
 import com.smu.householdaccount.repository.BoardLikeRepository;
 import com.smu.householdaccount.repository.BoardPostRepository;
+import com.smu.householdaccount.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -14,9 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.SessionAttribute;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/mypage")
@@ -26,6 +25,7 @@ public class MyContoller {
     private final BoardPostRepository boardPostRepository;
     private final BoardCommentRepository boardCommentRepository;
     private final BoardLikeRepository boardLikeRepository;
+    private final MemberService memberService;
 
     @GetMapping("/activity")
     public String myActivity(@SessionAttribute("loginUser") Member loginUser, Model model) {
@@ -54,6 +54,35 @@ public class MyContoller {
     public String editPage(@SessionAttribute("loginUser") Member loginUser, Model model) {
         model.addAttribute("member", loginUser);
         return "user/editpage";
+    }
+    @PostMapping("/user/editpage")
+    public String editProfile(
+            @SessionAttribute("loginUser") Member loginUser,
+            @RequestParam String memberName,
+            @RequestParam String currentpw,
+            @RequestParam String newpw,
+            @RequestParam String newpw2,
+            @RequestParam String phone,
+            @RequestParam String address,
+            Model model
+    )
+    {
+        try {
+            memberService.updateMemberInfo(
+                    loginUser.getMemberId(),
+                    memberName,
+                    currentpw,
+                    newpw,
+                    newpw2,
+                    phone,
+                    address
+            );
+            return "redirect:/mypage"; // 정상 처리 후 리다이렉트
+        } catch (RuntimeException e){
+            model.addAttribute("errorMessage", e.getMessage());
+            model.addAttribute("member", loginUser);
+            return "user/editpage"; // 예외 시 editpage 그대로 보여주기
+        }
     }
 
 }
