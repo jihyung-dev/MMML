@@ -1,10 +1,7 @@
 package com.smu.householdaccount.service;
 
 import com.smu.householdaccount.dto.HotdealOrderBean;
-import com.smu.householdaccount.entity.HotdealOption;
-import com.smu.householdaccount.entity.Item;
-import com.smu.householdaccount.entity.OrderItem;
-import com.smu.householdaccount.entity.OrderMain;
+import com.smu.householdaccount.entity.*;
 import com.smu.householdaccount.repository.HotdealOptionRepository;
 import com.smu.householdaccount.repository.ItemRepository;
 import com.smu.householdaccount.repository.OrderItemRepository;
@@ -17,10 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
@@ -110,7 +104,7 @@ public class OrderServiceImpl implements OrderService{
         orderMain.setBuyerId(hotdealOrderBean.getBuyerId());
         orderMain.setTotalAmount(totalAmout);
         orderMain.setSellerId(hotdealOrderBean.getSellerId());
-        orderMain.setOrderStatus("PADDING");
+        orderMain.setOrderStatus("PENDING");
         orderMain.setMerchantUid("order-"+UUID.randomUUID());
         orderMain=orderMainRepository.save(orderMain);
 
@@ -227,4 +221,42 @@ public class OrderServiceImpl implements OrderService{
         total = total.setScale(0, RoundingMode.HALF_UP); // 원 단위 반올림
         return total;
     }
+
+    //주문수정
+    @Override
+    @Transactional
+    public void cancelPendingOrder(String merchantUid) {
+        // 1. 주문 찾기
+        OrderMain order = orderMainRepository.findByMerchantUid(merchantUid)
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 주문입니다: " + merchantUid));
+
+        // 2. 주문 상태 확인 (PENDING 상태만 수정 가능)
+        // OrderStatus Entity/Enum을 사용한다고 가정
+        if (order.getOrderStatus() == null || !order.getOrderStatus().equals(OrderStatus.PENDING.name())) {
+            // OrderStatus가 Enum 타입이면 .toString()을 사용하여 상태를 표시하거나, Enum의 이름을 그대로 사용합니다.
+            String currentStatus = order.getOrderStatus() != null ? order.getOrderStatus().toString() : "NULL";
+            throw new IllegalStateException("주문 수정이 불가능한 상태입니다. 현재 상태: " + currentStatus);
+        }
+
+        // 3. 재고 복구
+        Set<OrderItem> orderItems = order.getOrderItems(); // OrderMain과 OrderItem이 연관되어 있다고 가정
+        if (orderItems != null) {
+            for (OrderItem orderItem : orderItems) {
+                // 옵션이 존재하는 상품의 재고만 복구
+                if (orderItem.getOption() != null) {
+                    HotdealOption option = hotdealOptionRepository.findById(orderItem.getOption().getId())
+                            .orElseThrow(() -> new IllegalStateException("옵션 정보를 찾을 수 없습니다."));
+
+                    // 재고 증가 (주문 수량만큼)
+                    option.setStock(option.getStock() + orderItem.getQty());
+                    hotdealOptionRepository.save(option);
+                }
+            }
+        }
+
+        // 4. 주문 상태 변경
+        order.setOrderStatus(OrderStatus.CANCELED.name()); // 주문을 취소 상태로 변경
+        orderMainRepository.save(order);
+    }
 }
+

@@ -9,12 +9,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Controller
@@ -60,5 +62,20 @@ public class OrderController {
 
         return "hotdeal/payment_page";
     }
+
+    @GetMapping("/order/cancel_pending")
+    @ResponseBody //JSON 응답 받으려고
+    public ResponseEntity<Map<String, Object>> cancelPendingOrder(@RequestParam("merchant_uid") String merchantUid) {
+        try {
+            // OrderService를 호출하여 주문 상태를 PENDING -> CANCELED로 변경하고 재고 복구
+            orderService.cancelPendingOrder(merchantUid);
+            return ResponseEntity.ok(Map.of("ok", true, "msg", "주문 취소 및 재고 복구 완료"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("ok", false, "msg", "서버 오류: " + e.getMessage()));
+        }
+    }
+
+
 }
 
