@@ -43,10 +43,12 @@ public class Member {
     private String memberNickname;
 
     @Size(max = 255)
+    @NotNull
     @Column(name = "ADDRESS", length = 255)
     private String address;
 
     @Size(max = 20)
+    @NotNull
     @Column(name = "PHONE", length = 20)
     private String phone;
 
@@ -65,12 +67,15 @@ public class Member {
     // ====== 추가된 컬럼들 ======
 
     @Column(name = "GENDER", length = 1)
+    @NotNull
     private String gender;   // M/F 등, NULL 허용
 
     @Column(name = "AGE")
+    @NotNull
     private Integer age;     // NULL 허용
 
     @Size(max = 100)
+    @NotNull
     @Column(name = "email", length = 100)
     private String email;
 
