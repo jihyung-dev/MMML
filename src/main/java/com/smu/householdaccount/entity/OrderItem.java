@@ -54,4 +54,14 @@ public class OrderItem {
     @Column(name = "PRICE", nullable = false, precision = 15, scale = 2)
     private BigDecimal price;
 
+    public void setOrder(OrderMain order) {
+        this.order = order;
+        this.orderId = order.getId();
+        // 양방향 관계 설정: OrderMain에도 OrderItem 추가 (선택적)
+        if (order.getOrderItems() != null && !order.getOrderItems().contains(this)) {
+            order.getOrderItems().add(this);
+        }
+    }
+
+
 }

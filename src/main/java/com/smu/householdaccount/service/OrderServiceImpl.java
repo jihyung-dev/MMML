@@ -109,7 +109,8 @@ public class OrderServiceImpl implements OrderService{
         orderMain=orderMainRepository.save(orderMain);
 
         for(OrderItem orderItem:orderItems){
-            orderItem.setOrderId(orderMain.getId());
+            //orderItem.setOrderId(orderMain.getId()); //OrderItem.java에 관계 설정 메서드(serOrder) 추가해서 필요없음.
+            orderItem.setOrder(orderMain); //객체 참조 설정
         }
         orderItemRepository.saveAll(orderItems);
 //        orderMain.setOrderItems(orderItems.stream().collect(java.util.stream.Collectors.toSet()));
