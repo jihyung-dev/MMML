@@ -1,6 +1,6 @@
 package com.smu.householdaccount.service.common;
 
-import com.smu.householdaccount.repository.LedgerRepository;
+import com.smu.householdaccount.repository.account.LedgerRepository;
 import com.smu.householdaccount.util.Log;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;

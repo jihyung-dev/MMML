@@ -22,6 +22,7 @@ import com.smu.householdaccount.repository.account.BudgetGroupRepository;
 import com.smu.householdaccount.repository.account.CategoryRepository;
 import com.smu.householdaccount.repository.account.LedgerRepository;
 import com.smu.householdaccount.repository.common.MemberRepository;
+import com.smu.householdaccount.service.common.RedisService;
 import com.smu.householdaccount.util.Log;
 import com.smu.householdaccount.util.Utility;
 import com.smu.householdaccount.web.SafeHttpClient;
