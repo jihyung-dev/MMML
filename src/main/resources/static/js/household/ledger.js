@@ -1049,7 +1049,44 @@ function initCalendar(dailyData) {
     fullCalendarInstance.render();
 }
 
+function showEmptyState(){
+    document.getElementById("emptyState")?.classList.remove("d-none");
+    document.getElementById("ledgerContent")?.classList.add("d-none");
+}
+
+function showLedgerContent() {
+    document.getElementById("emptyState").classList.add("d-none");
+    document.getElementById("ledgerContent").classList.remove("d-none");
+}
+
+// 엑셀 파일 업로드
+function openExcelUpload() {
+    document.getElementById("fileInput")?.click();
+}
+
+async function getGroupId() {
+    const res = await fetch(`/ledger/request/group_id`, { method: "GET" });
+
+    const data = await res.json(); // await 필수
+    console.log("데이터 확인 :", data);
+
+    if (!data.hasGroup) {
+        showEmptyState();
+        return false;
+    } else {
+        showLedgerContent();
+        return true;
+    }
+}
+
 async function startDocu() {
+    // 로그인 유저의 Group_id 조회(group_id가 존재하지 않을 경우 등록한 가게부 내역이 하나도 없다는 의미)
+    const hasGroup = await getGroupId(); // await
+
+    if (!hasGroup) {
+        return;
+    }
+
     showSkeleton();
     // 1) 전체 평균 데이터 먼저 로드
     globalAvgLedger = await loadGlobalAvgData();
@@ -1688,7 +1725,8 @@ async function loadLedgerData() {
         }
 
         const result = await res.json();
-        console.log("ledger data loaded:", result);
+        initCache();
+        await startDocu();
 
     }catch{
         console.log("Error");
@@ -2319,8 +2357,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         alert(data.message || "처리 중 오류가 발생했습니다.");
                         return;
                     }
-                    // 정상 처리
+                    // 정상 처리 후 데이터 로딩
                     alert("데이터 입력 완료!");
+                    initCache()
+                    await startDocu();
                 })
                 .catch(err => {
                     console.error(err);
@@ -2358,5 +2398,23 @@ function hidePreviewSection() {
     if (fileInput) fileInput.value = "";
 
     // 내부 저장 데이터 초기화
+    lastExcelRows = null;
+}
+
+// 캐싱 데이터 전부 초기화
+function initCache(){
+    modalJustOpened = false;
+    modalChartInstance = null;
+    fullCalendarInstance = null;
+    ledgerCache.clear()
+    loaded3MonthCache = {};
+    loaded6MonthCache = null;
+    globalAvgLedger = null;
+    allCategoryStats = [];
+    selectedCategories = new Set();
+
+    genderChart = null;
+    ageChart = null;
+    AGE_LABELS = [];
     lastExcelRows = null;
 }
