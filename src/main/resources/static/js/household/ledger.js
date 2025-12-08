@@ -67,6 +67,39 @@ function initCharts() {
     });
 }
 
+/**
+ * 월별 총 수입과 지출을 계산하여 화면에 표시합니다.
+ * @param {object} data - 현재 월의 데이터 객체 (daily 배열 포함)
+ */
+function updateMonthlyTotals(data) {
+    const container = document.getElementById('categorySummary');
+    if (!container || !data || !data.daily) return;
+
+    // daily 데이터를 사용하여 총액 계산
+    const totalIncome = data.daily.reduce((sum, d) => sum + d.income, 0);
+    const totalExpense = data.daily.reduce((sum, d) => sum + d.expense, 0);
+
+    const incomeColor = '#3781d1';
+    const expenseColor = '#db6767';
+
+    container.innerHTML = `
+        <div style="font-weight: bold; padding: 10px 0; border-top: 1px solid #eee;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                <span>수입 소계</span>
+                <span style="color: ${incomeColor}; font-size: 1.1em;">
+                    +${totalIncome.toLocaleString()} 원
+                </span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span>지출 소계</span>
+                <span style="color: ${expenseColor}; font-size: 1.1em;">
+                    -${totalExpense.toLocaleString()} 원
+                </span>
+            </div>
+        </div>
+    `;
+}
+
 async function loadLedgerChart({ year, month }) {
     const key = `${year}-${month}`;
 
@@ -88,6 +121,9 @@ async function loadLedgerChart({ year, month }) {
     drawCategoryPieChart(bundle.current.categories);
     drawDailyLineChart(bundle.current.daily, bundle.prev1.daily);
     await renderFullCategoryChart();
+
+    // [New] 소계 업데이트 // 추가!
+    if(bundle.current.daily) updateMonthlyTotals(bundle.current);
 
     // [추가 2] 데이터를 새로 가져왔을 때 캘린더 그리기
     if(bundle.current.daily) initCalendar(bundle.current.daily);
@@ -2017,7 +2053,7 @@ function openEditModal(item) {
     }
 
 // =========================================
-// [수정] 일별 리스트 모달 (Day List) 관련
+// [수정] 일별 리스트 모달 (Day List) - 스켈레톤 + 최소 높이 적용
 // =========================================
 async function openDayListModal(dateStr) {
     const modal = document.getElementById("dayListModal");
@@ -2027,10 +2063,12 @@ async function openDayListModal(dateStr) {
     const dateTitle = document.getElementById("dayListDate");
     if(dateTitle) dateTitle.innerText = dateStr;
 
-    // ★ [수정 포인트] 단순 텍스트 대신 '가짜 리스트(스켈레톤)'를 넣어 높이를 확보합니다.
     if(listGroup) {
-        // 부트스트랩 placeholder 클래스를 사용하여 스켈레톤 효과 구현
-        // 리스트 아이템 3~4개 정도 분량의 높이를 미리 차지하게 함
+        // ★ [핵심 1] 리스트 컨테이너의 '최소 높이'를 강제로 고정합니다. (약 3개 높이)
+        // 데이터가 0~2개여도 이 높이는 유지됩니다.
+        listGroup.style.minHeight = "250px";
+
+        // 스켈레톤 UI (로딩 바)
         const skeletonItem = `
             <li class="list-group-item py-3">
                 <div class="d-flex justify-content-between align-items-center">
@@ -2048,12 +2086,10 @@ async function openDayListModal(dateStr) {
                 </div>
             </li>
         `;
-        // 가짜 리스트 3개를 넣어둡니다.
         listGroup.innerHTML = skeletonItem.repeat(3);
     }
 
     if(modal) {
-        // ... (이하 기존 코드 동일)
         modal.classList.add("show");
         modal.style.display = "flex";
 
@@ -2062,48 +2098,51 @@ async function openDayListModal(dateStr) {
     }
 
     try {
-        // API 호출
         const res = await fetch(`/api/ledger/daily-list?date=${dateStr}`);
+        if (!res.ok) throw new Error("네트워크 응답 실패");
 
-            if (!res.ok) throw new Error("네트워크 응답 실패");
+        const list = await res.json();
 
-            const list = await res.json();
+        if(listGroup) {
+            listGroup.innerHTML = ""; // 스켈레톤 제거
 
-            if (listGroup) {
-                listGroup.innerHTML = ""; // 기존 내용 비우기
+            if(list.length === 0) {
+                // ★ [핵심 2] 데이터가 없을 때, 250px 높이의 '정중앙'에 메시지 배치
+                // h-100, d-flex, justify-content-center, align-items-center 사용
+                listGroup.innerHTML = `
+                    <li class="list-group-item text-muted text-center h-100 d-flex flex-column justify-content-center align-items-center border-0">
+                        <div style="font-size: 3rem; margin-bottom: 10px;">📭</div>
+                        <div>내역이 없습니다.<br><small>새로운 내역을 추가해보세요!</small></div>
+                    </li>`;
+            } else {
+                list.forEach(item => {
+                    const li = document.createElement("li");
+                    li.className = "list-group-item list-group-item-action py-3";
+                    li.style.cursor = "pointer";
+                    li.onclick = () => openEditModal(item);
 
-                if (list.length === 0) {
-                    listGroup.innerHTML = '<li class="list-group-item text-muted text-center py-4">내역이 없습니다.<br><small>새로운 내역을 추가해보세요!</small></li>';
-                } else {
-                    list.forEach(item => {
-                        const li = document.createElement("li");
-                        li.className = "list-group-item list-group-item-action py-3";
-                        li.style.cursor = "pointer";
-                        // 클릭 시 수정 모달로 연결
-                        li.onclick = () => openEditModal(item);
+                    // 1. 시간 포맷팅
+                    let timeStr = "";
+                    if(item.occurredAt) {
+                        const dateObj = new Date(item.occurredAt);
+                        const hours = dateObj.getHours();
+                        const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+                        const ampm = hours >= 12 ? '오후' : '오전';
+                        const displayHour = hours % 12 || 12;
+                        timeStr = `${ampm} ${displayHour}:${minutes}`;
+                    }
 
-                        // 1. 시간 포맷팅
-                        let timeStr = "";
-                        if (item.occurredAt) {
-                            const dateObj = new Date(item.occurredAt);
-                            const hours = dateObj.getHours();
-                            const minutes = String(dateObj.getMinutes()).padStart(2, '0');
-                            const ampm = hours >= 12 ? '오후' : '오전';
-                            const displayHour = hours % 12 || 12;
-                            timeStr = `${ampm} ${displayHour}:${minutes}`;
-                        }
+                    // 2. 제목
+                    const mainTitle = item.placeOfUse ? item.placeOfUse : item.categoryName;
 
-                        // 2. 제목 (사용처 우선, 없으면 카테고리)
-                        const mainTitle = item.placeOfUse ? item.placeOfUse : item.categoryName;
+                    // 3. 스타일
+                    const isExpense = item.entryType === 'EXPENSE';
+                    const colorClass = isExpense ? 'text-danger' : 'text-primary';
+                    const sign = isExpense ? '-' : '+';
+                    const moneyStr = Number(item.entryAmount).toLocaleString();
 
-                        // 3. 스타일 (지출:빨강, 수입:파랑)
-                        const isExpense = item.entryType === 'EXPENSE';
-                        const colorClass = isExpense ? 'text-danger' : 'text-primary';
-                        const sign = isExpense ? '-' : '+';
-                        const moneyStr = Number(item.entryAmount).toLocaleString();
-
-                        // 4. HTML 조립
-                        li.innerHTML = `
+                    // 4. HTML 조립
+                    li.innerHTML = `
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="d-flex flex-column">
                                 <div class="d-flex align-items-baseline">
@@ -2117,15 +2156,15 @@ async function openDayListModal(dateStr) {
                             </div>
                         </div>
                     `;
-                        listGroup.appendChild(li);
-                    });
-                }
+                    listGroup.appendChild(li);
+                });
             }
-        } catch (e) {
-            console.error(e);
-            if (listGroup) listGroup.innerHTML = '<li class="list-group-item text-danger">데이터를 불러오지 못했습니다.</li>';
         }
+    } catch (e) {
+        console.error(e);
+        if(listGroup) listGroup.innerHTML = '<li class="list-group-item text-danger">데이터를 불러오지 못했습니다.</li>';
     }
+}
 
 
     function closeWelcomeModal() {
