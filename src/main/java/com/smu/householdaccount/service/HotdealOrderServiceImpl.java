@@ -11,10 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,9 +31,14 @@ public class HotdealOrderServiceImpl implements HotdealOrderService {
 
     @Override
     public OrderMain createBasket(List<OrderBean> orderBeans, Member buyer) {
-        Long discountPrice = null;
-        Long totalPrice = null;
+//        Long discountPrice = null;
+//        Long totalPrice = null;
+        //[수정] 금액 변수 초기값 0L 설정
+        Long discountPrice = 0L;
+        Long totalPrice = 0L;
+
         List<OrderItem> orderItemList = new ArrayList<>();
+
         for (OrderBean orderBean : orderBeans) {
             OrderItem orderItem = new OrderItem();
             orderItem.setQty(orderBean.quantity);
@@ -44,9 +46,12 @@ public class HotdealOrderServiceImpl implements HotdealOrderService {
             orderItem.setOptionId(orderBean.hotdealOptionId);
             orderItem.setPrice(BigDecimal.valueOf(orderBean.discountPrice));
             orderItemList.add(orderItem);
-            discountPrice+=orderBean.discountPrice*orderBean.quantity;
-            totalPrice+=orderBean.price*orderBean.quantity;
+
+            //1. 연산 가능
+            discountPrice += orderBean.discountPrice * orderBean.quantity;
+            totalPrice += orderBean.price * orderBean.quantity;
         }
+
         String merchantUid = "order-" + UUID.randomUUID();
         OrderMain orderMain = new OrderMain();
         orderMain.setBuyerId(buyer.getMemberId());
@@ -54,11 +59,22 @@ public class HotdealOrderServiceImpl implements HotdealOrderService {
         orderMain.setOrderStatus("BASKET");
         orderMain.setMerchantUid(merchantUid);
 
-        OrderMain saveOderMain=orderMainRepository.save(orderMain);
+        //2. OrderMain 먼저 저장하고 ID 할당 받음
+        OrderMain saveOrderMain=orderMainRepository.save(orderMain);
+
+        //3. 저장된 OrderMain 객체를 OrderItem에 연결
+        for(OrderItem orderItem:orderItemList){
+            orderItem.setOrder(saveOrderMain);
+        }
+
+        //4. OrderItem 저장
         List<OrderItem> saveOrderItems=orderItemRepository.saveAll(orderItemList);
-        saveOderMain.setOrderItems(saveOrderItems.stream().collect(Collectors.toSet()));
+
+        //5. OrderMain 객체에도 OrderItems 컬렉션 업데이트
+        //saveOrderMain.setOrderItems(saveOrderItems.stream().collect(Collectors.toSet()));
+        saveOrderMain.setOrderItems(new HashSet<>(saveOrderItems));
         //save(OrderMain)
         //save([]OrderItem)
-        return saveOderMain;
+        return saveOrderMain;
     }
 }
