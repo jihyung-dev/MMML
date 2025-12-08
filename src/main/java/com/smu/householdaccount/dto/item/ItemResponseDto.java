@@ -1,9 +1,9 @@
 package com.smu.householdaccount.dto.item;
 
-import com.smu.householdaccount.entity.HotdealOption;
-import com.smu.householdaccount.entity.Item;
-import com.smu.householdaccount.entity.ItemDetailImage;
-import com.smu.householdaccount.entity.Seller; // ★ Seller 임포트 필수
+import com.smu.householdaccount.entity.hotdeal.HotdealOption;
+import com.smu.householdaccount.entity.hotdeal.Item;
+import com.smu.householdaccount.entity.hotdeal.ItemDetailImage;
+import com.smu.householdaccount.entity.hotdeal.Seller; // ★ Seller 임포트 필수
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

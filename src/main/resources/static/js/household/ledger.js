@@ -1798,147 +1798,224 @@ function openAddEntryModal(dateStr) {
     showEntryModal("새 내역 추가");
 }
 
+// =========================================
+// [누락된 함수 복구] 폼 초기화 함수
+// =========================================
+function resetEntryForm() {
+    // 1. ID 값 초기화 (수정 모드인지 판별용)
+    const idField = document.getElementById("entryId");
+    if(idField) idField.value = "";
+
+    // 2. 입력 필드들 비우기
+    const amount = document.getElementById("inputAmount");
+    if(amount) amount.value = "";
+
+    const place = document.getElementById("inputPlace");
+    if(place) place.value = "";
+
+    const memo = document.getElementById("inputMemo");
+    if(memo) memo.value = "";
+
+    // 3. 시간은 현재 시간으로 리셋 (선택사항)
+    const now = new Date();
+    const timeField = document.getElementById("inputTime");
+    if(timeField) {
+        timeField.value = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    }
+
+    // 4. 삭제 버튼 숨기기 (새로 등록일 때를 대비해 기본 숨김)
+    const btnDelete = document.getElementById("btnDelete");
+    if(btnDelete) btnDelete.style.display = "none";
+}
+
 // [수정] 2. (New) 수정 모드 열기
 function openEditModal(item) {
+    // 1. 기존 리스트 모달 닫기 (모달 겹침 방지)
+    closeDayListModal();
+
+    // 2. 폼 초기화
     resetEntryForm();
 
     document.getElementById("entryId").value = item.id;
     document.getElementById("inputAmount").value = item.entryAmount;
+    document.getElementById("inputPlace").value = item.placeOfUse || "";
+    document.getElementById("inputMemo").value = item.memo || "";
+    document.getElementById("inputCategory").value = item.categoryName; // 카테고리
 
-    // ... (중간 생략: 값 세팅 로직은 기존 유지) ...
+    // 날짜/시간 세팅
+    if (item.occurredAt) {
+        const dt = new Date(item.occurredAt);
+        const y = dt.getFullYear();
+        const m = String(dt.getMonth() + 1).padStart(2, '0');
+        const d = String(dt.getDate()).padStart(2, '0');
+        document.getElementById("inputDate").value = `${y}-${m}-${d}`;
+
+        const hh = String(dt.getHours()).padStart(2, '0');
+        const mm = String(dt.getMinutes()).padStart(2, '0');
+        document.getElementById("inputTime").value = `${hh}:${mm}`;
+    }
+
+    // 타입(수입/지출) 라디오 버튼
+    const typeVal = item.entryType; // INCOME or EXPENSE
+    document.getElementById("inputType").value = typeVal;
+
+    // 결제수단 라디오 버튼
+    const payVal = item.payType; // CARD, CASH, TRANSFER
+    const radios = document.getElementsByName("payType");
+    for (let r of radios) {
+        if (r.value === payVal) r.checked = true;
+    }
 
     // ★ [핵심] 버튼 글자를 '수정하기'로 변경
     const btn = document.querySelector('#addEntryModal .btn-primary');
-    if(btn) btn.innerText = "수정하기";
+    if (btn) btn.innerText = "수정하기";
 
     document.getElementById("btnDelete").style.display = "block";
     showEntryModal("내역 수정");
-}
+ }
 
-// 공통: 모달 보여주기
-function showEntryModal(title) {
-    const modal = document.getElementById("addEntryModal");
-    modal.querySelector("h3").innerText = title;
-    modal.classList.add("show");
-    modal.style.display = "flex";
-    // [추가] 모달이 열리는 순간에는 외부 클릭 감지 무시
-    modalJustOpened = true;
-    setTimeout(() => {
-        modalJustOpened = false;
-    }, 100);
-}
+// 공통: 모달 보여주기 (Z-Index 강력 보정)
+    function showEntryModal(title) {
+        const modal = document.getElementById("addEntryModal");
+        const listModal = document.getElementById("dayListModal");
 
-// 공통: 폼 리셋
-function resetEntryForm() {
-    document.getElementById("entryId").value = ""; // ID 초기화
-    document.getElementById("inputAmount").value = "";
-    document.getElementById("inputPlace").value = "";
-    document.getElementById("inputMemo").value = "";
-    document.getElementById("btnDelete").style.display = "none"; // 삭제 버튼 숨기기
-}
+        modal.querySelector("h3").innerText = title;
+        modal.classList.add("show");
 
-function closeAddEntryModal() {
-    const modal = document.getElementById("addEntryModal");
-    modal.style.display = "none";
-    modal.classList.remove("show");
-}
-async function deleteEntry() {
-    const id = document.getElementById("entryId").value;
-    if(!id) return;
+        // ★ [핵심 해결] Z-Index 계층 정리
+        // 기본적으로 부트스트랩 모달은 1050 정도지만,
+        // 투어 기능(Driver.js)이 실행되면 리스트 모달이 100000 이상으로 올라갑니다.
+        // 따라서 현재 리스트 모달의 Z-Index를 구해서 무조건 그보다 높게 설정해야 합니다.
 
-    if(!confirm("정말 이 내역을 삭제하시겠습니까?")) return;
+        let targetZIndex = 1060; // 최소 안전값
 
-    try {
-        const res = await fetch(`/api/ledger/entry/${id}`, {
-            method: 'DELETE'
-        });
+        if (listModal && window.getComputedStyle(listModal).display !== 'none') {
+            const listZ = window.getComputedStyle(listModal).zIndex;
 
-        if (res.ok) {
-            alert("삭제되었습니다.");
-            closeAddEntryModal();
-            closeDayListModal();
+            // 'auto'가 아니고 숫자라면 파싱
+            const currentListZ = (listZ === 'auto' || isNaN(parseInt(listZ)))
+                ? 1050
+                : parseInt(listZ);
 
-            const key = `${currentYear}-${currentMonth}`;
-            ledgerCache.delete(key);
-            updateChart();
-        } else {
-            alert("삭제 실패");
+            // 리스트 모달보다 50 더 높게 설정 (확실하게 위로 올림)
+            targetZIndex = currentListZ + 50;
         }
-    } catch(e) {
-        console.error(e);
-        alert("에러 발생");
+
+        modal.style.zIndex = targetZIndex;
+        modal.style.display = "flex";
+
+        // 모달이 열리는 순간에는 외부 클릭 감지 무시 (닫힘 방지)
+        modalJustOpened = true;
+        setTimeout(() => {
+            modalJustOpened = false;
+        }, 100);
     }
-}
+
+    function closeAddEntryModal() {
+        const modal = document.getElementById("addEntryModal");
+        modal.style.display = "none";
+        modal.classList.remove("show");
+    }
+
+    async function deleteEntry() {
+        const id = document.getElementById("entryId").value;
+        if (!id) return;
+
+        if (!confirm("정말 이 내역을 삭제하시겠습니까?")) return;
+
+        try {
+            const res = await fetch(`/api/ledger/entry/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (res.ok) {
+                alert("삭제되었습니다.");
+                closeAddEntryModal();
+                closeDayListModal();
+
+                const key = `${currentYear}-${currentMonth}`;
+                ledgerCache.delete(key);
+                updateChart();
+            } else {
+                alert("삭제 실패");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("에러 발생");
+        }
+    }
+
 // 4. 저장/삭제 로직 수정 (ID 유무에 따라 POST/PUT/DELETE 분기)
-async function submitNewEntry() {
-    const id = document.getElementById("entryId").value;
-    const url = id ? `/api/ledger/entry/${id}` : '/api/ledger/entry';
-    const method = id ? 'PUT' : 'POST';
+    async function submitNewEntry() {
+        const id = document.getElementById("entryId").value;
+        const url = id ? `/api/ledger/entry/${id}` : '/api/ledger/entry';
+        const method = id ? 'PUT' : 'POST';
 
-    // ... 값 가져오기 (기존 코드 동일) ...
-    const dateVal = document.getElementById("inputDate").value;
-    const timeVal = document.getElementById("inputTime").value;
-    const type = document.getElementById("inputType").value;
-    const category = document.getElementById("inputCategory").value;
-    const amount = document.getElementById("inputAmount").value;
-    const place = document.getElementById("inputPlace").value;
-    const memo = document.getElementById("inputMemo").value;
-    const payType = document.querySelector('input[name="payType"]:checked').value;
+        // ... 값 가져오기 (기존 코드 동일) ...
+        const dateVal = document.getElementById("inputDate").value;
+        const timeVal = document.getElementById("inputTime").value;
+        const type = document.getElementById("inputType").value;
+        const category = document.getElementById("inputCategory").value;
+        const amount = document.getElementById("inputAmount").value;
+        const place = document.getElementById("inputPlace").value;
+        const memo = document.getElementById("inputMemo").value;
+        const payType = document.querySelector('input[name="payType"]:checked').value;
 
-    if (!amount || amount <= 0) {
-        alert("금액을 정확히 입력해주세요.");
-        return;
-    }
-
-    const fullDateTime = timeVal ? `${dateVal}T${timeVal}:00` : `${dateVal}T00:00:00`;
-
-    const payload = {
-        entryType: type,
-        amount: Number(amount),
-        dateTime: fullDateTime,
-        categoryName: category,
-        memo: memo,
-        place: place,
-        payType: payType
-    };
-
-    try {
-        let url = '/api/ledger/entry';
-        let method = 'POST';
-
-        // ★ ID가 있으면 수정 모드!
-        if (id) {
-            url = `/api/ledger/entry/${id}`;
-            method = 'PUT';
+        if (!amount || amount <= 0) {
+            alert("금액을 정확히 입력해주세요.");
+            return;
         }
 
-        const res = await fetch(url, {
-            method: method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
+        const fullDateTime = timeVal ? `${dateVal}T${timeVal}:00` : `${dateVal}T00:00:00`;
+
+        const payload = {
+            entryType: type,
+            amount: Number(amount),
+            dateTime: fullDateTime,
+            categoryName: category,
+            memo: memo,
+            place: place,
+            payType: payType
+        };
+
+        try {
+            let url = '/api/ledger/entry';
+            let method = 'POST';
+
+            // ★ ID가 있으면 수정 모드!
+            if (id) {
+                url = `/api/ledger/entry/${id}`;
+                method = 'PUT';
+            }
+
+            const res = await fetch(url, {
+                method: method,
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
 // 성공 시 모달 둘 다 닫고 캐시 삭제 후 차트 갱신
-        if(res.ok) {
-            closeDayListModal();
-            closeAddEntryModal();
-            ledgerCache.delete(`${currentYear}-${currentMonth}`); //
-            updateChart();
-        } else {
-            alert("처리 실패");
+            if (res.ok) {
+                closeDayListModal();
+                closeAddEntryModal();
+                ledgerCache.delete(`${currentYear}-${currentMonth}`); //
+                updateChart();
+            } else {
+                alert("처리 실패");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("에러 발생");
         }
-    } catch (e) {
-        console.error(e);
-        alert("에러 발생");
     }
-}
 // =========================================
 // [추가] 연도 이동 로직 (상/하단 공통 사용)
 // =========================================
-async function moveYear(offset) {
-    currentYear += offset;
-    // 연도 변경 후 전체 차트/데이터 갱신
-    await updateChart();
-}
+    async function moveYear(offset) {
+        currentYear += offset;
+        // 연도 변경 후 전체 차트/데이터 갱신
+        await updateChart();
+    }
+
 // =========================================
 // [수정] 일별 리스트 모달 (Day List) 관련
 // =========================================
@@ -1946,20 +2023,40 @@ async function openDayListModal(dateStr) {
     const modal = document.getElementById("dayListModal");
     const listGroup = document.getElementById("dayListGroup");
 
-    // 날짜 제목 설정 (예: 2025-10-15)
+    // 날짜 제목 설정
     const dateTitle = document.getElementById("dayListDate");
     if(dateTitle) dateTitle.innerText = dateStr;
 
-    // 로딩 표시
+    // ★ [수정 포인트] 단순 텍스트 대신 '가짜 리스트(스켈레톤)'를 넣어 높이를 확보합니다.
     if(listGroup) {
-        listGroup.innerHTML = '<li class="list-group-item">로딩 중...</li>';
+        // 부트스트랩 placeholder 클래스를 사용하여 스켈레톤 효과 구현
+        // 리스트 아이템 3~4개 정도 분량의 높이를 미리 차지하게 함
+        const skeletonItem = `
+            <li class="list-group-item py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex flex-column w-100 me-3">
+                        <div class="placeholder-glow mb-1">
+                            <span class="placeholder col-6 rounded"></span>
+                        </div>
+                        <div class="placeholder-glow">
+                            <span class="placeholder col-4 rounded bg-secondary"></span>
+                        </div>
+                    </div>
+                    <div class="placeholder-glow text-end" style="width: 80px;">
+                        <span class="placeholder col-12 rounded"></span>
+                    </div>
+                </div>
+            </li>
+        `;
+        // 가짜 리스트 3개를 넣어둡니다.
+        listGroup.innerHTML = skeletonItem.repeat(3);
     }
 
     if(modal) {
+        // ... (이하 기존 코드 동일)
         modal.classList.add("show");
         modal.style.display = "flex";
 
-        // 모달이 열리는 순간 외부 클릭으로 바로 닫히지 않도록 방어
         modalJustOpened = true;
         setTimeout(() => { modalJustOpened = false; }, 100);
     }
@@ -1968,45 +2065,45 @@ async function openDayListModal(dateStr) {
         // API 호출
         const res = await fetch(`/api/ledger/daily-list?date=${dateStr}`);
 
-        if (!res.ok) throw new Error("네트워크 응답 실패");
+            if (!res.ok) throw new Error("네트워크 응답 실패");
 
-        const list = await res.json();
+            const list = await res.json();
 
-        if(listGroup) {
-            listGroup.innerHTML = ""; // 기존 내용 비우기
+            if (listGroup) {
+                listGroup.innerHTML = ""; // 기존 내용 비우기
 
-            if(list.length === 0) {
-                listGroup.innerHTML = '<li class="list-group-item text-muted text-center py-4">내역이 없습니다.<br><small>새로운 내역을 추가해보세요!</small></li>';
-            } else {
-                list.forEach(item => {
-                    const li = document.createElement("li");
-                    li.className = "list-group-item list-group-item-action py-3";
-                    li.style.cursor = "pointer";
-                    // 클릭 시 수정 모달로 연결
-                    li.onclick = () => openEditModal(item);
+                if (list.length === 0) {
+                    listGroup.innerHTML = '<li class="list-group-item text-muted text-center py-4">내역이 없습니다.<br><small>새로운 내역을 추가해보세요!</small></li>';
+                } else {
+                    list.forEach(item => {
+                        const li = document.createElement("li");
+                        li.className = "list-group-item list-group-item-action py-3";
+                        li.style.cursor = "pointer";
+                        // 클릭 시 수정 모달로 연결
+                        li.onclick = () => openEditModal(item);
 
-                    // 1. 시간 포맷팅
-                    let timeStr = "";
-                    if(item.occurredAt) {
-                        const dateObj = new Date(item.occurredAt);
-                        const hours = dateObj.getHours();
-                        const minutes = String(dateObj.getMinutes()).padStart(2, '0');
-                        const ampm = hours >= 12 ? '오후' : '오전';
-                        const displayHour = hours % 12 || 12;
-                        timeStr = `${ampm} ${displayHour}:${minutes}`;
-                    }
+                        // 1. 시간 포맷팅
+                        let timeStr = "";
+                        if (item.occurredAt) {
+                            const dateObj = new Date(item.occurredAt);
+                            const hours = dateObj.getHours();
+                            const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+                            const ampm = hours >= 12 ? '오후' : '오전';
+                            const displayHour = hours % 12 || 12;
+                            timeStr = `${ampm} ${displayHour}:${minutes}`;
+                        }
 
-                    // 2. 제목 (사용처 우선, 없으면 카테고리)
-                    const mainTitle = item.placeOfUse ? item.placeOfUse : item.categoryName;
+                        // 2. 제목 (사용처 우선, 없으면 카테고리)
+                        const mainTitle = item.placeOfUse ? item.placeOfUse : item.categoryName;
 
-                    // 3. 스타일 (지출:빨강, 수입:파랑)
-                    const isExpense = item.entryType === 'EXPENSE';
-                    const colorClass = isExpense ? 'text-danger' : 'text-primary';
-                    const sign = isExpense ? '-' : '+';
-                    const moneyStr = Number(item.entryAmount).toLocaleString();
+                        // 3. 스타일 (지출:빨강, 수입:파랑)
+                        const isExpense = item.entryType === 'EXPENSE';
+                        const colorClass = isExpense ? 'text-danger' : 'text-primary';
+                        const sign = isExpense ? '-' : '+';
+                        const moneyStr = Number(item.entryAmount).toLocaleString();
 
-                    // 4. HTML 조립
-                    li.innerHTML = `
+                        // 4. HTML 조립
+                        li.innerHTML = `
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="d-flex flex-column">
                                 <div class="d-flex align-items-baseline">
@@ -2020,37 +2117,37 @@ async function openDayListModal(dateStr) {
                             </div>
                         </div>
                     `;
-                    listGroup.appendChild(li);
-                });
+                        listGroup.appendChild(li);
+                    });
+                }
             }
+        } catch (e) {
+            console.error(e);
+            if (listGroup) listGroup.innerHTML = '<li class="list-group-item text-danger">데이터를 불러오지 못했습니다.</li>';
         }
-    } catch (e) {
-        console.error(e);
-        if(listGroup) listGroup.innerHTML = '<li class="list-group-item text-danger">데이터를 불러오지 못했습니다.</li>';
     }
-}
 
 
+    function closeWelcomeModal() {
+        const modal = document.getElementById("welcomeModal");
+        modal.style.display = "none";
+        modal.classList.remove("show");
 
-function closeWelcomeModal() {
-    const modal = document.getElementById("welcomeModal");
-    modal.style.display = "none";
-    modal.classList.remove("show");
+        // 다시 보지 않기 설정
+        localStorage.setItem('welcome_done', 'true');
+    }
 
-    // 다시 보지 않기 설정
-    localStorage.setItem('welcome_done', 'true');
-}
 // =========================================
 // [누락된 함수 복구] 모달 닫기 기능
 // =========================================
 
-function closeDayListModal() {
-    const modal = document.getElementById("dayListModal");
-    if (modal) {
-        modal.style.display = "none";
-        modal.classList.remove("show");
+    function closeDayListModal() {
+        const modal = document.getElementById("dayListModal");
+        if (modal) {
+            modal.style.display = "none";
+            modal.classList.remove("show");
+        }
     }
-}
 
 
 //혹시 안될까봐
@@ -2153,210 +2250,210 @@ function closeDayListModal() {
 //         if (skel && skel.parentNode) skel.remove();
 //     }, 350);
 // 드래그 앤 드랍
-function dragElement() {
-    const dropZone = document.getElementById('fileDropZone');
-    const fileInput = document.getElementById('fileInput');
+    function dragElement() {
+        const dropZone = document.getElementById('fileDropZone');
+        const fileInput = document.getElementById('fileInput');
 
-    dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('click', () => fileInput.click());
 
-    dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropZone.classList.add('drag-over');
-    });
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
 
-    dropZone.addEventListener('dragleave', () => {
-        dropZone.classList.remove('drag-over');
-    });
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drag-over');
+        });
 
-    dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropZone.classList.remove('drag-over');
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
 
-        const file = e.dataTransfer.files[0];
-        handleFileUpload(file);
-    });
+            const file = e.dataTransfer.files[0];
+            handleFileUpload(file);
+        });
 
-    fileInput.addEventListener('change', () => {
-        const file = fileInput.files[0];
-        handleFileUpload(file);
-    });
+        fileInput.addEventListener('change', () => {
+            const file = fileInput.files[0];
+            handleFileUpload(file);
+        });
 
-}
-
-function handleFileUpload(file) {
-    if (!file) return;
-
-    // 파일 확장자 소문자 추출
-    const ext = file.name.split('.').pop().toLowerCase();
-    const allowedExt = ["xls", "xlsx", "csv"];
-
-    if (!allowedExt.includes(ext)) {
-        alert("엑셀 파일(.xls, .xlsx, .csv)만 업로드 가능합니다!");
-        return;
     }
 
-    const formData = new FormData();
-    formData.append("file", file);
+    function handleFileUpload(file) {
+        if (!file) return;
 
-    fetch("/ledger/import/excel", {
-        method: "POST",
-        body: formData
-    })
-        .then(res => res.json())
-        .then(info => {
-            // 미리보기 데이터 저장
-            lastExcelRows = info;  // rows만 따로 저장
+        // 파일 확장자 소문자 추출
+        const ext = file.name.split('.').pop().toLowerCase();
+        const allowedExt = ["xls", "xlsx", "csv"];
 
-            document.getElementById("fileName").textContent = "";
-            document.getElementById("fileSize").textContent = "";
+        if (!allowedExt.includes(ext)) {
+            alert("엑셀 파일(.xls, .xlsx, .csv)만 업로드 가능합니다!");
+            return;
+        }
 
-            const thead = document.querySelector("#sampleTable thead");
-            const tbody = document.querySelector("#sampleTable tbody");
-            if (thead) thead.innerHTML = "";
-            if (tbody) tbody.innerHTML = "";
+        const formData = new FormData();
+        formData.append("file", file);
 
-            showPreviewSection();
-
-            // Preview 출력
-            showPreview({
-                fileName: info.fileName,
-                fileSize: info.fileSize,
-                headers: info.headers,
-                rows: info.rows.slice(0, 3) // 화면에 보여줄 샘플만
-            });
-            // 데이터 전송 버튼 노출
-            const btn = document.getElementById("sendDataBtn");
-            if (btn) {
-                btn.style.display = "inline-block";
-            }
+        fetch("/ledger/import/excel", {
+            method: "POST",
+            body: formData
         })
-        .catch(err => {
-            console.error(err);
-            alert("파일 미리보기 중 오류가 발생했습니다.");
-            hidePreviewSection();
+            .then(res => res.json())
+            .then(info => {
+                // 미리보기 데이터 저장
+                lastExcelRows = info;  // rows만 따로 저장
 
-            // 에러 시 버튼 숨김
-            const btn = document.getElementById("sendDataBtn");
-            if (btn) {
-                btn.style.display = "none";
-            }
+                document.getElementById("fileName").textContent = "";
+                document.getElementById("fileSize").textContent = "";
+
+                const thead = document.querySelector("#sampleTable thead");
+                const tbody = document.querySelector("#sampleTable tbody");
+                if (thead) thead.innerHTML = "";
+                if (tbody) tbody.innerHTML = "";
+
+                showPreviewSection();
+
+                // Preview 출력
+                showPreview({
+                    fileName: info.fileName,
+                    fileSize: info.fileSize,
+                    headers: info.headers,
+                    rows: info.rows.slice(0, 3) // 화면에 보여줄 샘플만
+                });
+                // 데이터 전송 버튼 노출
+                const btn = document.getElementById("sendDataBtn");
+                if (btn) {
+                    btn.style.display = "inline-block";
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("파일 미리보기 중 오류가 발생했습니다.");
+                hidePreviewSection();
+
+                // 에러 시 버튼 숨김
+                const btn = document.getElementById("sendDataBtn");
+                if (btn) {
+                    btn.style.display = "none";
+                }
+            });
+    }
+
+    function showPreview(info) {
+        // 파일 정보 세팅
+        document.getElementById("fileName").textContent = info.fileName ?? "";
+        document.getElementById("fileSize").textContent = info.fileSize ?? "";
+
+        // Table DOM
+        const thead = document.querySelector("#sampleTable thead");
+        const tbody = document.querySelector("#sampleTable tbody");
+
+        thead.innerHTML = "";
+        tbody.innerHTML = "";
+
+        // BOM 제거 처리 (엑셀 헤더에서만)
+        const headers = (info.headers ?? []).map(h => h.replace("\ufeff", "").trim());
+
+        // Header Row 생성
+        const trHead = document.createElement("tr");
+        headers.forEach(h => {
+            const th = document.createElement("th");
+            th.textContent = h;
+            trHead.appendChild(th);
         });
-}
+        thead.appendChild(trHead);
 
-function showPreview(info) {
-    // 파일 정보 세팅
-    document.getElementById("fileName").textContent = info.fileName ?? "";
-    document.getElementById("fileSize").textContent = info.fileSize ?? "";
+        // Sample Rows 생성
+        (info.rows ?? []).forEach(row => {
+            const tr = document.createElement("tr");
 
-    // Table DOM
-    const thead = document.querySelector("#sampleTable thead");
-    const tbody = document.querySelector("#sampleTable tbody");
+            row.forEach(col => {
+                const td = document.createElement("td");
+                td.textContent = col ?? "";
+                tr.appendChild(td);
+            });
 
-    thead.innerHTML = "";
-    tbody.innerHTML = "";
-
-    // BOM 제거 처리 (엑셀 헤더에서만)
-    const headers = (info.headers ?? []).map(h => h.replace("\ufeff", "").trim());
-
-    // Header Row 생성
-    const trHead = document.createElement("tr");
-    headers.forEach(h => {
-        const th = document.createElement("th");
-        th.textContent = h;
-        trHead.appendChild(th);
-    });
-    thead.appendChild(trHead);
-
-    // Sample Rows 생성
-    (info.rows ?? []).forEach(row => {
-        const tr = document.createElement("tr");
-
-        row.forEach(col => {
-            const td = document.createElement("td");
-            td.textContent = col ?? "";
-            tr.appendChild(td);
+            tbody.appendChild(tr);
         });
-
-        tbody.appendChild(tr);
-    });
-}
+    }
 
 // 데이터 전송(DB에 들어 갈 수 있도록 유효성 검사)
-document.addEventListener("DOMContentLoaded", () => {
-    const closeBtn = document.getElementById("previewCloseBtn");
-    if (closeBtn) {
-        closeBtn.addEventListener("click", () => {
-            hidePreviewSection();
-        });
-    }
+    document.addEventListener("DOMContentLoaded", () => {
+        const closeBtn = document.getElementById("previewCloseBtn");
+        if (closeBtn) {
+            closeBtn.addEventListener("click", () => {
+                hidePreviewSection();
+            });
+        }
 
-    const sendBtn = document.getElementById("sendDataBtn");
-    if (sendBtn) {
-        sendBtn.addEventListener("click", () => {
-            if (!lastExcelRows) {
-                alert("전송할 데이터가 없습니다. 먼저 파일을 업로드 해주세요.");
-                return;
-            }
+        const sendBtn = document.getElementById("sendDataBtn");
+        if (sendBtn) {
+            sendBtn.addEventListener("click", () => {
+                if (!lastExcelRows) {
+                    alert("전송할 데이터가 없습니다. 먼저 파일을 업로드 해주세요.");
+                    return;
+                }
 
-            fetch("/ledger/import/analyze", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(lastExcelRows)
-            })
-                .then(async res => {
-                    const data = await res.json().catch(() => null);
-
-                    // HTTP Status 자체가 오류인 경우
-                    if (!res.ok) {
-                        alert(data?.message || data?.error || "서버 처리 중 오류가 발생했습니다.");
-                        return;
-                    }
-
-                    // 서버 side에서 status=error 준 경우
-                    if (data.status === "error") {
-                        alert(data.message || "처리 중 오류가 발생했습니다.");
-                        return;
-                    }
-                    // 정상 처리
-                    alert("데이터 입력 완료!");
+                fetch("/ledger/import/analyze", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(lastExcelRows)
                 })
-                .catch(err => {
-                    console.error(err);
-                    alert("데이터 분석 요청 중 오류가 발생했습니다.");
-                });
-        });
-    }
-});
+                    .then(async res => {
+                        const data = await res.json().catch(() => null);
+
+                        // HTTP Status 자체가 오류인 경우
+                        if (!res.ok) {
+                            alert(data?.message || data?.error || "서버 처리 중 오류가 발생했습니다.");
+                            return;
+                        }
+
+                        // 서버 side에서 status=error 준 경우
+                        if (data.status === "error") {
+                            alert(data.message || "처리 중 오류가 발생했습니다.");
+                            return;
+                        }
+                        // 정상 처리
+                        alert("데이터 입력 완료!");
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert("데이터 분석 요청 중 오류가 발생했습니다.");
+                    });
+            });
+        }
+    });
 
 // Preview 전체 영역 노출
-function showPreviewSection() {
-    document.getElementById("previewSection").style.display = "block";
-}
+    function showPreviewSection() {
+        document.getElementById("previewSection").style.display = "block";
+    }
 
 // Preview 전체 영역 숨김 및 초기화
-function hidePreviewSection() {
-    const section = document.getElementById("previewSection");
-    section.style.display = "none";
+    function hidePreviewSection() {
+        const section = document.getElementById("previewSection");
+        section.style.display = "none";
 
-    // 기존 데이터 초기화
-    document.getElementById("fileName").textContent = "";
-    document.getElementById("fileSize").textContent = "";
+        // 기존 데이터 초기화
+        document.getElementById("fileName").textContent = "";
+        document.getElementById("fileSize").textContent = "";
 
-    const thead = document.querySelector("#sampleTable thead");
-    const tbody = document.querySelector("#sampleTable tbody");
-    if (thead) thead.innerHTML = "";
-    if (tbody) tbody.innerHTML = "";
+        const thead = document.querySelector("#sampleTable thead");
+        const tbody = document.querySelector("#sampleTable tbody");
+        if (thead) thead.innerHTML = "";
+        if (tbody) tbody.innerHTML = "";
 
-    // 분석 버튼 숨김
-    const btn = document.getElementById("sendDataBtn");
-    if (btn) btn.style.display = "none";
+        // 분석 버튼 숨김
+        const btn = document.getElementById("sendDataBtn");
+        if (btn) btn.style.display = "none";
 
-    // 파일 input 리셋
-    const fileInput = document.getElementById("fileInput");
-    if (fileInput) fileInput.value = "";
+        // 파일 input 리셋
+        const fileInput = document.getElementById("fileInput");
+        if (fileInput) fileInput.value = "";
 
-    // 내부 저장 데이터 초기화
-    lastExcelRows = null;
+        // 내부 저장 데이터 초기화
+        lastExcelRows = null;
 }
