@@ -22,25 +22,24 @@ public class MemberServiceImp implements MemberService {
         Member member = memberRepository.findByMemberId(memberId)
                 .orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
 
-        // 현재 비밀번호 체크
-        if (!passwordEncoder.matches(currentpw, member.getPassword())) {
-            throw new RuntimeException("현재 비밀번호가 일치하지 않습니다.");
-        }
+        // 비밀번호를 변경할 때만 현재 비밀번호 확인
+        if (!newpw.isBlank() || !newpw2.isBlank()) {
+            if (!passwordEncoder.matches(currentpw, member.getPassword())) {
+                throw new RuntimeException("현재 비밀번호가 일치하지 않습니다.");
+            }
 
-        // 새 비밀번호 일치 검사
-        if (!newpw.equals(newpw2)) {
-            throw new RuntimeException("새 비밀번호가 일치하지 않습니다.");
+            if (!newpw.equals(newpw2)) {
+                throw new RuntimeException("새 비밀번호가 일치하지 않습니다.");
+            }
+
+            // 비밀번호 변경
+            member.setPassword(passwordEncoder.encode(newpw));
         }
 
         // 이름, 전화번호, 주소 변경
         member.setMemberName(memberName);
         member.setPhone(phone);
         member.setAddress(address);
-
-        // 비밀번호 변경 (빈 값이 아닐 경우만)
-        if (!newpw.isBlank()) {
-            member.setPassword(passwordEncoder.encode(newpw));
-        }
 
         memberRepository.save(member);
     }
