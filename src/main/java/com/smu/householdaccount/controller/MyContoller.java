@@ -7,6 +7,7 @@ import com.smu.householdaccount.repository.BoardCommentRepository;
 import com.smu.householdaccount.repository.BoardLikeRepository;
 import com.smu.householdaccount.repository.BoardPostRepository;
 import com.smu.householdaccount.service.MemberService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -64,11 +65,12 @@ public class MyContoller {
             @RequestParam String newpw2,
             @RequestParam String phone,
             @RequestParam String address,
-            Model model
+            Model model,
+            HttpSession session
     )
     {
         try {
-            memberService.updateMemberInfo(
+            Member updateMember =memberService.updateMemberInfo(
                     loginUser.getMemberId(),
                     memberName,
                     currentpw,
@@ -77,6 +79,8 @@ public class MyContoller {
                     phone,
                     address
             );
+            updateMember.setPassword(null);
+            session.setAttribute("loginUser", updateMember);
             return "redirect:/mypage"; // 정상 처리 후 리다이렉트
         } catch (RuntimeException e){
             model.addAttribute("errorMessage", e.getMessage());

@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Size;
 
 public interface MemberService {
 
-    void updateMemberInfo(
+    Member updateMemberInfo(
             String memberId,
             String memberName,
             String currentpw,
