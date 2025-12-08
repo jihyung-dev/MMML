@@ -41,7 +41,7 @@ public class OrderServiceImpl implements OrderService{
             throw new IllegalStateException("재고 부족");
         }
         opt.setStock(opt.getStock()-qty);
-        hotdealOptionRepository.save(opt);
+        hotdealOptionRepository.save(opt); // 옵션 재고 업데이트
 
 
         //2. OrderMain 생성??

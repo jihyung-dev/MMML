@@ -56,12 +56,14 @@ public class OrderItem {
 
     public void setOrder(OrderMain order) {
         this.order = order;
-        this.orderId = order.getId();
+        this.orderId = order.getId(); // OrderMain의 ID를 OrderItem의 orderId 필드에 수동으로 설정
+
         // 양방향 관계 설정: OrderMain에도 OrderItem 추가 (선택적)
         if (order.getOrderItems() != null && !order.getOrderItems().contains(this)) {
             order.getOrderItems().add(this);
         }
     }
+
 
 
 }
