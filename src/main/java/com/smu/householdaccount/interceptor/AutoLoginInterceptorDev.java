@@ -17,6 +17,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 public class AutoLoginInterceptorDev implements HandlerInterceptor {
 
     private final MemberService memberService;
+    private final SellerService sellerService;
 
     //컨드롤러 도작전에 자동 셀러,유저 로그인
     @Override
@@ -26,8 +27,15 @@ public class AutoLoginInterceptorDev implements HandlerInterceptor {
         Object loginUser = session.getAttribute("loginUser");
         if(loginUser!=null) return true;
 
-        Member loginMember=memberService.login("U006","1234");
+//        Member loginMember=memberService.login("U006","12345");
+        Member loginMember=memberService.login("U016","1234");
         session.setAttribute("loginUser",loginMember);
+        session.setAttribute("loginUserId", loginMember.getMemberId());
+
+        // ⭐ 여기 추가: 이 회원이 판매자인지 여부 세션에 저장
+        boolean isSeller = sellerService.getSellerByMemberId(loginMember.getMemberId()) != null;
+        session.setAttribute("isSeller", isSeller);
+
         return true;
     }
 }
