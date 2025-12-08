@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/my_layout}"
+      th:with="title='판매자 상세 정보 수정 페이지'">
+<head>
+    <style layout:fragment="css"></style>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="p-5 border-b border-border-light dark:border-border-dark">
+<!--        <h2 class="text-xl font-bold tracking-tight text-text-light dark:text-text-dark">판매자 상세 정보 수정 페이지</h2>-->
+    </div>
+    <div class="p-5">
+        <!-- Profile Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 pb-6 border-b border-border-light dark:border-border-dark">
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <img src="/src/img/undraw_pic-profile_nr49.svg" class="rounded-circle" width="96" height="96" alt="Alex">
+                </div>
+                <div class="flex flex-col justify-center">
+                    <p class="text-sm text-text-light dark:text-text-dark mb-1">상호명</p>
+                    <p class="text-xl font-bold text-text-light dark:text-text-dark" th:text="${seller.bizName}"></p>
+                    <p class="text-base text-placeholder-light dark:text-placeholder-dark">Seller</p>
+                </div>
+            </div>
+            <!--                                 사진 수정할 수 있는 버튼 : 사용할 수 있게 이미 돼 있어서 일단 주석 처리함 -->
+            <!--                                <button class="flex items-center justify-center rounded-lg h-10 px-4 bg-primary/20 text-primary dark:text-white dark:bg-primary/50 text-sm font-bold w-full sm:w-auto transition-colors hover:bg-primary/30">-->
+            <!--                                    <span>Change Photo</span>-->
+            <!--                                </button>-->
+        </div>
+        <!-- Profile Form -->
+        <form class="grid grid-cols-1 md:grid-cols-2 gap-6" method="post" th:action="@{/seller/editpage}">
+            <div class="md:col-span-2">
+                <label class="flex flex-col">
+                    <p class="text-sm font-medium pb-2">상호명</p>
+                    <input name="bizName" class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark placeholder:text-placeholder-light dark:placeholder:text-placeholder-dark focus:border-primary focus:ring-primary h-12 px-4 text-base" th:value="${seller.bizName}"/>
+                </label>
+            </div>
+            <div class="md:col-span-2">
+                <label class="flex flex-col">
+                    <p class="text-sm font-medium pb-2">사업자 등록 번호</p>
+                    <input name="bizNo" class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark placeholder:text-placeholder-light dark:placeholder:text-placeholder-dark focus:border-primary focus:ring-primary h-12 px-4 text-base" th:value="${seller.bizNo}" readonly/>
+                </label>
+            </div>
+            <!-- 나머지 필드: 이메일, 전번, 업태/업종, 사업장 주소 -->
+            <div class="md:col-span-2">
+                <label class="flex flex-col">
+                    <p class="text-sm font-medium pb-2">이메일 주소</p>
+                    <input class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light/50 dark:bg-background-dark/50 text-placeholder-light dark:text-placeholder-dark h-12 px-4 text-base cursor-not-allowed" th:value="${seller.bizEmail}"/>
+                </label>
+            </div>
+            <div>
+                <label class="flex flex-col">
+                    <p class="text-sm font-medium pb-2">사업장 전화번호</p>
+                    <input name="bizPhone" class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark placeholder:text-placeholder-light dark:placeholder:text-placeholder-dark focus:border-primary focus:ring-primary h-12 px-4 text-base" th:value="${seller.bizPhone}"/>
+                </label>
+            </div>
+            <div>
+                <label class="flex flex-col">
+                    <p class="text-sm font-medium pb-2">업태/업종</p>
+                    <input name="bizType" class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark placeholder:text-placeholder-light dark:placeholder:text-placeholder-dark focus:border-primary focus:ring-primary h-12 px-4 text-base" th:value="${seller.bizType}"/>
+                </label>
+            </div>
+            <div>
+                <label class="flex flex-col">
+                    <p class="text-sm font-medium pb-2">사업장 주소</p>
+                    <input name="bizAddress" class="form-input w-full rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark placeholder:text-placeholder-light dark:placeholder:text-placeholder-dark focus:border-primary focus:ring-primary h-12 px-4 text-base" th:value="${seller.bizAddress}"/>
+                </label>
+            </div>
+            <div class="p-5 border-t border-border-light dark:border-border-dark flex justify-end">
+                <button type="submit" class="flex items-center justify-center rounded-lg h-11 px-6 bg-primary text-white text-sm font-bold transition-opacity hover:opacity-90">
+                    <span>Save Changes</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+</div>
+
+</div>
+
+
+</div>
+<script layout:fragment="script"></script>
+</body>
+</html>

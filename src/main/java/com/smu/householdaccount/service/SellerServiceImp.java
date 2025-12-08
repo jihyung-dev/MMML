@@ -89,6 +89,24 @@ public class SellerServiceImp implements SellerService {
         return itemRepository.findBySellerId(sellerId, pageable);
     }
 
+
+    @Override
+    public void updateSeller(String memberId, Seller updatedSeller) {
+        // 1) memberId 기준으로 기존 판매자 조회
+        Seller existingSeller = sellerRepository.findByMember_MemberId(memberId)
+                .orElseThrow(() -> new IllegalStateException("등록된 판매자 정보가 없습니다."));
+
+        // 2) 필드 업데이트
+        existingSeller.setBizNo(updatedSeller.getBizNo());
+        existingSeller.setBizName(updatedSeller.getBizName());
+        existingSeller.setBizPhone(updatedSeller.getBizPhone());
+        existingSeller.setBizAddress(updatedSeller.getBizAddress());
+        existingSeller.setUpdatedAt(java.time.LocalDateTime.now());
+
+        // 3) 저장
+        sellerRepository.save(existingSeller);
+    }
+
     /**
      * 사업자번호 찾기
      * - memberId + memberName + phone 으로 SELLER 조회 후 bizNo 반환
