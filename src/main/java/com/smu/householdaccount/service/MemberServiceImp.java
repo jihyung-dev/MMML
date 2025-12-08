@@ -18,7 +18,7 @@ public class MemberServiceImp implements MemberService {
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Override
-    public void updateMemberInfo(String memberId, String memberName, String currentpw, String newpw, String newpw2, String phone, String address) {
+    public Member updateMemberInfo(String memberId, String memberName, String currentpw, String newpw, String newpw2, String phone, String address) {
         Member member = memberRepository.findByMemberId(memberId)
                 .orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
 
@@ -41,7 +41,8 @@ public class MemberServiceImp implements MemberService {
         member.setPhone(phone);
         member.setAddress(address);
 
-        memberRepository.save(member);
+        member=memberRepository.save(member);
+        return member;
     }
 
     /**
