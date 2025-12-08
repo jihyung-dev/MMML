@@ -9,8 +9,8 @@ Highcharts.setOptions({
 });
 const now = new Date();
 // 전역 상태
-let currentYear = 2025  //now.getFullYear();
-let currentMonth = 10 //now.getMonth() + 1;
+let currentYear = now.getFullYear();
+let currentMonth = now.getMonth() + 1;
 
 let modalJustOpened = false; // 모달 팝업 플래그
 let modalChartInstance = null;
@@ -1082,12 +1082,14 @@ async function getGroupId() {
 async function startDocu() {
     // 로그인 유저의 Group_id 조회(group_id가 존재하지 않을 경우 등록한 가게부 내역이 하나도 없다는 의미)
     const hasGroup = await getGroupId(); // await
-
+    dragElement();
     if (!hasGroup) {
         return;
     }
 
     showSkeleton();
+    updateMonthLabel();
+
     // 1) 전체 평균 데이터 먼저 로드
     globalAvgLedger = await loadGlobalAvgData();
 
@@ -1103,7 +1105,6 @@ async function startDocu() {
     buildCategorySelectList();
     initCharts();
     prepareAgeLabels();
-    dragElement();
     hideSkeleton();
 
 // ★ 확장된 인터랙티브 투어 시작
@@ -1960,6 +1961,8 @@ async function submitNewEntry() {
             closeDayListModal();
             closeAddEntryModal();
             ledgerCache.delete(`${currentYear}-${currentMonth}`); //
+            // 파이썬 호출(유저 카테고리 저장)
+
             updateChart();
         } else {
             alert("처리 실패");
@@ -2359,6 +2362,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                     // 정상 처리 후 데이터 로딩
                     alert("데이터 입력 완료!");
+                    hidePreviewSection();
                     initCache()
                     await startDocu();
                 })

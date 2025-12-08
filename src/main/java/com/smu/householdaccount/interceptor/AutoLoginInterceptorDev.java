@@ -18,16 +18,16 @@ public class AutoLoginInterceptorDev implements HandlerInterceptor {
 
     private final MemberService memberService;
 
-    //컨드롤러 도작전에 자동 셀러,유저 로그인
-    @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        //1,123-01-00006,U006,식품제조/농산물,2025-11-25 10:57:29,
-        HttpSession session = request.getSession();
-        Object loginUser = session.getAttribute("loginUser");
-        if(loginUser!=null) return true;
-
-        Member loginMember=memberService.login("U006","1234");
-        session.setAttribute("loginUser",loginMember);
-        return true;
-    }
+//    //컨드롤러 도작전에 자동 셀러,유저 로그인
+//    @Override
+//    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+//        //1,123-01-00006,U006,식품제조/농산물,2025-11-25 10:57:29,
+//        HttpSession session = request.getSession();
+//        Object loginUser = session.getAttribute("loginUser");
+//        if(loginUser!=null) return true;
+//
+//        Member loginMember=memberService.login("U006","1234");
+//        session.setAttribute("loginUser",loginMember);
+//        return true;
+//    }
 }
