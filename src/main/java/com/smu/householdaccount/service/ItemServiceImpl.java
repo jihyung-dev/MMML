@@ -1,5 +1,6 @@
 package com.smu.householdaccount.service;
 
+import com.smu.householdaccount.dto.item.ItemResponseDto;
 import com.smu.householdaccount.entity.Category;
 import com.smu.householdaccount.entity.HotdealOption;
 import com.smu.householdaccount.entity.Item;
@@ -18,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -30,8 +30,8 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final HotdealOptionRepository optionRepository;
     private final ItemDetailImageRepository imageRepository;
-    private final ItemWishRepository wishRepository;
 
+    private final ItemWishRepository itemWishRepository; // ★ [필수] 주입
 
 
     /*@Autowired
@@ -172,13 +172,13 @@ public class ItemServiceImpl implements ItemService {
     @Transactional(readOnly = true)
     public boolean isWishedByMember(Long itemId, String memberId) {
         if (memberId == null) return false;
-        return wishRepository.findByItemIdAndMemberId(itemId, memberId).isPresent();
+        return itemWishRepository.findByItemIdAndMemberId(itemId, memberId).isPresent();
     }
 
     @Override
     @Transactional(readOnly = true)
     public long countWishes(Long itemId) {
-        return wishRepository.countByItemId(itemId);
+        return itemWishRepository.countByItemId(itemId);
     }
 
 
@@ -196,8 +196,40 @@ public class ItemServiceImpl implements ItemService {
         return itemRepository.findWithImagesAndOptionsById(id);
     }
 
+    // ★ [핵심] 빨간 줄 해결된 코드
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ItemResponseDto> convertToDto(Page<Item> itemPage, String memberId) {
+        // 위 괄호 안에 'String memberId'가 있어서 아래에서 사용할 수 있습니다.
+        return itemPage.map(item -> {
+            boolean isLiked = false;
 
+            // memberId가 null이 아니면 찜 여부 확인
+            if (memberId != null) {
+                isLiked = itemWishRepository.existsByItemIdAndMemberId(item.getId(), memberId);
+            }
 
+            return new ItemResponseDto(item, isLiked);
+        });
+    }
+    @Override
+    @Transactional
+    public ItemResponseDto getItemDetailDto(Long id, String memberId) {
+        // 1. 조회수 증가
+        incrementViewCount(id);
 
+        // 2. 아이템 조회 (없으면 예외 발생)
+        Item item = itemRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Item not found: " + id));
 
+        // 3. 찜 여부 확인
+        boolean isLiked = false;
+        if (memberId != null) {
+            isLiked = itemWishRepository.existsByItemIdAndMemberId(id, memberId);
+        }
+
+        // 4. DTO 반환
+        return new ItemResponseDto(item, isLiked);
+
+    }
 }
