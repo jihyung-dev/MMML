@@ -10,6 +10,9 @@
         <h1>판매자 상세</h1>
         <ul>
             <li>
+                상호명 : <span th:text="${seller.bizName}"></span>
+            </li>
+            <li>
                 사업자번호 : <span th:text="${seller.bizNo}"></span>
             </li> <li>
             업태 : <span th:text="${seller.bizType}"></span>
@@ -22,6 +25,10 @@
                 <li><a href="/seller/order">주문 받은 내역(OrderMain)</a></li>
                 <li><a href="/seller/item">등록한 상품(Item)</a></li>
 <!--           안 쓰기로 해서 주석 처리함     <li><a href="/seller/qna">문의사항 (미정)</a></li>-->
+                 <a href="/seller/editpage" class="flex items-center gap-2 min-w-[84px] cursor-pointer justify-center overflow-hidden rounded-lg h-9 px-3 bg-gray-100 dark:bg-white/10 text-gray-800 dark:text-white text-sm font-bold leading-normal tracking-[0.015em]">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">edit</span>
+                    <span class="truncate">수정</span>
+                 </a>
             </ul>
         </nav>
 
