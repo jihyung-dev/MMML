@@ -1,8 +1,19 @@
 package com.smu.householdaccount.service;
 
 import com.smu.householdaccount.entity.Member;
+import jakarta.validation.constraints.Size;
 
 public interface MemberService {
+
+    void updateMemberInfo(
+            String memberId,
+            String memberName,
+            String currentpw,
+            String newpw,
+            String newpw2,
+            String phone,
+            String address
+    );
 
     // 🔹 일반 회원가입
     Member registerUser(Member member);

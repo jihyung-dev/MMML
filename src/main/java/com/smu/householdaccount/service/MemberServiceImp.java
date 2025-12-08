@@ -17,6 +17,34 @@ public class MemberServiceImp implements MemberService {
     // 간단하게 new 로 사용 (나중에 Bean 주입 방식으로 바꿔도 됨)
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
+    @Override
+    public void updateMemberInfo(String memberId, String memberName, String currentpw, String newpw, String newpw2, String phone, String address) {
+        Member member = memberRepository.findByMemberId(memberId)
+                .orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
+
+        // 현재 비밀번호 체크
+        if (!passwordEncoder.matches(currentpw, member.getPassword())) {
+            throw new RuntimeException("현재 비밀번호가 일치하지 않습니다.");
+        }
+
+        // 새 비밀번호 일치 검사
+        if (!newpw.equals(newpw2)) {
+            throw new RuntimeException("새 비밀번호가 일치하지 않습니다.");
+        }
+
+        // 이름, 전화번호, 주소 변경
+        member.setMemberName(memberName);
+        member.setPhone(phone);
+        member.setAddress(address);
+
+        // 비밀번호 변경 (빈 값이 아닐 경우만)
+        if (!newpw.isBlank()) {
+            member.setPassword(passwordEncoder.encode(newpw));
+        }
+
+        memberRepository.save(member);
+    }
+
     /**
      * 일반 회원가입
      * - gender, age, email 도 Member 객체에 바인딩되어 넘어온다고 가정
