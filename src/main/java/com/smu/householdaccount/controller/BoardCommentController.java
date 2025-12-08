@@ -19,9 +19,7 @@ public class BoardCommentController {
     public String write(@RequestParam Long postId,
                         @RequestParam String content,
                         @RequestParam(required = false) Long parentId,
-                        @SessionAttribute(required = false) Member loginUser  // 🔥 로그인 사용자 가져오기
-
-    ) {
+                        @SessionAttribute(name = "loginUser", required = false) Member loginUser) {
 
         if (loginUser == null) {
             return "redirect:/login";  // 로그인 안 되어 있으면 로그인 페이지로
@@ -29,12 +27,11 @@ public class BoardCommentController {
 
         String loginUserId = loginUser.getMemberId();
 
-        // 🔥 댓글 생성
+        // 댓글/대댓글 생성
         commentService.create(postId, content, parentId, loginUserId);
 
         return "redirect:/board/" + postId;
     }
-
 
     /** 댓글 삭제 */
     @PostMapping("/{id}/delete")
@@ -42,7 +39,7 @@ public class BoardCommentController {
                          @RequestParam Long postId,
                          HttpSession session) {
 
-        // 🔥 로그인 사용자 체크
+        // 로그인 사용자 체크
         Member loginUser = (Member) session.getAttribute("loginUser");
         if (loginUser == null) {
             return "redirect:/login";

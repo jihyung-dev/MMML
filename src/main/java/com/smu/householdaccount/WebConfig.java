@@ -10,8 +10,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 @AllArgsConstructor( onConstructor_ = @Autowired)
 public class WebConfig implements WebMvcConfigurer {
-    private final AutoLoginInterceptorDev autoLoginInterceptorDev;
 
+    private final AutoLoginInterceptorDev autoLoginInterceptorDev;
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry
@@ -20,3 +20,4 @@ public class WebConfig implements WebMvcConfigurer {
                 .excludePathPatterns("/css/**", "/js/**", "/img/**", "/favicon.ico","/seller/login","/user/login");
     }
 }
+

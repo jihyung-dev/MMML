@@ -41,14 +41,14 @@ class OrderItemRepositoryTest {
         OrderItem orderItem=new OrderItem();
         orderItem.setOrderId(saveOrderMain.getId());
         orderItem.setItemId(1L);
-        orderItem.setOtionId(3L);
+        orderItem.setOptionId(3L);
         orderItem.setPrice(BigDecimal.valueOf(10000));
         orderItem.setQty(3L);
         OrderItem orderItem2=new OrderItem();
 
         orderItem2.setOrderId(saveOrderMain.getId());
         orderItem2.setItemId(2L);
-        orderItem2.setOtionId(6L);
+        orderItem2.setOptionId(6L);
         orderItem2.setPrice(BigDecimal.valueOf(30000));
         orderItem2.setQty(5L);
         List<OrderItem> orderItemList=List.of(orderItem,orderItem2);

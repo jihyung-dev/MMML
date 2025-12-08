@@ -41,7 +41,7 @@ public class HotdealOrderServiceImpl implements HotdealOrderService {
             OrderItem orderItem = new OrderItem();
             orderItem.setQty(orderBean.quantity);
             orderItem.setItemId(orderBean.itemId);
-            orderItem.setOtionId(orderBean.hotdealOptionId);
+            orderItem.setOptionId(orderBean.hotdealOptionId);
             orderItem.setPrice(BigDecimal.valueOf(orderBean.discountPrice));
             orderItemList.add(orderItem);
             discountPrice+=orderBean.discountPrice*orderBean.quantity;

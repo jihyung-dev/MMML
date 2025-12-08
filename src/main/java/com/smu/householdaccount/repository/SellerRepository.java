@@ -15,5 +15,12 @@ public interface SellerRepository extends JpaRepository<Seller, Long> {
     // bizNo(사업자번호) 중복 체크
     boolean existsByBizNo(String bizNo);
 
+    Optional<Seller> findByMember_MemberIdAndMember_MemberNameAndMember_Phone(
+            String memberId,
+            String memberName,
+            String phone
+    );
+
+
 
 }

@@ -1,15 +1,11 @@
 package com.smu.householdaccount.service;
 
 import com.smu.householdaccount.entity.Member;
-import com.smu.householdaccount.entity.Seller;
 import com.smu.householdaccount.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -17,10 +13,41 @@ import java.util.Set;
 public class MemberServiceImp implements MemberService {
 
     private final MemberRepository memberRepository;
+
+    // 간단하게 new 로 사용 (나중에 Bean 주입 방식으로 바꿔도 됨)
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+    @Override
+    public void updateMemberInfo(String memberId, String memberName, String currentpw, String newpw, String newpw2, String phone, String address) {
+        Member member = memberRepository.findByMemberId(memberId)
+                .orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
+
+        // 현재 비밀번호 체크
+        if (!passwordEncoder.matches(currentpw, member.getPassword())) {
+            throw new RuntimeException("현재 비밀번호가 일치하지 않습니다.");
+        }
+
+        // 새 비밀번호 일치 검사
+        if (!newpw.equals(newpw2)) {
+            throw new RuntimeException("새 비밀번호가 일치하지 않습니다.");
+        }
+
+        // 이름, 전화번호, 주소 변경
+        member.setMemberName(memberName);
+        member.setPhone(phone);
+        member.setAddress(address);
+
+        // 비밀번호 변경 (빈 값이 아닐 경우만)
+        if (!newpw.isBlank()) {
+            member.setPassword(passwordEncoder.encode(newpw));
+        }
+
+        memberRepository.save(member);
+    }
 
     /**
      * 일반 회원가입
+     * - gender, age, email 도 Member 객체에 바인딩되어 넘어온다고 가정
      */
     @Override
     public Member registerUser(Member member) {
@@ -30,10 +57,11 @@ public class MemberServiceImp implements MemberService {
         member.setPassword(encodedPw);
 
         // 기본 권한 설정
-        if (member.getRole() == null) {
-            member.setRole("USER");
+        if (member.getRole() == null || member.getRole().isBlank()) {
+            member.setRole("GENERAL");
         }
 
+        // enabled, createdAt 은 @PrePersist 에서 처리
         return memberRepository.save(member);
     }
 
@@ -48,34 +76,10 @@ public class MemberServiceImp implements MemberService {
                 .orElse(null);
     }
 
-    @Transactional(readOnly = true)
-    public Seller sellerLogin(String memberId, String rawPassword,String bizNo) throws IllegalStateException ,IllegalArgumentException{
-        Seller seller = null;
-         Optional<Member> memberOpt=memberRepository.findById(memberId);
-         Member member=memberOpt
-                 .filter(m -> passwordEncoder.matches(rawPassword, m.getPassword()))
-                 .orElseThrow(()->new IllegalArgumentException("아이디 또는 비밀번호가 올바르지 않습니다."));
-
-
-         Set<Seller> sellers=member.getSellers();
-         if(sellers.size()>0){
-             for(Seller s: sellers){
-                 if(s.getBizNo().equals(bizNo)){
-                     seller=s;
-                     break;
-                 }
-             }
-
-         }
-         if(seller==null){
-             throw new IllegalStateException("해당 사업자번호로 등록된 판매자 계정이 없습니다.");
-         }
-         return seller;
-    }
-
     /**
      * 중복 체크: 아이디
      */
+    @Transactional(readOnly = true)
     @Override
     public boolean existsByMemberId(String memberId) {
         return memberRepository.existsById(memberId);
@@ -84,6 +88,7 @@ public class MemberServiceImp implements MemberService {
     /**
      * 중복 체크: 닉네임
      */
+    @Transactional(readOnly = true)
     @Override
     public boolean existsByNickname(String nickname) {
         return memberRepository.existsByMemberNickname(nickname);
@@ -92,29 +97,40 @@ public class MemberServiceImp implements MemberService {
     /**
      * 중복 체크: 휴대폰번호
      */
+    @Transactional(readOnly = true)
     @Override
     public boolean existsByPhone(String phone) {
         return memberRepository.existsByPhone(phone);
     }
 
     /**
-     * 아이디 찾기
+     * (선택) 중복 체크: 이메일
      */
+    @Transactional(readOnly = true)
     @Override
-    public String findMemberId(String memberName, String phone) {
-        return memberRepository.findByMemberNameAndPhone(memberName, phone)
+    public boolean existsByEmail(String email) {
+        return memberRepository.existsByEmail(email);
+    }
+
+    /**
+     * 아이디 찾기 (이름 + 이메일)
+     */
+    @Transactional(readOnly = true)
+    @Override
+    public String findMemberId(String memberName, String email) {
+        return memberRepository.findByMemberNameAndEmail(memberName, email)
                 .map(Member::getMemberId)
                 .orElse(null);
     }
 
     /**
-     * 비밀번호 찾기 → 본인 인증
+     * 비밀번호 찾기 → 본인 인증 (ID + 이름 + 이메일)
      */
+    @Transactional(readOnly = true)
     @Override
-    public boolean verifyMemberForPasswordReset(String memberId, String name, String phone) {
-        return memberRepository.findById(memberId)
-                .filter(m -> m.getMemberName().equals(name))
-                .filter(m -> m.getPhone().equals(phone))
+    public boolean verifyMemberForPasswordReset(String memberId, String memberName, String email) {
+        return memberRepository
+                .findByMemberIdAndMemberNameAndEmail(memberId, memberName, email)
                 .isPresent();
     }
 
@@ -129,5 +145,26 @@ public class MemberServiceImp implements MemberService {
             member.setPassword(encodedPw);
             memberRepository.save(member);
         });
+    }
+
+    @Override
+    public boolean isMember(String memberId) {
+        return memberRepository.findById(memberId).isPresent();
+    }
+
+    @Override
+    public String buildSimpleOauthKey(String provider, String oauthId) {
+        String trimmed = oauthId.substring(0, Math.min(40, oauthId.length()));
+        return provider + "_" + trimmed;
+    }
+
+    @Override
+    public void registerOAuthUser(Member member) {
+        memberRepository.save(member);
+    }
+
+    @Override
+    public Member getMember(String memberId) {
+        return memberRepository.findByMemberId(memberId).orElse(null);
     }
 }

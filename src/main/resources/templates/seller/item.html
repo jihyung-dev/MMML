@@ -50,5 +50,10 @@
         <td th:text="${option.stock}"></td>
     </tr>
 </table>
+
+<div>
+    <img width="100" th:each="img : ${item.images}" th:src="@{${img.getImageUrl()}}" alt="">
+    &nbsp;
+</div>
 </body>
 </html>

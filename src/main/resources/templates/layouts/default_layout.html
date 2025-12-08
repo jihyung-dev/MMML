@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      th:with="isLogin=true">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <th:block layout:fragment="meta"></th:block>
+
+    <!-- 페이지마다 타이틀을 동적으로 변경 (기본값: Commune) -->
+    <title th:text="${CONTENT_TITLE} ?: 'Commune'"></title>
+    <!-- 프로젝트 내부 CSS -->
+    <link th:href="@{/css/list.css}" rel="stylesheet"/>
+
+    <!-- 공통 CSS (Bootstrap 등) -->
+    <link href="/bootstrap-5.3.8-dist/css/bootstrap.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <script src="/bootstrap-5.3.8-dist/js/bootstrap.bundle.js"></script>
+    <!-- 페이지별 추가 CSS가 들어갈 자리 -->
+    <th:block layout:fragment="css"></th:block>
+
+    <style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .primary-btn {
+            background-color: #0d273d;
+            color: white;
+        }
+        .primary-btn:hover {
+            background-color: #0a1f30;
+            color: white;
+        }
+        /* 푸터를 바닥에 고정하기 위한 설정 */
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        footer {
+            margin-top: auto;
+        }
+
+        /* 🔹 내돈내삶 로고 & 텍스트 보라색 */
+        .brand-purple {
+            color: #6960ff;  /* 주주님 전용 보라색 */
+        }
+    </style>
+
+</head>
+<body class="bg-light text-dark">
+<!-- [공통] 헤더 -->
+<th:block layout:insert="layouts/header_nav :: headerNav(${IS_LOGIN !=null} ? ${ISLOGIN} : ${isLogin})"></th:block>
+<!-- [변동] 메인 콘텐츠가 들어갈 자리 -->
+<main class="container">
+    <div layout:fragment="content">
+        <!-- 각 페이지의 실제 내용이 여기에 들어옵니다 -->
+    </div>
+</main>
+
+<th:block layout:insert="layouts/footer :: footer"></th:block>
+<!-- [공통] 푸터 -->
+
+<!-- [공통] JS -->
+<!-- 페이지별 추가 JS가 들어갈 자리 -->
+<th:block layout:fragment="script"></th:block>
+
+</body>
+</html>

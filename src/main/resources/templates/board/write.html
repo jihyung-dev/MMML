@@ -10,10 +10,22 @@
 
     <h2>게시글 작성</h2>
 
-    <form class="write-form" action="/board/write" method="post">
+    <!-- 로그인 X -->
+    <div th:if="${session.loginUser == null}">
+        <p>글쓰기는 로그인 후 이용 가능합니다.</p>
+        <a href="/login">로그인 하러 가기</a>
+    </div>
 
-        <label>작성자 ID</label>
-        <input type="text" name="writerId" required>
+    <!-- 로그인 O -->
+    <form class="write-form"
+          th:if="${session.loginUser != null}"
+          action="/board/write" method="post">
+
+        <label>작성자</label>
+        <!-- 닉네임만 보여주고, 실제 writer는 서버에서 세션으로 처리 -->
+        <input type="text"
+               th:value="${session.loginUser.memberNickname}"
+               readonly>
 
         <label>카테고리</label>
         <input type="text" name="category" required>

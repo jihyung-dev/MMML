@@ -1,8 +1,5 @@
 body {
     background: #f7f8fa;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     height: 100vh;
 }
 
@@ -83,5 +80,25 @@ button:hover {
     width: 180px;
     height: 45px;
     object-fit: contain;
+    display: block;
+}
+
+.hidden-input {
+    display: none;
+    margin-top: 10px;
+}
+
+.show-input {
+    display: block;
+}
+
+/* 인증 입력란 기본 숨김 */
+#authCodeBox {
+    display: none;
+    margin-top: 10px;
+}
+
+/* show-input 클래스가 붙으면 나타남 */
+#authCodeBox.show-input {
     display: block;
 }

@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -23,8 +24,12 @@ public class LedgerSummaryDto {
 
     @Data @Builder
     public static class DailySummary {
-        private LocalDate date;
+        private LocalDateTime date;
         private BigDecimal expense;
         private BigDecimal income;
+
+        // [추가] 건수 정보
+        private Long expenseCount; // 지출 건수
+        private Long incomeCount;  // 수입 건수
     }
 }

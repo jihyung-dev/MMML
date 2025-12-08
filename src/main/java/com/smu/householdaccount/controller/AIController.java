@@ -1,6 +1,5 @@
 package com.smu.householdaccount.controller;
 
-import com.smu.householdaccount.dto.CategoryUpdateReq;
 import com.smu.householdaccount.dto.TransActionBulkReq;
 import com.smu.householdaccount.dto.python.ClassifyTransactionResponse;
 import com.smu.householdaccount.dto.python.FineTuneResponse;
@@ -12,11 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Controller()
 @RequestMapping("/ai")

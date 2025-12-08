@@ -11,6 +11,7 @@ import org.springframework.data.jpa.domain.Specification;
 import jakarta.persistence.criteria.Path;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class ItemSpecifications {
 
@@ -58,7 +59,7 @@ public class ItemSpecifications {
     }
 
     // 특정 날짜(activeOn)에 판매중인지: (saleStartAt IS NULL OR saleStartAt <= activeOn) AND saleEndAt >= activeOn
-    public static Specification<Item> activeOn(LocalDate activeOn) {
+    public static Specification<Item> activeOn(LocalDateTime activeOn) {
         if (activeOn == null) return null;
         return (root, query, cb) -> {
             Predicate startOk = cb.or(cb.isNull(root.get("saleStartAt")),

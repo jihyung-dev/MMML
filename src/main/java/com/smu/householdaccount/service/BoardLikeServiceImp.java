@@ -42,7 +42,9 @@ public class BoardLikeServiceImp implements BoardLikeService {
 
         BoardLike like = new BoardLike();
         like.setPost(post);
+        like.setPostId(post.getId());                // ✅ FK 컬럼
         like.setMember(member);
+        like.setMemberId(member.getMemberId());      // ✅ FK 컬럼
 
         boardLikeRepository.save(like);
     }

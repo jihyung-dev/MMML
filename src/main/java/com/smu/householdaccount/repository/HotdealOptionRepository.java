@@ -14,4 +14,6 @@ public interface HotdealOptionRepository extends JpaRepository<HotdealOption, Lo
     // itemId만 쳐도 해당하는 id의 옵션들을 불러올 수 있게 하는 것!
     List<HotdealOption> findByItemId(Long itemId);
 
+    @Override
+    List<HotdealOption> findAllById(Iterable<Long> longs);
 }

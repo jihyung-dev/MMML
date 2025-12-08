@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
@@ -11,7 +12,6 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -55,7 +55,7 @@ public class LedgerEntry {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.RESTRICT)
     @JoinColumn(name = "CATEGORY_ID", nullable = false)
-    @JsonIgnore
+//    @JsonIgnore
     private Category category;
 
     @NotNull
@@ -69,7 +69,7 @@ public class LedgerEntry {
 
     @NotNull
     @Column(name = "OCCURRED_AT", nullable = false)
-    private LocalDate occurredAt;
+    private LocalDateTime occurredAt;
 
     @Size(max = 200)
     @Column(name = "PLACE_OF_USE", length = 200)

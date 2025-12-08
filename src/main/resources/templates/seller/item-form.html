@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/default_layout}">
+
+<head>
+    <title layout:fragment="title">상품 판매 등록</title>
+
+    <style layout:fragment="css">
+        .form-container {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fff;
+        }
+        .form-field { margin-bottom: 15px; }
+        .form-field label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .form-field input,
+        .form-field select,
+        .form-field textarea {
+            width: 100%;
+            padding: 6px 8px;
+            box-sizing: border-box;
+        }
+        .error-msg {
+            color: red;
+            font-size: 0.85rem;
+        }
+        .btn-area {
+            text-align: right;
+            margin-top: 15px;
+        }
+        #preview img { margin-right:8px; margin-bottom:8px; }
+        .text-center { display:inline-block; text-align:center; margin-right:6px; }
+        .table { width:100%; border-collapse:collapse; }
+        .table th, .table td { padding:6px; border:1px solid #eee; vertical-align:middle; }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="form-container">
+        <h3>상품 판매 등록</h3>
+
+        <!-- 에러 메시지 -->
+        <div th:if="${errorMessage != null}" class="error-msg mb-2"
+             th:text="${errorMessage}">에러 메시지</div>
+
+        <form th:action="@{/seller/item/new}" th:object="${sellerItemNewBean}" method="post" enctype="multipart/form-data">
+
+
+            <!-- 기본 정보 -->
+            <div class="form-field">
+                <label for="itemName">상품명</label>
+                <input type="text" id="itemName" th:field="*{itemName}">
+                <div class="error-msg" th:if="${#fields.hasErrors('itemName')}" th:errors="*{itemName}"></div>
+            </div>
+
+            <div class="form-field">
+                <label for="categoryId">카테고리</label>
+                <select id="categoryId" th:field="*{categoryId}">
+                    <option value="">-- 카테고리 선택 --</option>
+                    <option th:each="c : ${categories}"
+                            th:value="${c.categoryId}"
+                            th:text="${c.categoryName}">
+                    </option>
+                </select>
+                <div class="error-msg" th:if="${#fields.hasErrors('categoryId')}" th:errors="*{categoryId}"></div>
+            </div>
+
+            <div class="form-field">
+                <label for="originalPrice">정상가</label>
+                <input type="number" id="originalPrice" th:field="*{originalPrice}" step="100" />
+                <div class="error-msg" th:if="${#fields.hasErrors('originalPrice')}" th:errors="*{originalPrice}"></div>
+            </div>
+
+            <div class="form-field">
+                <label for="itemSaleprice">할인가</label>
+                <input type="number" id="itemSaleprice" th:field="*{itemSaleprice}" step="100" />
+                <div class="error-msg" th:if="${#fields.hasErrors('itemSaleprice')}" th:errors="*{itemSaleprice}"></div>
+            </div>
+
+            <div class="form-field">
+                <label for="saleStartDate">판매 시작일</label>
+                <input type="date" id="saleStartDate" th:field="*{saleStartDate}" />
+            </div>
+
+            <div class="form-field">
+                <label for="saleEndDate">판매 종료일</label>
+                <input type="date" id="saleEndDate" th:field="*{saleEndDate}" />
+                <div class="error-msg" th:if="${#fields.hasErrors('saleEndDate')}" th:errors="*{saleEndDate}"></div>
+<!--                <div class="error-msg" th:if="${#fields.hasErrors('saleDateValid')}" th:errors="*{saleDateValid}"></div>-->
+            </div>
+
+            <div class="form-field">
+                <label for="itemImageFile">대표 이미지 파일</label>
+                <input type="file" class="form-control" id="itemImageFile" th:field="*{itemImageFile}" />
+            </div>
+<!--            <div class="form-field">-->
+<!--                <label for="itemImageUrl">또는 대표 이미지 URL</label>-->
+<!--                <input type="text" id="itemImageUrl" th:field="*{itemImageUrl}" placeholder="https://..." />-->
+<!--            </div>-->
+
+            <hr/>
+
+            <!-- 상세 이미지 여러 장 -->
+            <div class="form-field">
+                <label>상세 이미지 (여러장)</label>
+                <input type="file" multiple id="detailImageFiles" th:field="*{detailImageFiles}" />
+            </div>
+            <div id="preview"></div>
+            <hr/>
+
+            <!-- 옵션 여러 개 등록 -->
+            <div class="form-field">
+                <label>옵션선택</label>
+
+                <table id="optionTable" class="table table-sm">
+                    <thead>
+                    <tr>
+                        <th>옵션 종류</th>
+                        <th>옵션 값</th>
+                        <th>추가 금액</th>
+                        <th>재고</th>
+                        <th style="width:60px;"></th>
+                    </tr>
+                    </thead>
+                    <tbody id="optionTbody">
+                    <!-- 기존 입력값(리스트)이 있으면 해당 인덱스로 바인딩하여 렌더 -->
+                    <tr th:each="opt, iterStat : *{optionType}">
+                        <td><input type="text" th:field="*{optionType[__${iterStat.index}__]}" class="form-control" placeholder="예: 색상" /></td>
+                        <td><input type="text" th:field="*{optionValue[__${iterStat.index}__]}" class="form-control" placeholder="예: RED" /></td>
+                        <td><input type="number" th:field="*{additionalPrice[__${iterStat.index}__]}" class="form-control" value="0" /></td>
+                        <td><input type="number" th:field="*{stock[__${iterStat.index}__]}" class="form-control" value="0" /></td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-row">X</button>
+                        </td>
+                    </tr>
+
+                    <!-- 만약 서버에서 옵션 리스트가 없으면 빈 한 줄을 보여줌 -->
+                    <tr th:if="${#lists.isEmpty(sellerItemNewBean.optionType)}">
+                        <td><input type="text" name="optionType" class="form-control" placeholder="예: 색상"></td>
+                        <td><input type="text" name="optionValue" class="form-control" placeholder="예: RED"></td>
+                        <td><input type="number" name="additionalPrice" class="form-control" value="0"></td>
+                        <td><input type="number" name="stock" class="form-control" value="0"></td>
+                        <td><button type="button" class="btn btn-sm btn-outline-danger remove-row">X</button></td>
+                    </tr>
+
+                    </tbody>
+                </table>
+
+                <button type="button" id="addOptionRow" class="btn btn-sm btn-outline-secondary">옵션 행 추가</button>
+            </div>
+
+            <!-- 옵션 관련 전체 에러(AssertTrue 등) -->
+            <div class="error-msg" th:if="${#fields.hasGlobalErrors()}">
+                <p th:each="err: ${#fields.globalErrors()}" th:text="${err}"></p>
+             </div>
+
+
+            <div class="btn-area">
+                <a th:href="@{/seller/item}" class="btn btn-secondary btn-sm">목록</a>
+                <button type="submit" class="btn btn-primary btn-sm">등록</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script layout:fragment="script">
+    document.addEventListener('DOMContentLoaded', () => {
+        // 상세 이미지 행 추가/삭제
+        const imageTbody = document.getElementById('imageTbody');
+        const addImageBtn = document.getElementById('addImageRow');
+
+
+
+        // 옵션 행 추가/삭제
+        const optionTbody = document.getElementById('optionTbody');
+        const addOptionBtn = document.getElementById('addOptionRow');
+
+
+        const detailImageFiles = document.getElementById("detailImageFiles");
+        const preview = document.getElementById("preview");
+        if(detailImageFiles) {
+            detailImageFiles.addEventListener("change", function () {
+                preview.innerHTML = ""; // 기존 미리보기 삭제
+
+                Array.from(this.files).forEach((file, index) => {
+
+                    if (!file.type.startsWith("image/")) return;
+
+                    const wrapper = document.createElement("label");
+                    wrapper.className = "text-center";
+
+                    // 이미지 태그
+                    const img = document.createElement("img");
+                    img.src = URL.createObjectURL(file);
+                    img.className = "rounded border";
+                    img.style.width = "150px";
+                    img.style.height = "150px";
+                    img.style.objectFit = "cover";
+
+                    wrapper.appendChild(img);
+                    preview.appendChild(wrapper);
+                });
+            });
+        }
+
+
+        if (addOptionBtn) {
+            addOptionBtn.addEventListener('click', () => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input type="text" name="optionType"  class="form-control" placeholder="예: 색상"></td>
+                    <td><input type="text" name="optionValue" class="form-control" placeholder="예: RED"></td>
+                    <td><input type="number" name="additionalPrice" class="form-control" value="0"></td>
+                    <td><input type="number" name="stock" class="form-control" value="0"></td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-row">X</button>
+                    </td>
+                `;
+                optionTbody.appendChild(tr);
+            });
+
+            optionTbody.addEventListener('click', (e) => {
+                if (e.target.classList.contains('remove-row')) {
+                    const tr = e.target.closest('tr');
+                    if (optionTbody.rows.length > 1) tr.remove();
+                }
+            });
+        }
+    });
+</script>
+</body>
+</html>

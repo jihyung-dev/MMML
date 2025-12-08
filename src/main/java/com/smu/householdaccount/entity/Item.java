@@ -15,10 +15,11 @@ import org.hibernate.annotations.OnDeleteAction;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
-import java.time.Instant;
-import java.time.LocalDate;
+
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -83,11 +84,11 @@ public class Item {
     private long popularityScore = 0;  // ← 기본값 0
 
     @Column(name = "SALE_START_AT")
-    private LocalDate saleStartAt;
+    private LocalDateTime saleStartAt;
 
     @NotNull
     @Column(name = "SALE_END_AT", nullable = false)
-    private LocalDate saleEndAt;
+    private LocalDateTime saleEndAt;
 
     /*@Size(max = 20)
     @ColumnDefault("'ON_SALE'")
@@ -118,10 +119,17 @@ public class Item {
     Set<HotdealOption> hotdealOptions=new LinkedHashSet<>();
 
 
-    /**
+    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ItemDetailImage> images = new ArrayList<>();
+
+    @OneToMany(mappedBy = "item")
+    private Set<ItemWish> wishes = new LinkedHashSet<>();
+
+
+    /*
      * 템플릿에서 사용할 포맷된 가격 문자열을 제공한다.
      * @return "1,234원" 형태의 문자열 (소수점 반올림, 천단위 콤마)
-     */
+     * ▽▽▽▽▽▽▽▽▽▽ */
     @Transient
     public String getFormattedPrice() {
         if (this.getItemSaleprice() == null) {
@@ -133,5 +141,18 @@ public class Item {
         // longValue() 사용 — 필요하면 toBigIntegerString() 등으로 안전하게 처리 가능
         return df.format(scaled.longValue()) + "원";
     }
+
+
+    @Transient
+    public String getFormattedOriginalPrice() {
+        if (this.getOriginalPrice() == null) return "";
+        DecimalFormat df = new DecimalFormat("#,###");
+        BigDecimal scaled = this.getOriginalPrice().setScale(0, RoundingMode.HALF_UP);
+        return df.format(scaled.longValue()) + "원";
+    }
+    @Transient
+    @Size(max = 4000)
+    @Column(name = "DESCRIPTION", length = 4000)
+    private String description;
 
 }

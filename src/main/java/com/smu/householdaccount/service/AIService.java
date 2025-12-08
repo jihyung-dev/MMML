@@ -2,7 +2,6 @@ package com.smu.householdaccount.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.smu.householdaccount.dto.CategoryUpdateReq;
 import com.smu.householdaccount.dto.TransActionBulkReq;
 import com.smu.householdaccount.dto.python.ClassifyTransactionResponse;
 import com.smu.householdaccount.dto.python.FineTuneResponse;
@@ -12,14 +11,11 @@ import com.smu.householdaccount.util.Log;
 import com.smu.householdaccount.web.SafeHttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.List;
+import java.util.Map;
 
 @Service
 public class AIService {
@@ -134,4 +130,46 @@ public class AIService {
         }
     }
 
+    public Map<String, Object> analyze(Map<String, Object> previewJson) {
+
+        String url = renderHost + "/ai/excel";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        try {
+            String jsonBody = mapper.writeValueAsString(previewJson);
+            Log.i("📤 Sending to Python /excel: {}", jsonBody);
+
+            String pyResponse = http.post(url, headers, jsonBody);
+
+            if (pyResponse == null || pyResponse.isBlank()) {
+                Log.e("[Python]"," Response is NULL or Blank");
+                return Map.of(
+                        "status", "error",
+                        "message", "Python 서버 응답 없음"
+                );
+            }
+
+            Log.i("📥 Response from Python: {}", pyResponse);
+
+            Map<String, Object> respMap = mapper.readValue(pyResponse, Map.class);
+
+            // status 값이 없으면 실패로 간주
+            if (!respMap.containsKey("status")) {
+                return Map.of(
+                        "status", "error",
+                        "message", "Python 응답 형식 오류"
+                );
+            }
+
+            return respMap;
+
+        } catch (Exception e) {
+            Log.e("[Python] Excel 분석 중 예외 발생: {}", e.getMessage());
+            return Map.of(
+                    "status", "error",
+                    "message", "Spring 처리 중 예외 발생"
+            );
+        }
+    }
 }

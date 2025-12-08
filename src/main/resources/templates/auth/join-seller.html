@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html  lang="ko"
+       xmlns:th="http://www.thymeleaf.org"
+       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+       layout:decorate="~{layouts/default_layout}"
+       th:with="IS_LOGIN=false,CONTENT_TITLE='로그인 | 내돈내삶'">
+<!-- 위에 내용 중 IS_LOGIN=false 는 로그인 없는 메인화면 상단   ,IS_LOGIN=true 는 로그인 있는 메인화면 상단 -->
+
+<head>
+    <link rel="stylesheet" th:href="@{/css/login.css}">
+</head>
+
+
+<!-- 🔹 로그인 컨텐츠: 화면 중앙 정렬 -->
+<main layout:fragment="content"
+      class="container d-flex justify-content-center align-items-center"
+      style="min-height: 70vh;">
+
+    <!-- 여기에 body 에 있는내용 넣으세요 -->
+    <div class="login-container">
+        <h2>판매자 등록</h2>
+
+        <!-- 에러 메시지 -->
+        <p th:if="${error}" class="error-text" th:text="${error}"></p>
+
+        <!-- 로그인한 회원 정보 안내 (읽기 전용) -->
+        <div class="info-box">
+            <p>
+                로그인 아이디:
+                <strong th:text="${session.loginUser != null ? session.loginUser.memberId : '알 수 없음'}"></strong>
+            </p>
+            <p>
+                이름:
+                <strong th:text="${session.loginUser != null ? session.loginUser.memberName : '알 수 없음'}"></strong>
+            </p>
+        </div>
+
+        <!-- 🔹 판매자(Seller) 정보 입력 폼 -->
+        <form th:action="@{/seller/join}" method="post" th:object="${seller}">
+
+            <label>사업자번호</label>
+            <input type="text" th:field="*{bizNo}" placeholder="사업자번호 (- 없이 숫자만)" required>
+
+            <label>상호명</label>
+            <input type="text" th:field="*{bizName}" placeholder="예: OO마트, OO상사" required>
+
+            <label>업태/업종</label>
+            <input type="text" th:field="*{bizType}" placeholder="예: 음식, 의류, 생활용품 등">
+
+            <label>사업장 주소</label>
+            <input type="text" th:field="*{bizAddress}" placeholder="사업장 주소를 입력하세요">
+
+            <label>사업장 전화번호</label>
+            <input type="text" th:field="*{bizPhone}" placeholder="예: 02-123-4567 또는 010-0000-0000">
+
+            <label>사업자 이메일</label>
+            <input type="email" th:field="*{bizEmail}" placeholder="고객 문의용 이메일">
+
+            <button type="submit">판매자 등록하기</button>
+        </form>
+
+        <div class="login-links">
+            <a th:href="@{/seller}">판매자 페이지로 가기</a> |
+            <a th:href="@{/}">메인으로 돌아가기</a>
+        </div>
+    </div>
+
+
+
+
+</main>
+</html>
+
+
+
+
+
+
+
+
+
