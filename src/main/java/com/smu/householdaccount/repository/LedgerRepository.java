@@ -37,21 +37,25 @@ public interface LedgerRepository extends JpaRepository<LedgerEntry, Long> {
     );
 
     @Query(value = """
-        SELECT 
-            m.gender AS gender,
-            FLOOR(m.age / 10) * 10 AS ageGroup,
-            c.category_name AS category,
-            SUM(l.entry_amount) AS total,
-            AVG(l.entry_amount) AS avgAmount,
-            COUNT(*) AS txnCount
-        FROM LEDGER_ENTRY l
-        JOIN MEMBER m ON l.member_id = m.member_id
-        JOIN CATEGORY c ON l.category_id = c.category_id
-        WHERE l.entry_type = 'EXPENSE'
-        GROUP BY m.gender, ageGroup, c.category_name
-        """,
-            nativeQuery = true)
-    List<CategoryStatsDto> getCategoryStats();
+    SELECT 
+        m.gender AS gender,
+        FLOOR(m.age / 10) * 10 AS ageGroup,
+        c.category_name AS category,
+        SUM(l.entry_amount) AS total,
+        AVG(l.entry_amount) AS avgAmount,
+        COUNT(*) AS txnCount
+    FROM LEDGER_ENTRY l
+    JOIN MEMBER m ON l.member_id = m.member_id
+    JOIN CATEGORY c ON l.category_id = c.category_id
+    WHERE l.entry_type = 'EXPENSE'
+      AND l.occurred_at >= :start
+      AND l.occurred_at <  :end
+    GROUP BY m.gender, ageGroup, c.category_name
+""", nativeQuery = true)
+    List<CategoryStatsDto> getCategoryStats(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
+    );
 
     // ==========================================
     // [New] 대시보드(차트/캘린더) 전용 최적화 쿼리
