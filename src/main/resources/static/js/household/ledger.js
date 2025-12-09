@@ -1519,7 +1519,8 @@ function startExtendedTour() {
                         const listModal = document.getElementById("dayListModal");
                         listModal.style.display = "flex"; listModal.classList.add("show"); listModal.style.zIndex = "100005";
                         const listGroup = document.getElementById("dayListGroup");
-                        if(listGroup) { listGroup.innerHTML = `<li id="tour-item" class="list-group-item list-group-item-action py-3" style="cursor:pointer; background:#fff0e6;"><div class="d-flex justify-content-between align-items-center"><div class="d-flex flex-column"><span class="fw-bold me-2" style="font-size: 1.1rem; color: #333;">☕ 투어 체험용 커피</span></div><div class="text-danger fw-bold" style="font-size: 1.1rem;">-5,000원</div></div></li>`; }
+                        if(listGroup) { listGroup.innerHTML = `<li id="tour-item" class="list-group-item list-group-item-action py-3"><div class="d-flex justify-content-between align-items-center"><div class="d-flex flex-column"><span class="fw-bold me-2" style="font-size: 1.1rem; color: #333;">
+                        ☕ 투어 체험용 커피</span></div><div class="text-danger fw-bold" style="font-size: 1.1rem;">-5,000원</div></div></li>`; }
                         setTimeout(() => driverObj.moveNext(), 800);
                     }, { once: true });
                 }
