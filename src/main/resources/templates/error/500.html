@@ -71,6 +71,7 @@
         <span th:if="${timestamp}">
                 오류 발생 시간: <span th:text="${#dates.format(timestamp, 'yyyy년 MM월 dd일 HH시 mm분 ss초')}"></span>
             </span>
+        <br>
         <span th:if="${path}">
                 요청 경로: <span th:text="${path}"></span>
             </span>

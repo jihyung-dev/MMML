@@ -26,16 +26,7 @@ public interface ItemService {
                            LocalDateTime activeOn,
                            Pageable pageable);
 
-//    필요없으면 삭제할 예정
-    /*Page<Item> searchHotdeal(Long sellerId,
-                           String categoryId,
-                           String keyword,
-                           BigDecimal minPrice,
-                           BigDecimal maxPrice,
-                           String saleStatus,
-                           LocalDateTime activeOn,
-                           Pageable pageable);*/
-
+// Page<Item> searchHotdeal(...) 메서드 삭제
 
 
     Page<Item> findBySeller(Long sellerId, Pageable pageable);

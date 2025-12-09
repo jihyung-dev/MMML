@@ -46,11 +46,11 @@ public class ItemController {    // 명시적 생성자 주입 (Lombok 없이 �
     public String list(
             @RequestParam(required = false) Long sellerId,
             @RequestParam(required = false) String categoryId,
-            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String q, // 상품 이름 검색어
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice,
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime date,
+            @RequestParam(required = false) String status, // 판매 상태 (ON_SALE, ENDED, SOLD_OUT 등)
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime date, // 특정 날짜 기준 검색
             @PageableDefault(page=0, size = 8, sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
             Model model,
 
@@ -62,13 +62,15 @@ public class ItemController {    // 명시적 생성자 주입 (Lombok 없이 �
 
         //수정 주석처리
         //model.addAttribute("itemPage", itemPage);
-        log.info("itemPage.content : {}", itemPage.getContent());
+        log.info("itemPage.content size : {}", itemPage.getContent().size());
 
         // 2. ★ [추가] 로그인한 멤버 ID 추출
-        String currentMemberId = null;
+        /*String currentMemberId = null;
         if (loginUser != null) {
             currentMemberId = loginUser.getMemberId();
-        }
+        }*/
+        String currentMemberId = (loginUser != null) ? loginUser.getMemberId() : null;
+
         // ★ 이 로그를 확인해보세요!
         System.out.println("현재 로그인 ID: " + currentMemberId);
 
@@ -78,7 +80,16 @@ public class ItemController {    // 명시적 생성자 주입 (Lombok 없이 �
         // 4. 모델에 담기 (DTO 페이지를 넘겨줌)
         model.addAttribute("itemPage", dtoPage);
 
-        // 카테고리 목록 조회
+        // 5. 검색 조건 유지를 위해 모델에 다시 추가
+        model.addAttribute("sellerId", sellerId);
+        model.addAttribute("categoryId", categoryId);
+        model.addAttribute("q", q);
+        model.addAttribute("minPrice", minPrice);
+        model.addAttribute("maxPrice", maxPrice);
+        model.addAttribute("status", status);
+        model.addAttribute("date", date);
+
+        // 6. 카테고리 목록 조회
         List<Category> categories = categoryRepository.findByCategoryIdStartingWith("H"); // Service에서 DB 조회
         log.info("categories : {}", categories);
         model.addAttribute("categories", categories);

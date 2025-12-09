@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -63,16 +64,31 @@ public class ItemServiceImpl implements ItemService {
                                   LocalDateTime activeOn,
                                   Pageable pageable
     ){
-        Specification<Item> spec = Specification.allOf(
+        /*Specification<Item> spec = Specification.allOf(
                     ItemSpecifications.hasSellerId(sellerId),
                     ItemSpecifications.hasCategoryId(categoryId),
                     ItemSpecifications.nameContains(keyword),
                     ItemSpecifications.priceBetween(minPrice, maxPrice),
                     ItemSpecifications.hasSaleStatus(saleStatus),
                     ItemSpecifications.activeOn(activeOn)
-        );
+        );*/
+        // 1. 각 조건별 Specification을 호출하여 null이 아닌 조건만 List에 수집합니다.
+        List<Specification<Item>> spec = new ArrayList<>();
 
-        Page<Item> page = itemRepository.findAll(spec, pageable);
+        // ItemSpecifications의 각 메서드는 조건이 없으면 null을 반환합니다.
+        // Optional.ofNullable을 사용하여 null이 아닌 경우에만 리스트에 추가합니다.
+        Optional.ofNullable(ItemSpecifications.hasSellerId(sellerId)).ifPresent(spec::add);
+        Optional.ofNullable(ItemSpecifications.hasCategoryId(categoryId)).ifPresent(spec::add);
+        Optional.ofNullable(ItemSpecifications.nameContains(keyword)).ifPresent(spec::add);
+        Optional.ofNullable(ItemSpecifications.priceBetween(minPrice, maxPrice)).ifPresent(spec::add);
+        Optional.ofNullable(ItemSpecifications.hasSaleStatus(saleStatus)).ifPresent(spec::add);
+        Optional.ofNullable(ItemSpecifications.activeOn(activeOn)).ifPresent(spec::add);
+
+        // 2. Specification.allOf(List)를 사용하여 수집된 모든 조건을 안전하게 AND로 조합합니다.
+        //    (List가 비어있으면 전체를 반환하는 안전한 방식입니다.)
+        Specification<Item> finalSpec = Specification.allOf(spec);
+
+        Page<Item> page = itemRepository.findAll(finalSpec, pageable);
 
         // 연관 엔티티 강제 초기화 (LazyInitializationException 방지)
 //        page.forEach(item -> {
@@ -83,11 +99,6 @@ public class ItemServiceImpl implements ItemService {
         return page;
     }
 
-//    필요없으면 삭제할 예정
-    /*@Override
-    public Page<Item> searchHotdeal(Long sellerId, String categoryId, String keyword, BigDecimal minPrice, BigDecimal maxPrice, String saleStatus, LocalDate activeOn, Pageable pageable) {
-        return null;
-    }*/
 
     @Override
     @Transactional(readOnly = true)
@@ -109,6 +120,14 @@ public class ItemServiceImpl implements ItemService {
             if (item.getCategory() != null) item.getCategoryId();
         });
         return page;
+    }
+
+    @Override
+    public List<Category> findAllCategories() {
+        // 현재 ItemServiceImpl에는 CategoryRepository 주입이 명시되어 있지 않아 빈 리스트를 반환합니다.
+        // List<Category> categories = categoryRepository.findAll();
+        // return categories;
+        return List.of();
     }
 
     @Override
@@ -134,10 +153,6 @@ public class ItemServiceImpl implements ItemService {
         itemRepository.addPopularityScore(id, delta);
     }
 
-    @Override
-    public List<Category> findAllCategories() {
-        return List.of();
-    }
 
     @Override
     @Transactional(readOnly = true)
@@ -223,10 +238,11 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(() -> new IllegalArgumentException("Item not found: " + id));
 
         // 3. 찜 여부 확인
-        boolean isLiked = false;
+        /*boolean isLiked = false;
         if (memberId != null) {
             isLiked = itemWishRepository.existsByItemIdAndMemberId(id, memberId);
-        }
+        }*/
+        boolean isLiked = (memberId != null) && itemWishRepository.existsByItemIdAndMemberId(id, memberId);
 
         // 4. DTO 반환
         return new ItemResponseDto(item, isLiked);
