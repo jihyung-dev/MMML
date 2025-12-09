@@ -12,6 +12,9 @@ const now = new Date();
 let currentYear = now.getFullYear();
 let currentMonth = now.getMonth() + 1;
 
+// 이번 달 vs 3 개월 데이터 비교 플래그
+let isThreeMonthBarChartDrawn = false;
+
 let modalJustOpened = false; // 모달 팝업 플래그
 let modalChartInstance = null;
 
@@ -39,7 +42,10 @@ let ageChart = null;
 let AGE_LABELS = [];
 // 엑셀 데이터
 let lastExcelRows = null;
-
+// 일별 데이터 막대 그래프 인스턴스
+let dailyLineChartInstance = null;
+//top3 차트
+const top3ChartInstances = { top1: null, top2: null, top3: null };
 function prepareAgeLabels() {
     const ageSet = new Set();
 
@@ -120,7 +126,8 @@ async function loadLedgerChart({ year, month }) {
 
     drawCategoryPieChart(bundle.current.categories);
     drawDailyLineChart(bundle.current.daily, bundle.prev1.daily);
-    await renderFullCategoryChart();
+    if(!isThreeMonthBarChartDrawn)
+        await renderFullCategoryChart();
 
     // [New] 소계 업데이트 // 추가!
     if(bundle.current.daily) updateMonthlyTotals(bundle.current);
@@ -132,6 +139,12 @@ async function loadLedgerChart({ year, month }) {
 }
 
 function drawCategoryPieChart(categories) {
+    if (!categories || categories.length === 0) {
+        showChartEmpty("categoryChart");
+        return;
+    }
+    showChart("categoryChart");
+
     Highcharts.chart('categoryChart', {
         chart: { type: 'pie' },
         title: { text: currentYear + '년 ' + currentMonth + '월 소비 내역' },
@@ -164,8 +177,44 @@ function drawCategoryPieChart(categories) {
     });
 }
 
+function showEmptyChart(wrapperEl, chartId) {
+    // empty overlay 표시
+    const emptyEl = wrapperEl.querySelector(".chart-empty");
+    if (emptyEl) emptyEl.style.display = "flex";
+
+    // 실제 차트 div 숨김
+    const chartEl = wrapperEl.querySelector(`#${chartId}`);
+    if (chartEl) chartEl.style.display = "none";
+}
+
+function hideEmptyChart(wrapperEl, chartId) {
+    const emptyEl = wrapperEl.querySelector(".chart-empty");
+    if (emptyEl) emptyEl.style.display = "none";
+
+    const chartEl = wrapperEl.querySelector(`#${chartId}`);
+    if (chartEl) chartEl.style.display = "block";
+}
+
 // 3개월 평균 데이터와 이번 달 지출 막대 차트로 출력
 function drawCategoryComparisonBarChart(categoryList) {
+    // const wrapper = document
+    //     .getElementById("threeMonthBarChart")
+    //     .closest(".bar-chart-wrapper");
+    //
+    // // ✅ 데이터 없음 처리 (여기가 핵심)
+    // if (!Array.isArray(categoryList) || categoryList.length === 0) {
+    //     showEmptyChart(wrapper, "threeMonthBarChart");
+    //
+    //     // 혹시 이전 차트가 있으면 제거
+    //     if (threeMonthBarChartInstance.is) {
+    //         threeMonthBarChartInstance.destroy();
+    //         threeMonthBarChartInstance = null;
+    //     }
+    //     return;
+    // }
+    // hideEmptyChart(wrapper, "threeMonthBarChart");
+    //
+    // isThreeMonthBarChartDrawn = true;
     Highcharts.chart('threeMonthBarChart', {
         chart: { type: 'column' },
         title: {
@@ -230,61 +279,118 @@ function drawModalComparePieChart(currentAmount, avgAmount, categoryName) {
         }]
     });
 }
+function emptyTop3(cardKey) {
+    const card = document.querySelector(`.top3-card[data-key="${cardKey}"]`);
+
+    // 1) 이전 차트 완전 제거
+    if (top3ChartInstances[cardKey]) {
+        top3ChartInstances[cardKey].destroy();
+        top3ChartInstances[cardKey] = null;
+    }
+
+    // 2) UI 전환
+    card.classList.add('is-empty');
+}
+function showTop3Chart(cardKey, containerId, history, overspend) {
+    const card = document.querySelector(`.top3-card[data-key="${cardKey}"]`);
+
+    // 1) empty 상태 해제
+    card.classList.remove('is-empty');
+
+    // 2) 기존 차트 제거 (안전장치)
+    if (top3ChartInstances[cardKey]) {
+        top3ChartInstances[cardKey].destroy();
+        top3ChartInstances[cardKey] = null;
+    }
+
+    // 3) 새 차트 생성
+    top3ChartInstances[cardKey] = Highcharts.chart(containerId, {
+        chart: { type: 'line', height: 120, backgroundColor: 'transparent' },
+        title: { text: null },
+        credits: { enabled: false },
+        exporting: { enabled: false },
+        xAxis: { visible: false },
+        yAxis: { visible: false },
+        legend: { enabled: false },
+        series: [{
+            data: history.map(h => h.total),
+            color: overspend ? '#ff4d4d' : '#4a90e2'
+        }]
+    });
+}
 
 function drawTop3LineChart(containerId, category, history, overspend) {
 
     const categories = history.map(h => h.month);
     const data = history.map(h => h.total);
 
-    Highcharts.chart(containerId, {
+    return  Highcharts.chart(containerId, {
         chart: {
             type: 'line',
-            height: 80,          // 🔥 최소 높이
+            height: 80,
             backgroundColor: 'transparent',
             margin: [10, 0, 10, 0]
         },
         title: { text: null },
 
-        // X축 완전 미니멀
         xAxis: {
             categories,
             tickLength: 0,
             lineWidth: 0,
-            labels: { enabled: false } // 글자 제거
+            labels: { enabled: false }
         },
 
-        // Y축 완전 미니멀
         yAxis: {
             title: { text: null },
             gridLineWidth: 0,
             labels: { enabled: false },
-            tickAmount: 2   // 혹시 모를 흔들림 방지
+            tickAmount: 2
         },
 
-        // 포인트 표시 제거
         plotOptions: {
             series: {
                 lineWidth: 2,
                 marker: { enabled: false },
-                enableMouseTracking: false // 마우스 오버 효과 제거
+                enableMouseTracking: false
             }
         },
 
-        tooltip: { enabled: false }, // 툴팁 제거
-
+        tooltip: { enabled: false },
         legend: { enabled: false },
         credits: { enabled: false },
 
         series: [{
             name: category,
-            data: data,
+            data,
             color: overspend ? '#ff4d4d' : '#4a90e2'
         }]
     });
 }
 
-
+// 일별 데이터(막대 그래프)
 function drawDailyLineChart(currentDaily, prevDaily) {
+    const wrapper = document
+        .getElementById("dailyChart")
+        .closest(".bar-chart-wrapper");
+
+    // ✅ 1. 데이터 없음 처리 (여기가 핵심)
+    if (
+        !Array.isArray(currentDaily) || currentDaily.length === 0 ||
+        !Array.isArray(prevDaily) || prevDaily.length === 0
+    ) {
+        showEmptyChart(wrapper, "dailyChart");
+
+        // 이전 차트 있으면 제거
+        if (dailyLineChartInstance) {
+            dailyLineChartInstance.destroy();
+            dailyLineChartInstance = null;
+        }
+        return;
+    }
+
+    // ✅ 2. 데이터 있으면 empty 숨김
+    hideEmptyChart(wrapper, "dailyChart");
+
     // prevDaily가 일수 다를 수 있으니 날짜 기준 맞추기
     const prevExpenseAligned = currentDaily.map(d => {
         // 안전하게 날짜 문자열 처리 (YYYY-MM-DD 형식 가정)
@@ -773,13 +879,16 @@ function getTop3FromCategories(entries) {
     return sorted.map(([category]) => category);
 }
 
-// top 3 카테고리 선형 차트
 function updateTop3CardsAndCharts(top3, thisMonthCategories, last6) {
+    if (!globalAvgLedger) globalAvgLedger = [];
 
-    if (!globalAvgLedger) {
-        console.warn("globalAvg 데이터가 없음");
-        globalAvgLedger = [];
+    // ✅ 1. 무조건 전체 리셋 (핵심)
+    for (let i = 0; i < 3; i++) {
+        setTop3CardStateByIndex(i, false);
     }
+
+    // ✅ 2. 실제 있는 데이터만 다시 채움
+    if (!Array.isArray(top3) || top3.length === 0) return;
 
     const cardIds = [
         { cat: "top1-category", my: "top1-my", diff: "top1-diff", chart: "top1-chart" },
@@ -790,31 +899,69 @@ function updateTop3CardsAndCharts(top3, thisMonthCategories, last6) {
     top3.forEach((category, i) => {
         const card = cardIds[i];
 
+        // ✅ 값 자체가 없으면 empty
+        if (!category) {
+            console.log("데이터 없음", i)
+            // 🔥 기존 차트 제거
+            if (top3ChartInstances[i]) {
+                top3ChartInstances[i].destroy();
+                top3ChartInstances[i] = null;
+            }
+
+            setTop3CardStateByIndex(i, false);
+            return;
+        }
+
         // 이번달 금액
         const thisItem = thisMonthCategories.find(c => c.categoryName === category);
         const thisMonthTotal = thisItem ? Number(thisItem.amount) : 0;
 
         document.getElementById(card.cat).textContent = category;
-        document.getElementById(card.my).textContent = `${thisMonthTotal.toLocaleString()} 원`;
+        document.getElementById(card.my).textContent =
+            `${thisMonthTotal.toLocaleString()} 원`;
 
-        // 전체 평균 가져오기
-        const globalItem = globalAvgLedger.find(c => c.category  === category);
+        // 전체 평균
+        const globalItem = globalAvgLedger.find(c => c.category === category);
         const globalValue = globalItem ? Number(globalItem.avg) : 0;
 
         const diffPercent = globalValue > 0
             ? (((thisMonthTotal - globalValue) / globalValue) * 100).toFixed(1)
             : 0;
 
-        const overspend = globalValue > 0 && thisMonthTotal > globalValue * 1.2;  // 평균보다 20% 초과일 경우 빨간 색으로 차트 생성
+        const overspend = globalValue > 0 && thisMonthTotal > globalValue * 1.2;
 
-        document.getElementById(card.diff).textContent = `${diffPercent}%`;
+        const diffEl = document.getElementById(card.diff);
+        diffEl.textContent = `${diffPercent}%`;
+        diffEl.classList.toggle("text-danger", overspend);
+        diffEl.classList.toggle("text-primary", !overspend);
 
-        // 6개월 라인 차트
+        // ✅ 히스토리
         const history = getHistoryForCategory(last6, category);
-        drawTop3LineChart(card.chart, category, history, overspend);
+        const valid = hasValidHistory(history);
+
+        // ✅ 유효하지 않으면 차트 먼저 제거
+        if (!valid) {
+            if (top3ChartInstances[i]) {
+                top3ChartInstances[i].destroy();
+                top3ChartInstances[i] = null;
+            }
+            setTop3CardStateByIndex(i, false);
+            return;
+        }
+
+        // ✅ 유효 → empty 해제
+        setTop3CardStateByIndex(i, true);
+
+        // ✅ 기존 차트 제거 후 재생성 (안전)
+        if (top3ChartInstances[i]) {
+            top3ChartInstances[i].destroy();
+            top3ChartInstances[i] = null;
+        }
+
+        top3ChartInstances[i] =
+            drawTop3LineChart(card.chart, category, history, overspend);
     });
 }
-
 
 // 지난 달 사용자 데이터 호출
 async function loadGlobalAvgData() {
@@ -1055,7 +1202,7 @@ function initCalendar(dailyData) {
             let htmlString = `
                 <div class="fc-event-title" style="width: 100%; display: flex; justify-content: center; align-items: baseline;">
                     <div style="position: relative;">
-                        <span class="fw-bold" style="letter-spacing: -0.5px;">${title}</span>
+                        <span class="fw-bold calendar-amount" style="letter-spacing: -0.5px;">${title}</span>
                         ${(count && count >= 2) ?
                 `<span style="
                                 position: absolute; 
@@ -1197,6 +1344,8 @@ window.finishTour = function() {
 function startExtendedTour() {
     // if (localStorage.getItem('tour_complete_final_v16')) return;
 
+    // [추가] 현재 년/월을 기반으로 '현재 달 1일' 날짜 문자열 생성
+    const dynamicDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
     // 1. 투어용 CSS 주입
     const styleId = 'driver-custom-style';
     if (!document.getElementById(styleId)) {
@@ -1314,8 +1463,11 @@ function startExtendedTour() {
                 }
             },
             {
-                element: '.fc-daygrid-day[data-date="2025-10-01"]',
-                popover: { title: '2. 캘린더 조회', description: '<b>10월 1일</b>을 클릭하여<br>상세 내역을 확인해보세요.', side: "top", showButtons: [] },
+                element: `.fc-daygrid-day[data-date="${dynamicDate}"]`, // ✅ 수정 후
+                popover: { title: '2. 캘린더 조회',
+                    description: `<b>${currentMonth}월 1일</b>을 클릭하여<br>상세 내역을 확인해보세요.`,
+                    side: "top",
+                    showButtons: [] }, //
                 onHighlightStarted: (el) => {
                     if (!el) { const firstDay = document.querySelector('.fc-daygrid-day'); if(firstDay) el = firstDay; }
                     if (el) {
@@ -1332,7 +1484,7 @@ function startExtendedTour() {
                 popover: { title: '3. 내역 등록', description: '새 내역을 등록해봅시다.<br><b>[+추가하기] 버튼을 클릭!</b>', side: "top", showButtons: [] },
                 onHighlightStarted: (el) => {
                     const listModal = document.getElementById("dayListModal");
-                    if(listModal.style.display !== 'flex') openDayListModal('2025-10-01');
+                    if(listModal.style.display !== 'flex') openDayListModal(dynamicDate);    // ✅ 수정 후
                     listModal.style.zIndex = "100005";
                     el.classList.add('neon-active');
                     el.addEventListener('click', () => {
@@ -1347,7 +1499,7 @@ function startExtendedTour() {
                 onHighlightStarted: (el) => {
                     const addModal = document.getElementById("addEntryModal");
                     if (!addModal || addModal.style.display === 'none') {
-                        const dateText = document.getElementById('dayListDate').innerText || '2025-10-01';
+                        const dateText = document.getElementById('dayListDate').innerText || dynamicDate;    // ✅ 수정 후
                         openAddEntryModal(dateText);
                     }
                     addModal.style.zIndex = "100005";
@@ -1391,16 +1543,33 @@ function startExtendedTour() {
             },
             {
                 element: '#addEntryModal .close-btn',
-                popover: { title: '6. 수정 및 삭제', description: '내용을 확인하셨으면<br>우측 상단 <b>[X] 버튼을 눌러 닫아주세요.</b>', side: "left", showButtons: [] },
+                element: '#addEntryModal .btn-primary:last-child', // ✅ 수정 후 (수정하기 버튼 타겟)
+                popover: {
+                    title: '6. 금액 수정 및 저장',
+                    // 🌟 수정 내용 안내 🌟
+                    description: '현재 금액 5,000원을 **4,500원**으로 수정한 뒤, <br>하단의 **[수정하기]** 버튼을 눌러주세요.',
+                    side: "top",
+                    showButtons: []
+                },
                 onHighlightStarted: (el) => {
-                    closeDayListModal();
+                    // [추가] 금액 입력창에 4500을 직접 입력하도록 하이라이트
+                    const amountInput = document.getElementById("inputAmount");
+                    if(amountInput) {
+                        amountInput.classList.add('neon-active');
+                    }
+
                     const addModal = document.getElementById("addEntryModal");
                     addModal.style.zIndex = "100005";
                     el.classList.add('neon-active');
+
                     el.addEventListener('click', () => {
                         el.classList.remove('neon-active');
+                        if(amountInput) amountInput.classList.remove('neon-active');
+
+                        // 폼 제출 시와 동일하게 모달 닫기
                         addModal.style.zIndex = "";
                         closeAddEntryModal();
+
                         setTimeout(() => driverObj.moveNext(), 800);
                     }, { once: true });
                 }
@@ -1445,13 +1614,14 @@ function startExtendedTour() {
             },
             {
                 element: '#ledgerTable tbody tr:first-child',
-                popover: { title: '10. 상세 내역 관리', description: '리스트를 클릭하여<br><b>수정 화면을 띄워보세요.</b>', side: "top", showButtons: [] },
+                popover: { title: '10. 수정 내역 확인', description: '방금 4,500원으로 수정한 내역을<br>리스트에서 **클릭**하여 확인해보세요.', side: "top", showButtons: [] },
                 onHighlightStarted: (el) => {
                     if(!el) {
                         const tbody = document.querySelector('#ledgerTable tbody');
                         if(tbody) {
                             const tr = document.createElement('tr');
-                            tr.innerHTML = '<td>10-01</td><td><span class="badge bg-danger">지출</span></td><td>식비</td><td>투어용</td><td>투어용</td><td>카드</td><td>10,000원</td>';
+                            // 🌟 가짜 내역을 4,500원으로 주입 🌟
+                            tr.innerHTML = '<td>10-01</td><td><span class="badge bg-danger">지출</span></td><td>식비</td><td>투어용 커피</td><td>투어용</td><td>카드</td><td>4,500원</td>';
                             tbody.prepend(tr);
                             el = tr;
                         }
@@ -1460,7 +1630,8 @@ function startExtendedTour() {
                         el.classList.add('neon-active');
                         el.addEventListener('click', () => {
                             el.classList.remove('neon-active');
-                            const fakeItem = { id: 8888, entryAmount: 15000, occurredAt: '2025-10-05T14:00:00', entryType: 'EXPENSE', categoryName: '쇼핑', placeOfUse: '투어용 쇼핑', memo: '상세 내역 클릭 테스트', payType: 'CARD' };
+                            // 🌟 열리는 수정 모달에 보여줄 가짜 데이터 🌟
+                            const fakeItem = { id: 8888, entryAmount: 4500, occurredAt: '2025-10-01T14:00:00', entryType: 'EXPENSE', categoryName: '식비', placeOfUse: '투어용 커피', memo: '금액 수정 확인', payType: 'CARD' };
                             openEditModal(fakeItem);
                             setTimeout(() => driverObj.moveNext(), 500);
                         }, { once: true });
@@ -2012,9 +2183,14 @@ async function deleteEntry() {
             closeAddEntryModal();
             closeDayListModal();
 
-                const key = `${currentYear}-${currentMonth}`;
-                ledgerCache.delete(key);
-            await updateChartWithTop3();
+            const key = `${currentYear}-${currentMonth}`;
+            ledgerCache.delete(key);
+            if (`${currentYear}-${currentMonth}` === `${new Date().getFullYear()}-${new Date().getMonth() + 1}`) {
+                // 이번 달 삭제 일 경우 top3까지 수정
+                await updateChartWithTop3();
+            } else {
+                await updateChartNoTop3();
+            }
             } else {
                 alert("삭제 실패");
             }
@@ -2088,8 +2264,13 @@ async function submitNewEntry() {
         if(res.ok) {
             closeDayListModal();
             closeAddEntryModal();
-            ledgerCache.delete(`${currentYear}-${currentMonth}`); //
-            await updateChartWithTop3();
+            ledgerCache.delete(`${currentYear}-${currentMonth}`);
+            if (`${currentYear}-${currentMonth}` === `${new Date().getFullYear()}-${new Date().getMonth() + 1}`) {
+                // 이번 달
+                await updateChartWithTop3();
+            } else {
+                await updateChartNoTop3();
+            }
             // 파이썬 호출(유저 카테고리 저장)
             updateCategory(payload);
 
@@ -2583,7 +2764,7 @@ function initCache(){
 
 function updateCategory(payload){
     console.log(payload)
-    console.log(payload.memo)
+    console.log(payload.categoryName)
     const res = fetch("ai/update-category",{
         method:"POST",
         headers:{
@@ -2595,7 +2776,7 @@ function updateCategory(payload){
                     placeOfUse: payload.place,
                     entryAmount: payload.amount,
                     memo: payload.memo,
-                    category: payload.category,
+                    category: payload.categoryName,
                     occurredAt: normalizeDateTime(payload.dateTime)
                 }
             ]
@@ -2608,4 +2789,47 @@ function normalizeDateTime(dt) {
 
     // 2025-12-17T10:55:00 → 2025-12-17 10:55:00
     return dt.replace('T', ' ').substring(0, 19);
+}
+
+// 차트 데이터가 없을 경우
+function showChartEmpty(chartId) {
+    const chart = document.getElementById(chartId);
+    const empty = chart.parentElement.querySelector(".chart-empty");
+
+    chart.style.display = "none";
+    empty.style.display = "flex";
+}
+
+// 차트 데이터가 있을 경우
+function showChart(chartId) {
+    const chart = document.getElementById(chartId);
+    const empty = chart.parentElement.querySelector(".chart-empty");
+
+    empty.style.display = "none";
+    chart.style.display = "block";
+}
+
+// top3 empty 관리
+function setTop3CardStateByIndex(index, hasData) {
+    const card = document.querySelectorAll(".top3-card")[index];
+    if (!card) return;
+
+    const content = card.querySelector(".top3-content");
+    const empty = card.querySelector(".top3-empty");
+    console.log("TOP", index + 1, "hasData =", hasData);
+    if (hasData) {
+        empty.style.display = "none";
+        content.style.display = "block";
+    } else {
+        content.style.display = "none";
+        empty.style.display = "block";
+    }
+}
+
+function hasValidHistory(history) {
+    return (
+        Array.isArray(history) &&
+        history.length > 0 &&
+        history.some(h => Number(h.total) > 0)
+    );
 }
