@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>페이지를 찾을 수 없습니다 (404)</title>
+    <style>
+        /*
+         * CSS 코드 시작
+         */
+        body {
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif; /* 예쁜 글꼴 사용 */
+            display: flex; /* 내용을 화면 중앙에 배치하기 위해 flexbox 사용 */
+            justify-content: center; /* 가로 중앙 정렬 */
+            align-items: center; /* 세로 중앙 정렬 */
+            min-height: 100vh; /* 화면 전체 높이를 차지하도록 설정 */
+            margin: 0;
+            background-color: #f8f9fa;
+            color: #495057; /* 기본 글자색 */
+            text-align: center; /* 모든 텍스트 중앙 정렬 */
+            line-height: 1.6;
+        }
+
+        .container {
+            padding: 40px;
+            max-width: 600px; /* 너무 넓어지지 않도록 최대 너비 설정 */
+            background-color: #ffffff; /* 컨테이너 배경 흰색 */
+            border-radius: 12px; /* 모서리를 둥글게 */
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); /* 은은한 그림자 효과 */
+        }
+
+        h1 {
+            font-size: 80px; /* 큼지막한 404 숫자 */
+            color: #6960ff; /* 포인트 색상 */
+            margin-bottom: 20px;
+        }
+
+        p.message {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        p.description {
+            font-size: 16px;
+            color: #6c757d;
+            margin-bottom: 30px;
+        }
+
+        .home-button {
+            display: inline-block; /* 버튼처럼 보이게 하기 위해 */
+            background-color: #6960ff; /* 배경색 */
+            color: white; /* 글자색 */
+            padding: 12px 25px; /* 패딩으로 버튼 크기 조절 */
+            border-radius: 8px; /* 모서리를 둥글게 */
+            text-decoration: none; /* 밑줄 제거 */
+            font-size: 14px;
+            transition: background-color 0.3s ease; /* 호버 시 부드러운 전환 효과 */
+        }
+
+        .home-button:hover {
+            background-color: #290683; /* 호버 시 배경색 변경 */
+        }
+        /*
+         * CSS 코드 끝
+         */
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>404</h1>
+    <p class="message">죄송합니다. 페이지를 찾을 수 없습니다.</p>
+    <p class="description">
+        찾으시는 페이지가 존재하지 않거나, 다른 주소로 이동되었을 수 있습니다.<br>
+        아래 버튼을 눌러 메인 페이지로 돌아가주세요.
+    </p>
+    <a href="/" class="home-button">홈으로 돌아가기</a>
+</div>
+</body>
+</html>

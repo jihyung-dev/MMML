@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle} ? ${pageTitle} : '잘못된 요청 (400)'"></title>
+    <style>
+        /* CSS는 404 페이지와 동일하게 유지됩니다. */
+        body {
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f8f9fa;
+            color: #495057;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        .container {
+            padding: 40px;
+            max-width: 600px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            font-size: 80px; /* 큼지막한 에러 코드 */
+            color: #dc3545; /* 에러 색상 (빨간색 계열) */
+            margin-bottom: 20px;
+        }
+
+        p.message {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        p.description {
+            font-size: 16px;
+            color: #6c757d;
+            margin-bottom: 30px;
+        }
+
+        .highlight-url { /* 요청된 URL을 강조하기 위한 스타일 */
+            color: #dc3545;
+            font-weight: bold;
+            word-break: break-all;
+        }
+
+        .home-button {
+            display: inline-block;
+            background-color: #6960ff; /* 메인으로 가는 버튼은 파란색 */
+            color: white;
+            padding: 12px 25px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+
+        .home-button:hover {
+            background-color: #290683;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>400</h1>
+    <p class="message">잘못된 요청입니다.</p>
+    <p class="description">
+        서버가 클라이언트의 요청을 이해할 수 없거나 형식이 올바르지 않습니다.<br>
+        요청 내용을 다시 확인하거나, 메인 페이지로 돌아가 다시 시도해주세요.
+        <br>
+        <span th:if="${requestedUrl}">
+                요청된 주소: <span class="highlight-url" th:text="${requestedUrl}">[요청된 URL]</span>
+            </span>
+    </p>
+    <a th:href="@{/}" class="home-button">홈으로 돌아가기</a>
+</div>
+</body>
+</html>
