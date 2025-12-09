@@ -88,9 +88,63 @@ body {
     margin: 0 auto 30px auto;
     flex-wrap: wrap;
 }
+.bar-chart-wrapper{
+    width: 100%;
+    height: 450px;
+    max-width: 1200px;
+    margin: 30px auto;
+    flex: 1;
+    position: relative;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    padding: 20px;
+    min-width: 300px;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+/* 차트 영역 공통 */
+.bar-chart-wrapper > div[id$="Chart"] {
+    width: 100%;
+    height: 400px;
+}
+
+/* empty overlay */
+.chart-empty {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    display: none; /* 기본은 숨김 */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: 10px;
+
+    text-align: center;
+    z-index: 10;
+}
+
+.chart-empty img {
+    width: 120px;
+    opacity: 0.85;
+    margin-bottom: 12px;
+}
+
+.chart-empty p {
+    font-size: 15px;
+    color: #666;
+    margin: 0;
+}
 
 .chart-wrapper {
     flex: 1;
+    position: relative;
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
@@ -98,6 +152,61 @@ body {
     min-width: 300px;
     height: 600px;    /* 높이 조금 더 확보 */
     box-sizing: border-box;
+}
+#categoryChart {
+    width: 100%;
+    height: 100%;
+}
+
+/* chart empty 상태 전체 덮기 */
+.chart-empty {
+    display: none;
+    position: absolute;
+    inset: 0;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    text-align: center;
+    color: #999;
+    z-index: 2;
+}
+
+
+.top3-empty {
+    display: none;
+    position: absolute;
+    inset: 0;
+
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+
+    text-align: center;
+    color: #aaa;
+    font-size: 13px;
+    top: 100px;
+}
+
+/* Top3 기본 상태: content만 보이게 */
+.top3-content {
+    display: block;
+}
+
+/* ✅ 이미지 크기 조정 핵심 */
+.chart-empty img, .top3-empty img{
+    width: 120px;               /* ✅ 여기서 크기 제어 */
+    max-width: 50%;
+    height: auto;
+    opacity: 0.7;
+    margin-bottom: 8px;
+}
+
+.chart-empty p, .top3-empty p{
+    margin: 0;
+}
+
+.top3-chart {
+    height: 120px;        /* ✅ 차트가 차지하던 높이 */
 }
 
 /*병합중 날린곳 */
@@ -218,7 +327,9 @@ body {
     min-width: 280px;
     background: #ffffff;
     border-radius: 12px;
+    height: 350px;
     padding: 20px;
+    position: relative;
     border: 1px solid #eee;
     box-shadow: 0 4px 8px rgba(0,0,0,0.04);
     text-align: center;
@@ -410,7 +521,7 @@ body {
 /* 3. 카드 스타일 (이미지의 흰색 박스 느낌)            */
 /* ================================================= */
 /* chart-wrapper(왼쪽), calendar-wrapper(오른쪽) 공통 스타일 */
-.chart-wrapper, .calendar-wrapper, .top3-card, .last-month-box {
+.chart-wrapper, .calendar-wrapper, .top3-card, .last-month-box, .bar-chart-wrapper {
     background: #ffffff;       /* 흰색 배경 */
     border-radius: 16px;       /* 둥근 모서리 */
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); /* 부드러운 그림자 */
