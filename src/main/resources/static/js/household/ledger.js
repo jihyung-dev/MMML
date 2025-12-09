@@ -9,8 +9,8 @@ Highcharts.setOptions({
 });
 const now = new Date();
 // 전역 상태
-let currentYear = 2025  //now.getFullYear();
-let currentMonth = 10 //now.getMonth() + 1;
+let currentYear = now.getFullYear();
+let currentMonth = now.getMonth() + 1;
 
 let modalJustOpened = false; // 모달 팝업 플래그
 let modalChartInstance = null;
@@ -108,9 +108,6 @@ async function loadLedgerChart({ year, month }) {
     if (cached) {
         drawCategoryPieChart(cached.current.categories);
         drawDailyLineChart(cached.current.daily, cached.prev1.daily);
-
-        // [수정 포인트 1] 캐시 사용 시 호출
-        if(cached.current.daily) updateMonthlyTotals(cached.current);
 
         // [추가 1] 캐시가 있을 때 캘린더 그리기
         if(cached.current.daily) initCalendar(cached.current.daily);
@@ -479,12 +476,8 @@ async function load3MonthData(key) {
 }
 
 // 이전 6개월 데이터 호출, 데이터 캐싱, 최초 한번만 호출
+// 2025/12/9 수정 - 데이터 변경 발생 시 다시 호출하는 걸로 변경
 async function load6MonthData() {
-    // 캐시 있으면 그대로 반환
-    if (loaded6MonthCache !== null) {
-        return loaded6MonthCache;
-    }
-
     // 없으면 fetch 해서 가져오고 저장 후 return
     const last6 = await fetch(`/ledger/request/userLedger/6month?year=${currentYear}&month=${currentMonth}&period=6`);
     const data = await last6.json();
@@ -1088,8 +1081,47 @@ function initCalendar(dailyData) {
     fullCalendarInstance.render();
 }
 
+function showEmptyState(){
+    document.getElementById("emptyState")?.classList.remove("d-none");
+    document.getElementById("ledgerContent")?.classList.add("d-none");
+}
+
+function showLedgerContent() {
+    document.getElementById("emptyState").classList.add("d-none");
+    document.getElementById("ledgerContent").classList.remove("d-none");
+}
+
+// 엑셀 파일 업로드
+function openExcelUpload() {
+    document.getElementById("fileInput")?.click();
+}
+
+async function getGroupId() {
+    const res = await fetch(`/ledger/request/group_id`, { method: "GET" });
+
+    const data = await res.json(); // await 필수
+    console.log("데이터 확인 :", data);
+
+    if (!data.hasGroup) {
+        showEmptyState();
+        return false;
+    } else {
+        showLedgerContent();
+        return true;
+    }
+}
+
 async function startDocu() {
+    // 로그인 유저의 Group_id 조회(group_id가 존재하지 않을 경우 등록한 가게부 내역이 하나도 없다는 의미)
+    const hasGroup = await getGroupId(); // await
+    dragElement();
+    if (!hasGroup) {
+        return;
+    }
+
     showSkeleton();
+    updateMonthLabel();
+
     // 1) 전체 평균 데이터 먼저 로드
     globalAvgLedger = await loadGlobalAvgData();
 
@@ -1105,7 +1137,6 @@ async function startDocu() {
     buildCategorySelectList();
     initCharts();
     prepareAgeLabels();
-    dragElement();
     hideSkeleton();
 
 // ★ 확장된 인터랙티브 투어 시작
@@ -1727,7 +1758,8 @@ async function loadLedgerData() {
         }
 
         const result = await res.json();
-        console.log("ledger data loaded:", result);
+        initCache();
+        await startDocu();
 
     }catch{
         console.log("Error");
@@ -1949,103 +1981,160 @@ function openEditModal(item) {
             modalJustOpened = false;
         }, 100);
     }
+//기존 코드
+    // function closeAddEntryModal() {
+    //     const modal = document.getElementById("addEntryModal");
+    //     modal.style.display = "none";
+    //     modal.classList.remove("show");
+    // }
+    //
+    // async function deleteEntry() {
+    //     const id = document.getElementById("entryId").value;
+    //     if (!id) return;
+    //
+    //     if (!confirm("정말 이 내역을 삭제하시겠습니까?")) return;
+    //
+    //     try {
+    //         const res = await fetch(`/api/ledger/entry/${id}`, {
+    //             method: 'DELETE'
+    //         });
+    //
+    //         if (res.ok) {
+    //             alert("삭제되었습니다.");
+    //             closeAddEntryModal();
+    //             closeDayListModal();
+    //
+    //             const key = `${currentYear}-${currentMonth}`;
+    //             ledgerCache.delete(key);
+    //             updateChart();
+    //         } else {
+    //             alert("삭제 실패");
+    //         }
+    //     } catch (e) {
+    //         console.error(e);
+    //         alert("에러 발생");
+    //     }
+    // }
 
-    function closeAddEntryModal() {
-        const modal = document.getElementById("addEntryModal");
-        modal.style.display = "none";
-        modal.classList.remove("show");
-    }
+// 공통: 폼 리셋
+function resetEntryForm() {
+    document.getElementById("entryId").value = ""; // ID 초기화
+    document.getElementById("inputAmount").value = "";
+    document.getElementById("inputPlace").value = "";
+    document.getElementById("inputMemo").value = "";
+    document.getElementById("btnDelete").style.display = "none"; // 삭제 버튼 숨기기
+}
 
-    async function deleteEntry() {
-        const id = document.getElementById("entryId").value;
-        if (!id) return;
+function closeAddEntryModal() {
+    const modal = document.getElementById("addEntryModal");
+    modal.style.display = "none";
+    modal.classList.remove("show");
+}
+async function deleteEntry() {
+    const id = document.getElementById("entryId").value;
+    if(!id) return;
 
-        if (!confirm("정말 이 내역을 삭제하시겠습니까?")) return;
+    if(!confirm("정말 이 내역을 삭제하시겠습니까?")) return;
 
-        try {
-            const res = await fetch(`/api/ledger/entry/${id}`, {
-                method: 'DELETE'
-            });
+    try {
+        const res = await fetch(`/api/ledger/entry/${id}`, {
+            method: 'DELETE'
+        });
 
-            if (res.ok) {
-                alert("삭제되었습니다.");
-                closeAddEntryModal();
-                closeDayListModal();
+        if (res.ok) {
+            alert("삭제되었습니다.");
+            closeAddEntryModal();
+            closeDayListModal();
 
-                const key = `${currentYear}-${currentMonth}`;
-                ledgerCache.delete(key);
-                updateChart();
-            } else {
-                alert("삭제 실패");
-            }
-        } catch (e) {
-            console.error(e);
-            alert("에러 발생");
+            const key = `${currentYear}-${currentMonth}`;
+            ledgerCache.delete(key);
+            await updateChartWithTop3();
+        } else {
+            alert("삭제 실패");
         }
+    } catch (e) {
+        console.error(e);
+        alert("에러 발생");
     }
+}
+async function updateChartWithTop3(){
+    showSkeleton()
+    await updateChart();
+    await loadTopData();
+    hideSkeleton();
+}
+
+async function updateChartNoTop3(){
+    showSkeleton();
+    await updateChart();
+    hideSkeleton();
+}
 
 // 4. 저장/삭제 로직 수정 (ID 유무에 따라 POST/PUT/DELETE 분기)
-    async function submitNewEntry() {
-        const id = document.getElementById("entryId").value;
-        const url = id ? `/api/ledger/entry/${id}` : '/api/ledger/entry';
-        const method = id ? 'PUT' : 'POST';
+async function submitNewEntry() {
+    const id = document.getElementById("entryId").value;
+    const url = id ? `/api/ledger/entry/${id}` : '/api/ledger/entry';
+    const method = id ? 'PUT' : 'POST';
 
-        // ... 값 가져오기 (기존 코드 동일) ...
-        const dateVal = document.getElementById("inputDate").value;
-        const timeVal = document.getElementById("inputTime").value;
-        const type = document.getElementById("inputType").value;
-        const category = document.getElementById("inputCategory").value;
-        const amount = document.getElementById("inputAmount").value;
-        const place = document.getElementById("inputPlace").value;
-        const memo = document.getElementById("inputMemo").value;
-        const payType = document.querySelector('input[name="payType"]:checked').value;
+    // ... 값 가져오기 (기존 코드 동일) ...
+    const dateVal = document.getElementById("inputDate").value;
+    const timeVal = document.getElementById("inputTime").value;
+    const type = document.getElementById("inputType").value;
+    const category = document.getElementById("inputCategory").value;
+    const amount = document.getElementById("inputAmount").value;
+    const place = document.getElementById("inputPlace").value;
+    const memo = document.getElementById("inputMemo").value;
+    const payType = document.querySelector('input[name="payType"]:checked').value;
 
-        if (!amount || amount <= 0) {
-            alert("금액을 정확히 입력해주세요.");
-            return;
-        }
-
-        const fullDateTime = timeVal ? `${dateVal}T${timeVal}:00` : `${dateVal}T00:00:00`;
-
-        const payload = {
-            entryType: type,
-            amount: Number(amount),
-            dateTime: fullDateTime,
-            categoryName: category,
-            memo: memo,
-            place: place,
-            payType: payType
-        };
-
-        try {
-            let url = '/api/ledger/entry';
-            let method = 'POST';
-
-            // ★ ID가 있으면 수정 모드!
-            if (id) {
-                url = `/api/ledger/entry/${id}`;
-                method = 'PUT';
-            }
-
-            const res = await fetch(url, {
-                method: method,
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(payload)
-            });
-// 성공 시 모달 둘 다 닫고 캐시 삭제 후 차트 갱신
-            if (res.ok) {
-                closeDayListModal();
-                closeAddEntryModal();
-                ledgerCache.delete(`${currentYear}-${currentMonth}`); //
-                updateChart();
-            } else {
-                alert("처리 실패");
-            }
-        } catch (e) {
-            console.error(e);
-            alert("에러 발생");
-        }
+    if (!amount || amount <= 0) {
+        alert("금액을 정확히 입력해주세요.");
+        return;
     }
+
+    const fullDateTime = timeVal ? `${dateVal}T${timeVal}:00` : `${dateVal}T00:00:00`;
+
+    const payload = {
+        entryType: type,
+        amount: Number(amount),
+        dateTime: fullDateTime,
+        categoryName: category,
+        memo: memo,
+        place: place,
+        payType: payType
+    };
+
+    try {
+        let url = '/api/ledger/entry';
+        let method = 'POST';
+
+        // ★ ID가 있으면 수정 모드!
+        if (id) {
+            url = `/api/ledger/entry/${id}`;
+            method = 'PUT';
+        }
+
+        const res = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+// 성공 시 모달 둘 다 닫고 캐시 삭제 후 차트 갱신
+        if(res.ok) {
+            closeDayListModal();
+            closeAddEntryModal();
+            ledgerCache.delete(`${currentYear}-${currentMonth}`); //
+            await updateChartWithTop3();
+            // 파이썬 호출(유저 카테고리 저장)
+            updateCategory(payload);
+
+        } else {
+            alert("처리 실패");
+        }
+    } catch (e) {
+        console.error(e);
+        alert("에러 발생");
+    }
+}
 // =========================================
 // [추가] 연도 이동 로직 (상/하단 공통 사용)
 // =========================================
@@ -2062,10 +2151,11 @@ async function openDayListModal(dateStr) {
     const modal = document.getElementById("dayListModal");
     const listGroup = document.getElementById("dayListGroup");
 
-    // 날짜 제목 설정
+    // 날짜 제목 설정 (예: 2025-10-15)
     const dateTitle = document.getElementById("dayListDate");
     if(dateTitle) dateTitle.innerText = dateStr;
 
+    // 로딩 표시
     if(listGroup) {
         // ★ [핵심 1] 리스트 컨테이너의 '최소 높이'를 강제로 고정합니다. (약 3개 높이)
         // 데이터가 0~2개여도 이 높이는 유지됩니다.
@@ -2096,18 +2186,21 @@ async function openDayListModal(dateStr) {
         modal.classList.add("show");
         modal.style.display = "flex";
 
+        // 모달이 열리는 순간 외부 클릭으로 바로 닫히지 않도록 방어
         modalJustOpened = true;
         setTimeout(() => { modalJustOpened = false; }, 100);
     }
 
     try {
+        // API 호출
         const res = await fetch(`/api/ledger/daily-list?date=${dateStr}`);
+
         if (!res.ok) throw new Error("네트워크 응답 실패");
 
         const list = await res.json();
 
         if(listGroup) {
-            listGroup.innerHTML = ""; // 스켈레톤 제거
+            listGroup.innerHTML = ""; // 기존 내용 비우기
 
             if(list.length === 0) {
                 // ★ [핵심 2] 데이터가 없을 때, 250px 높이의 '정중앙'에 메시지 배치
@@ -2122,6 +2215,7 @@ async function openDayListModal(dateStr) {
                     const li = document.createElement("li");
                     li.className = "list-group-item list-group-item-action py-3";
                     li.style.cursor = "pointer";
+                    // 클릭 시 수정 모달로 연결
                     li.onclick = () => openEditModal(item);
 
                     // 1. 시간 포맷팅
@@ -2135,10 +2229,10 @@ async function openDayListModal(dateStr) {
                         timeStr = `${ampm} ${displayHour}:${minutes}`;
                     }
 
-                    // 2. 제목
+                    // 2. 제목 (사용처 우선, 없으면 카테고리)
                     const mainTitle = item.placeOfUse ? item.placeOfUse : item.categoryName;
 
-                    // 3. 스타일
+                    // 3. 스타일 (지출:빨강, 수입:파랑)
                     const isExpense = item.entryType === 'EXPENSE';
                     const colorClass = isExpense ? 'text-danger' : 'text-primary';
                     const sign = isExpense ? '-' : '+';
@@ -2170,26 +2264,26 @@ async function openDayListModal(dateStr) {
 }
 
 
-    function closeWelcomeModal() {
-        const modal = document.getElementById("welcomeModal");
-        modal.style.display = "none";
-        modal.classList.remove("show");
 
-        // 다시 보지 않기 설정
-        localStorage.setItem('welcome_done', 'true');
-    }
+function closeWelcomeModal() {
+    const modal = document.getElementById("welcomeModal");
+    modal.style.display = "none";
+    modal.classList.remove("show");
 
+    // 다시 보지 않기 설정
+    localStorage.setItem('welcome_done', 'true');
+}
 // =========================================
 // [누락된 함수 복구] 모달 닫기 기능
 // =========================================
 
-    function closeDayListModal() {
-        const modal = document.getElementById("dayListModal");
-        if (modal) {
-            modal.style.display = "none";
-            modal.classList.remove("show");
-        }
+function closeDayListModal() {
+    const modal = document.getElementById("dayListModal");
+    if (modal) {
+        modal.style.display = "none";
+        modal.classList.remove("show");
     }
+}
 
 
 //혹시 안될까봐
@@ -2292,211 +2386,260 @@ async function openDayListModal(dateStr) {
 //         if (skel && skel.parentNode) skel.remove();
 //     }, 350);
 // 드래그 앤 드랍
-    function dragElement() {
-        const dropZone = document.getElementById('fileDropZone');
-        const fileInput = document.getElementById('fileInput');
+function dragElement() {
+    const dropZone = document.getElementById('fileDropZone');
+    const fileInput = document.getElementById('fileInput');
 
-        dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('click', () => fileInput.click());
 
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('drag-over');
-        });
-
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('drag-over');
-        });
-
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('drag-over');
-
-            const file = e.dataTransfer.files[0];
-            handleFileUpload(file);
-        });
-
-        fileInput.addEventListener('change', () => {
-            const file = fileInput.files[0];
-            handleFileUpload(file);
-        });
-
-    }
-
-    function handleFileUpload(file) {
-        if (!file) return;
-
-        // 파일 확장자 소문자 추출
-        const ext = file.name.split('.').pop().toLowerCase();
-        const allowedExt = ["xls", "xlsx", "csv"];
-
-        if (!allowedExt.includes(ext)) {
-            alert("엑셀 파일(.xls, .xlsx, .csv)만 업로드 가능합니다!");
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append("file", file);
-
-        fetch("/ledger/import/excel", {
-            method: "POST",
-            body: formData
-        })
-            .then(res => res.json())
-            .then(info => {
-                // 미리보기 데이터 저장
-                lastExcelRows = info;  // rows만 따로 저장
-
-                document.getElementById("fileName").textContent = "";
-                document.getElementById("fileSize").textContent = "";
-
-                const thead = document.querySelector("#sampleTable thead");
-                const tbody = document.querySelector("#sampleTable tbody");
-                if (thead) thead.innerHTML = "";
-                if (tbody) tbody.innerHTML = "";
-
-                showPreviewSection();
-
-                // Preview 출력
-                showPreview({
-                    fileName: info.fileName,
-                    fileSize: info.fileSize,
-                    headers: info.headers,
-                    rows: info.rows.slice(0, 3) // 화면에 보여줄 샘플만
-                });
-                // 데이터 전송 버튼 노출
-                const btn = document.getElementById("sendDataBtn");
-                if (btn) {
-                    btn.style.display = "inline-block";
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                alert("파일 미리보기 중 오류가 발생했습니다.");
-                hidePreviewSection();
-
-                // 에러 시 버튼 숨김
-                const btn = document.getElementById("sendDataBtn");
-                if (btn) {
-                    btn.style.display = "none";
-                }
-            });
-    }
-
-    function showPreview(info) {
-        // 파일 정보 세팅
-        document.getElementById("fileName").textContent = info.fileName ?? "";
-        document.getElementById("fileSize").textContent = info.fileSize ?? "";
-
-        // Table DOM
-        const thead = document.querySelector("#sampleTable thead");
-        const tbody = document.querySelector("#sampleTable tbody");
-
-        thead.innerHTML = "";
-        tbody.innerHTML = "";
-
-        // BOM 제거 처리 (엑셀 헤더에서만)
-        const headers = (info.headers ?? []).map(h => h.replace("\ufeff", "").trim());
-
-        // Header Row 생성
-        const trHead = document.createElement("tr");
-        headers.forEach(h => {
-            const th = document.createElement("th");
-            th.textContent = h;
-            trHead.appendChild(th);
-        });
-        thead.appendChild(trHead);
-
-        // Sample Rows 생성
-        (info.rows ?? []).forEach(row => {
-            const tr = document.createElement("tr");
-
-            row.forEach(col => {
-                const td = document.createElement("td");
-                td.textContent = col ?? "";
-                tr.appendChild(td);
-            });
-
-            tbody.appendChild(tr);
-        });
-    }
-
-// 데이터 전송(DB에 들어 갈 수 있도록 유효성 검사)
-    document.addEventListener("DOMContentLoaded", () => {
-        const closeBtn = document.getElementById("previewCloseBtn");
-        if (closeBtn) {
-            closeBtn.addEventListener("click", () => {
-                hidePreviewSection();
-            });
-        }
-
-        const sendBtn = document.getElementById("sendDataBtn");
-        if (sendBtn) {
-            sendBtn.addEventListener("click", () => {
-                if (!lastExcelRows) {
-                    alert("전송할 데이터가 없습니다. 먼저 파일을 업로드 해주세요.");
-                    return;
-                }
-
-                fetch("/ledger/import/analyze", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(lastExcelRows)
-                })
-                    .then(async res => {
-                        const data = await res.json().catch(() => null);
-
-                        // HTTP Status 자체가 오류인 경우
-                        if (!res.ok) {
-                            alert(data?.message || data?.error || "서버 처리 중 오류가 발생했습니다.");
-                            return;
-                        }
-
-                        // 서버 side에서 status=error 준 경우
-                        if (data.status === "error") {
-                            alert(data.message || "처리 중 오류가 발생했습니다.");
-                            return;
-                        }
-                        // 정상 처리
-                        alert("데이터 입력 완료!");
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        alert("데이터 분석 요청 중 오류가 발생했습니다.");
-                    });
-            });
-        }
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
     });
 
-// Preview 전체 영역 노출
-    function showPreviewSection() {
-        document.getElementById("previewSection").style.display = "block";
-    }
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('drag-over');
+    });
 
-// Preview 전체 영역 숨김 및 초기화
-    function hidePreviewSection() {
-        const section = document.getElementById("previewSection");
-        section.style.display = "none";
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
 
-        // 기존 데이터 초기화
-        document.getElementById("fileName").textContent = "";
-        document.getElementById("fileSize").textContent = "";
+        const file = e.dataTransfer.files[0];
+        handleFileUpload(file);
+    });
 
-        const thead = document.querySelector("#sampleTable thead");
-        const tbody = document.querySelector("#sampleTable tbody");
-        if (thead) thead.innerHTML = "";
-        if (tbody) tbody.innerHTML = "";
+    fileInput.addEventListener('change', () => {
+        const file = fileInput.files[0];
+        handleFileUpload(file);
+    });
 
-        // 분석 버튼 숨김
-        const btn = document.getElementById("sendDataBtn");
-        if (btn) btn.style.display = "none";
-
-        // 파일 input 리셋
-        const fileInput = document.getElementById("fileInput");
-        if (fileInput) fileInput.value = "";
-
-        // 내부 저장 데이터 초기화
-        lastExcelRows = null;
 }
 
+function handleFileUpload(file) {
+    if (!file) return;
+
+    // 파일 확장자 소문자 추출
+    const ext = file.name.split('.').pop().toLowerCase();
+    const allowedExt = ["xls", "xlsx", "csv"];
+
+    if (!allowedExt.includes(ext)) {
+        alert("엑셀 파일(.xls, .xlsx, .csv)만 업로드 가능합니다!");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    fetch("/ledger/import/excel", {
+        method: "POST",
+        body: formData
+    })
+        .then(res => res.json())
+        .then(info => {
+            // 미리보기 데이터 저장
+            lastExcelRows = info;  // rows만 따로 저장
+
+            document.getElementById("fileName").textContent = "";
+            document.getElementById("fileSize").textContent = "";
+
+            const thead = document.querySelector("#sampleTable thead");
+            const tbody = document.querySelector("#sampleTable tbody");
+            if (thead) thead.innerHTML = "";
+            if (tbody) tbody.innerHTML = "";
+
+            showPreviewSection();
+
+            // Preview 출력
+            showPreview({
+                fileName: info.fileName,
+                fileSize: info.fileSize,
+                headers: info.headers,
+                rows: info.rows.slice(0, 3) // 화면에 보여줄 샘플만
+            });
+            // 데이터 전송 버튼 노출
+            const btn = document.getElementById("sendDataBtn");
+            if (btn) {
+                btn.style.display = "inline-block";
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("파일 미리보기 중 오류가 발생했습니다.");
+            hidePreviewSection();
+
+            // 에러 시 버튼 숨김
+            const btn = document.getElementById("sendDataBtn");
+            if (btn) {
+                btn.style.display = "none";
+            }
+        });
+}
+
+function showPreview(info) {
+    // 파일 정보 세팅
+    document.getElementById("fileName").textContent = info.fileName ?? "";
+    document.getElementById("fileSize").textContent = info.fileSize ?? "";
+
+    // Table DOM
+    const thead = document.querySelector("#sampleTable thead");
+    const tbody = document.querySelector("#sampleTable tbody");
+
+    thead.innerHTML = "";
+    tbody.innerHTML = "";
+
+    // BOM 제거 처리 (엑셀 헤더에서만)
+    const headers = (info.headers ?? []).map(h => h.replace("\ufeff", "").trim());
+
+    // Header Row 생성
+    const trHead = document.createElement("tr");
+    headers.forEach(h => {
+        const th = document.createElement("th");
+        th.textContent = h;
+        trHead.appendChild(th);
+    });
+    thead.appendChild(trHead);
+
+    // Sample Rows 생성
+    (info.rows ?? []).forEach(row => {
+        const tr = document.createElement("tr");
+
+        row.forEach(col => {
+            const td = document.createElement("td");
+            td.textContent = col ?? "";
+            tr.appendChild(td);
+        });
+
+        tbody.appendChild(tr);
+    });
+}
+
+// 데이터 전송(DB에 들어 갈 수 있도록 유효성 검사)
+document.addEventListener("DOMContentLoaded", () => {
+    const closeBtn = document.getElementById("previewCloseBtn");
+    if (closeBtn) {
+        closeBtn.addEventListener("click", () => {
+            hidePreviewSection();
+        });
+    }
+
+    const sendBtn = document.getElementById("sendDataBtn");
+    if (sendBtn) {
+        sendBtn.addEventListener("click", () => {
+            if (!lastExcelRows) {
+                alert("전송할 데이터가 없습니다. 먼저 파일을 업로드 해주세요.");
+                return;
+            }
+
+            fetch("/ledger/import/analyze", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(lastExcelRows)
+            })
+                .then(async res => {
+                    const data = await res.json().catch(() => null);
+
+                    // HTTP Status 자체가 오류인 경우
+                    if (!res.ok) {
+                        alert(data?.message || data?.error || "서버 처리 중 오류가 발생했습니다.");
+                        return;
+                    }
+
+                    // 서버 side에서 status=error 준 경우
+                    if (data.status === "error") {
+                        alert(data.message || "처리 중 오류가 발생했습니다.");
+                        return;
+                    }
+                    // 정상 처리 후 데이터 로딩
+                    alert("데이터 입력 완료!");
+                    hidePreviewSection();
+                    initCache()
+                    await startDocu();
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("데이터 분석 요청 중 오류가 발생했습니다.");
+                });
+        });
+    }
+});
+
+// Preview 전체 영역 노출
+function showPreviewSection() {
+    document.getElementById("previewSection").style.display = "block";
+}
+
+// Preview 전체 영역 숨김 및 초기화
+function hidePreviewSection() {
+    const section = document.getElementById("previewSection");
+    section.style.display = "none";
+
+    // 기존 데이터 초기화
+    document.getElementById("fileName").textContent = "";
+    document.getElementById("fileSize").textContent = "";
+
+    const thead = document.querySelector("#sampleTable thead");
+    const tbody = document.querySelector("#sampleTable tbody");
+    if (thead) thead.innerHTML = "";
+    if (tbody) tbody.innerHTML = "";
+
+    // 분석 버튼 숨김
+    const btn = document.getElementById("sendDataBtn");
+    if (btn) btn.style.display = "none";
+
+    // 파일 input 리셋
+    const fileInput = document.getElementById("fileInput");
+    if (fileInput) fileInput.value = "";
+
+    // 내부 저장 데이터 초기화
+    lastExcelRows = null;
+}
+
+// 캐싱 데이터 전부 초기화
+function initCache(){
+    modalJustOpened = false;
+    modalChartInstance = null;
+    fullCalendarInstance = null;
+    ledgerCache.clear()
+    loaded3MonthCache = {};
+    loaded6MonthCache = null;
+    globalAvgLedger = null;
+    allCategoryStats = [];
+    selectedCategories = new Set();
+
+    genderChart = null;
+    ageChart = null;
+    AGE_LABELS = [];
+    lastExcelRows = null;
+}
+
+function updateCategory(payload){
+    console.log(payload)
+    console.log(payload.memo)
+    const res = fetch("ai/update-category",{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+            transActions: [
+                {
+                    placeOfUse: payload.place,
+                    entryAmount: payload.amount,
+                    memo: payload.memo,
+                    category: payload.category,
+                    occurredAt: normalizeDateTime(payload.dateTime)
+                }
+            ]
+        })
+    })
+}
+
+function normalizeDateTime(dt) {
+    if (!dt) return null;
+
+    // 2025-12-17T10:55:00 → 2025-12-17 10:55:00
+    return dt.replace('T', ' ').substring(0, 19);
+}

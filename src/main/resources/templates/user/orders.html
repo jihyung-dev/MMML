@@ -23,9 +23,7 @@
              class="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
 
             <div class="flex justify-between items-center mb-2">
-                <p class="text-lg font-semibold">
-                    주문번호: <span th:text="${order.merchantUid}"></span>
-                </p>
+
 
                 <span class="text-sm px-3 py-1 rounded-full"
                       th:classappend="${order.orderStatus == 'READY' ?
@@ -37,6 +35,7 @@
                 </span>
             </div>
             <div class="mb-2">
+<!--                <p> 주문 번호 : <span th:text="${order.id}"></span></p>-->
                 <p>총 결제 금액:
                     <span class="font-bold" th:text="${order.totalAmount}"></span>원
                 </p>
@@ -44,6 +43,15 @@
                 <p>주문 날짜:
                     <span th:text="${order.createdAt}"></span>
                 </p>
+                <p>
+                    송장 번호 :
+                    <span th:text="${order.shipments != null and !#lists.isEmpty(order.shipments) ? order.shipments.iterator().next().trackingNo : '미정'}"></span>
+                </p>
+                <p>
+                    주문번호: <span th:text="${order.merchantUid}"></span>
+                </p>
+
+
             </div>
 
             <div class="flex gap-4" th:if="${order.orderItems != null and order.orderItems.size() > 0}"
@@ -60,12 +68,21 @@
                 <!-- 오른쪽: 주문 정보 -->
                 <div class="flex flex-col justify-between">
                     <div>
-                        <p>총 결제 금액:
-                            <span class="font-bold" th:text="${orderItem.item.originalPrice}"></span>원
-                        </p>
-
-                        <p>상품 이름:
+                        <p class="text-lg font-semibold">상품 이름:
                             <span th:text="${orderItem.item.itemName}"></span>
+                        </p>
+                        <p>결제 금액:
+                            <span class="font-bold"
+                                  th:text="${orderItem.item.itemSaleprice != null ? orderItem.item.itemSaleprice : orderItem.item.originalPrice}">0</span>원
+                        </p>
+                        <p>옵션 타입:
+                            <span th:text="${orderItem.option?.optionType}"></span>
+                        </p>
+                        <p>옵션 value:
+                            <span th:text="${orderItem.option?.optionValue}"></span>
+                        </p>
+                        <p>옵션 가격:
+                            +<span th:text="${orderItem.option?.additionalPrice}"></span>
                         </p>
                         <!-- 상세보기 버튼 -->
                         <p class="mt-2">
@@ -75,8 +92,6 @@
                             </a>
                         </p>
                     </div>
-
-
 
                     <div class="mt-2" th:if="${order.orderItems == null or order.orderItems.size() == 0}">
                         <span class="text-gray-400 text-sm">상세보기 불가</span>

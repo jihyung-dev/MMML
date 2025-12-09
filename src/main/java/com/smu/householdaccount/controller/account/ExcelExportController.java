@@ -29,11 +29,12 @@ public class ExcelExportController {
     @GetMapping("/export")
     public ResponseEntity<?> export(
             @RequestParam int year,
-            @RequestParam int month
+            @RequestParam int month,
+            @SessionAttribute(name = "loginUserId", required = false) String memberId
             ){
 
         // chart API와 동일한 DTO 조회
-        List<LedgerEntry> summary = ledgerService.getYearDataToExcel(year, month);
+        List<LedgerEntry> summary = ledgerService.getYearDataToExcel(year, month, memberId);
 
         byte[] file = excelService.buildMonthlyLedgerExcel(summary, year, month);
 
@@ -47,11 +48,12 @@ public class ExcelExportController {
     public ResponseEntity<?> exportAndSendMail(
             @RequestParam int year,
             @RequestParam int month,
-            @RequestParam String email
+            @RequestParam String email,
+            @SessionAttribute(name = "loginUserId", required = false) String memberId
     ) {
         try {
             // chart API와 동일한 DTO 조회
-            List<LedgerEntry> summary = ledgerService.getYearDataToExcel(year, month);
+            List<LedgerEntry> summary = ledgerService.getYearDataToExcel(year, month, memberId);
 
             byte[] excelFile = excelService.buildMonthlyLedgerExcel(summary, year, month);
 

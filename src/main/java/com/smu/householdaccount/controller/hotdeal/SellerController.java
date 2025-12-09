@@ -132,4 +132,25 @@ public class SellerController {
         return "redirect:/hotdeal";
     }
 
+    @GetMapping("/editpage")
+    public String editSellerForm(@SessionAttribute("loginUser") Member loginUser, Model model) {
+        Seller seller = sellerService.getSellerByMemberId(loginUser.getMemberId());
+        if (seller == null) {
+            return "redirect:/seller/join"; // 등록 안 된 경우
+        }
+        model.addAttribute("seller", seller);
+        return "seller/editpage";
+    }
+
+    @PostMapping("/editpage")
+    public String editSeller(
+            @SessionAttribute("loginUser") Member loginUser,
+            @ModelAttribute("seller") Seller updatedSeller,
+            RedirectAttributes redirectAttributes
+    ) {
+        sellerService.updateSeller(loginUser.getMemberId(), updatedSeller);
+        redirectAttributes.addFlashAttribute("message", "판매자 정보가 수정되었습니다.");
+        return "redirect:/seller";
+    }
+
 }

@@ -50,7 +50,7 @@ public class OrderMainService{
         OrderMain order = new OrderMain();
         order.setMerchantUid(merchantUid);
         order.setTotalAmount(100000L);
-        order.setOrderStatus("READY");
+        order.setOrderStatus("PENDING");
         //order.setBuyer(req.getBuyerId());
         return orderMainRepository.save(order);
     }

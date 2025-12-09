@@ -34,6 +34,7 @@ public class PayController {
     @GetMapping("/verify")
     public ResponseEntity<?> verifyPayment(@RequestParam("imp_uid") String impUid){
         try{
+            System.out.println(impUid);
             VerificationResult result = verifyService.verificationResult(impUid);
             orderService.cancelOrdered(result.getMerchantUid());
             return ResponseEntity.ok("");

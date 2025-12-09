@@ -4,7 +4,7 @@ import com.smu.householdaccount.entity.common.Member;
 
 public interface MemberService {
 
-    void updateMemberInfo(
+    Member updateMemberInfo(
             String memberId,
             String memberName,
             String currentpw,

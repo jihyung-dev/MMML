@@ -32,27 +32,9 @@
                 <!-- Buttons would appear in edit mode -->
             </div>
         </div>
-        <div class="f">
 
-        <div style="height: 120px" class="mb-2 grid grid-cols-1 gap-x-2 gap-y-2 sm:grid-cols-2">
-            <a class="bg-white rounded flex items-center justify-center"
-               href="/mypage/activity">
-                <div>💖 내 활동</div>
-            </a>
-            <a class="bg-white rounded flex items-center justify-center"
-               href="/mypage/orders">
-                <div>🛒 주문배송</div>
-            </a>
-        </div>
-        <th:block th:if="${session.loginUser.seller != null}">
 
-            <div style="height: 120px" class="mb-8 grid grid-cols-1 gap-x-2 gap-y-2 sm:grid-cols-1">
-                <a class="bg-white rounded flex items-center justify-center"
-                   href="/seller">
-                    <div>판매자 상세</div>
-                </a>
-            </div>
-        </th:block>
+
 
 
 
@@ -87,6 +69,7 @@
                         <input class="w-full rounded-md border-gray-300 dark:border-white/20 bg-transparent text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-primary/50" id="address" readonly="" type="text" th:value="${member.address}"/>
                     </div>
                 </form>
+
                 <!-- Edit Mode Buttons -->
                 <div class="mt-6 flex justify-end gap-3 hidden">
                     <button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-gray-200 dark:bg-white/10 text-gray-800 dark:text-white text-sm font-bold leading-normal tracking-[0.015em]">
@@ -97,6 +80,28 @@
                     </button>
                 </div>
             </div>
+
+            <div class="f">
+            <div style="height: 120px" class="mb-2 grid grid-cols-1 gap-x-2 gap-y-2 sm:grid-cols-2">
+                <a class="bg-white rounded flex items-center justify-center"
+                   href="/mypage/activity">
+                    <div>💖 내 활동</div>
+                </a>
+                <a class="bg-white rounded flex items-center justify-center"
+                   href="/mypage/orders">
+                    <div>🛒 주문배송</div>
+                </a>
+            </div>
+            <th:block th:if="${session.loginUser.seller != null}">
+
+                <div style="height: 120px" class="mb-8 grid grid-cols-1 gap-x-2 gap-y-2 sm:grid-cols-1">
+                    <a class="bg-white rounded flex items-center justify-center"
+                       href="/seller">
+                        <div>판매자 상세</div>
+                    </a>
+                </div>
+            </th:block>
+
 
         </div>
     </div>

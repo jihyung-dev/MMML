@@ -111,6 +111,14 @@
                                 </div>
                                 <!-- Profile Form -->
                                 <form class="grid grid-cols-1 md:grid-cols-2 gap-6" method="post" th:action="@{/mypage/user/editpage}">
+
+                                    <!-- 오류 메시지 표시 -->
+                                    <div th:if="${errorMessage}" class="mb-4 p-3 rounded bg-red-100 text-red-700">
+                                        <p th:text="${errorMessage}">오류 메시지</p>
+                                    </div>
+
+                                    <!-- 이름, 비밀번호, 전화번호, 주소 input 필드 등 기존 내용 -->
+
                                     <div class="md:col-span-2">
                                         <label class="flex flex-col">
                                             <p class="text-sm font-medium pb-2">이름</p>

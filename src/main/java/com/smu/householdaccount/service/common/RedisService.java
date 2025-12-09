@@ -1,5 +1,6 @@
 package com.smu.householdaccount.service.common;
 
+import com.smu.householdaccount.repository.account.LedgerRepository;
 import com.smu.householdaccount.util.Log;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
@@ -7,6 +8,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
@@ -20,6 +23,7 @@ public class RedisService {
     private static final String EMAIL_SUB = "MMML 본인 확인 인증 번호";
     private static final String KEY_PREFIX = "auth:email:";
     private final RedisTemplate<String, Object> redisTemplate;
+    private final LedgerRepository ledgerRepository;
 
     /**
      * 이메일 기준 key 생성
@@ -71,5 +75,53 @@ public class RedisService {
     private String generateAuthCode() {
         int code = ThreadLocalRandom.current().nextInt(100000, 999999);
         return String.valueOf(code);
+    }
+
+    // group_id 캐싱
+    public Optional<Long> getGroupIdByMemberId(String memberId) {
+        String key = "member:" + memberId + ":group";
+
+        // ✅ 1️⃣ Redis 조회
+        String cached = stringRedisTemplate.opsForValue().get(key);
+
+        if (cached != null) {
+            if ("NONE".equals(cached)) {
+                return Optional.empty();
+            }
+            return Optional.of(Long.valueOf(cached));
+        }
+
+        // ✅ 2️⃣ DB 조회
+        Optional<Long> groupIdOpt =
+                ledgerRepository.findGroupIdByMemberId(memberId);
+
+        // ✅ 3️⃣ Redis 캐시 저장 (Optional 처리)
+        String valueToCache = groupIdOpt
+                .map(String::valueOf)
+                .orElse("NONE");
+
+        stringRedisTemplate.opsForValue().set(
+                key,
+                valueToCache,
+                Duration.ofMinutes(10)
+        );
+
+        return groupIdOpt;
+    }
+
+    public void setGroupId(String memberId){
+        String key = "member:" + memberId + ":group";
+
+        Optional<Long> groupIdOpt =
+                ledgerRepository.findGroupIdByMemberId(memberId);
+        String valueToCache = groupIdOpt
+                .map(String::valueOf)
+                .orElse("NONE");
+        stringRedisTemplate.opsForValue().set(
+                key,
+                valueToCache,
+                Duration.ofMinutes(10)
+        );
+
     }
 }

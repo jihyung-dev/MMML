@@ -3,6 +3,7 @@ package com.smu.householdaccount.service.hotdeal;
 import com.smu.householdaccount.entity.hotdeal.Item;
 import com.smu.householdaccount.entity.hotdeal.OrderMain;
 import com.smu.householdaccount.entity.hotdeal.Seller;
+import jakarta.validation.constraints.Size;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -25,4 +26,6 @@ public interface SellerService {
 
     // 🔹 판매자가 등록한 상품 목록 페이징 조회
     Page<Item> getItemBySeller(Long sellerId, Pageable pageable);
+
+    void updateSeller(@Size(max = 50) String memberId, Seller updatedSeller);
 }

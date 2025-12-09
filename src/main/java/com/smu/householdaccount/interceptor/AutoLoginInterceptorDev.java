@@ -2,6 +2,7 @@ package com.smu.householdaccount.interceptor;
 
 import com.smu.householdaccount.entity.common.Member;
 import com.smu.householdaccount.service.common.MemberService;
+import com.smu.householdaccount.service.hotdeal.SellerService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -15,6 +16,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 public class AutoLoginInterceptorDev implements HandlerInterceptor {
 
     private final MemberService memberService;
+    private final SellerService sellerService;
 
     //컨드롤러 도작전에 자동 셀러,유저 로그인
     @Override
@@ -26,6 +28,12 @@ public class AutoLoginInterceptorDev implements HandlerInterceptor {
 
         Member loginMember=memberService.login("U006","1234");
         session.setAttribute("loginUser",loginMember);
+
+// 병합 추가 부분 ▽
+// ⭐ 여기 추가: 이 회원이 판매자인지 여부 세션에 저장
+//        boolean isSeller = sellerService.getSellerByMemberId(loginMember.getMemberId()) != null;
+//        session.setAttribute("isSeller", isSeller);
+
         return true;
     }
 }

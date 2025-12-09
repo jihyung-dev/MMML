@@ -970,6 +970,516 @@ div#driver-popover-item {
     color: #ff4d4d; /* 마우스 올리면 빨간색 */
 }
 
+/**
+기존 작업 내용
+/* top3 */
+    /* 3카드 가로 배치용 래퍼 */
+/*.container{*/
+/*    max-width: 1200px;*/
+/*}*/
+/*.top3-wrapper {*/
+/*    display: flex;*/
+/*    gap: 16px;*/
+/*    justify-content: space-between;*/
+/*    flex-wrap: wrap;*/
+/*}*/
+
+/*!* 카드 기본 스타일 *!*/
+/*.top3-card {*/
+/*    flex: 1;*/
+/*    min-width: 280px;*/
+/*    background: #ffffff;*/
+/*    border-radius: 12px;*/
+/*    padding: 20px;*/
+/*    border: 1px solid #eee;*/
+/*    box-shadow: 0 4px 8px rgba(0,0,0,0.04);*/
+/*    text-align: center;*/
+/*}*/
+
+/*!* 내부 텍스트 *!*/
+/*.card-label {*/
+/*    font-size: 12px;*/
+/*    color: #888;*/
+/*    margin-bottom: 6px;*/
+/*}*/
+
+/*.card-category {*/
+/*    font-weight: 600;*/
+/*    font-size: 20px;*/
+/*    margin-bottom: 12px;*/
+/*}*/
+
+/*.small-text {*/
+/*    font-size: 12px;*/
+/*    color: #999;*/
+/*    margin-bottom: 4px;*/
+/*}*/
+
+/*.card-money {*/
+/*    font-size: 24px;*/
+/*    font-weight: 600;*/
+/*    color: #333;*/
+/*}*/
+
+/*.card-diff {*/
+/*    font-size: 20px;*/
+/*    font-weight: 600;*/
+/*}*/
+
+/*!* 반응형: 모바일에서는 세로 정렬 *!*/
+/*@media (max-width: 768px) {*/
+/*    .top3-wrapper {*/
+/*        flex-direction: column;*/
+/*    }*/
+/*}*/
+
+/*!* 유저 평균 데이터 *!*/
+/*.last-month-box {*/
+/*    background: #ffffff;*/
+/*    border: 1px solid #e5e8f0;*/
+/*    border-radius: 10px;*/
+/*    padding: 18px 22px;*/
+/*    margin-bottom: 30px;*/
+/*    margin-top: 30px;*/
+/*}*/
+
+/*.section-title {*/
+/*    font-size: 17px;*/
+/*    font-weight: 600;*/
+/*    margin-bottom: 16px;*/
+/*}*/
+
+/*.avg-list {*/
+/*    margin: 0;*/
+/*    padding: 0;*/
+/*}*/
+
+/*.avg-item {*/
+/*    display: flex;*/
+/*    justify-content: space-between;*/
+/*    align-items: center;*/
+/*    padding: 10px 0;*/
+/*    border-bottom: 1px solid #eef0f4;*/
+/*    font-size: 14px;*/
+/*}*/
+
+/*.avg-item:last-child {*/
+/*    border-bottom: none;*/
+/*}*/
+
+/*.avg-cat {*/
+/*    font-weight: 500;*/
+/*}*/
+
+/*.avg-value {*/
+/*    font-weight: 600;*/
+/*}*/
+
+/*.category-btn {*/
+/*    margin: 6px;*/
+/*    padding: 8px 14px;*/
+/*    border: 1px solid #ddd;*/
+/*    border-radius: 6px;*/
+/*    background: white;*/
+/*    cursor: pointer;*/
+/*    transition: background 0.15s;*/
+/*}*/
+
+/*.category-btn:hover {*/
+/*    background: #eef2f7;*/
+/*}*/
+
+/*.category-btn.active {*/
+/*    background: #3974ff;*/
+/*    color: white;*/
+/*    border-color: #2c62d4;*/
+/*    box-shadow: 0 0 6px rgba(57,116,255,0.4);*/
+/*    font-weight: 600;*/
+/*    transform: translateY(-1px);*/
+/*}*/
+
+/*#categoryStatsCharts {*/
+/*    display: block;             !* 항상 block 유지 *!*/
+/*    max-height: 0;*/
+/*    opacity: 0;*/
+/*    overflow: hidden;*/
+/*    transition:*/
+/*            max-height 0.45s ease,  !* 열림/닫힘 동일 효과 *!*/
+/*            opacity 0.35s ease;*/
+/*    pointer-events: none;       !* 닫혀있을 때 클릭 방지 *!*/
+/*}*/
+
+/*!* 열렸을 때 *!*/
+/*#categoryStatsCharts.open {*/
+/*    max-height: 600px;*/
+/*    opacity: 1;*/
+/*    pointer-events: auto;*/
+/*}*/
+
+/*!* ========================================= *!*/
+/*!* 대시보드 레이아웃 (차트/캘린더 가로 배치) *!*/
+/*!* ========================================= *!*/
+/*.dashboard-container {*/
+/*    display: flex;             !* 가로 배치 *!*/
+/*    justify-content: space-between;*/
+/*    gap: 20px;*/
+/*    max-width: 100%;*/
+/*    margin: 0 auto 30px auto;*/
+/*}*/
+
+/*.chart-wrapper, .calendar-wrapper {*/
+/*    flex: 1;                   !* 반반 차지 *!*/
+/*    background: #fff;*/
+/*    border-radius: 12px;*/
+/*    box-shadow: 0 2px 8px rgba(0,0,0,0.05);*/
+/*    padding: 20px;*/
+/*    height: 600px;             !* ★높이가 있어야 달력이 나옴!★ *!*/
+/*    min-width: 300px;*/
+/*    box-sizing: border-box;*/
+/*}*/
+
+/*#calendar {*/
+/*    width: 100%;*/
+/*    height: 100%;*/
+/*}*/
+
+/*!* 화면이 좁을 땐 세로로 변경 *!*/
+/*@media (max-width: 992px) {*/
+/*    .dashboard-container {*/
+/*        flex-direction: column;*/
+/*    }*/
+/*}*/
+/*!* ================================================= *!*/
+/*!* 1. 전체 배경 (이미지처럼 연한 회색)                *!*/
+/*!* ================================================= *!*/
+/*body {*/
+/*    background-color: #f5f6fa; !* 이미지와 비슷한 배경색 *!*/
+/*    color: #2d3436;*/
+/*    font-family: 'Noto Sans KR', sans-serif;*/
+/*}*/
+
+/*!* ================================================= *!*/
+/*!* 2. 대시보드 레이아웃 (Grid 사용 추천)              *!*/
+/*!* ================================================= *!*/
+/*.dashboard-container {*/
+/*    display: grid;*/
+/*    !* 왼쪽(차트 1개) : 오른쪽(캘린더 2배 크기) 비율 *!*/
+/*    grid-template-columns: 1fr 2fr;*/
+/*    gap: 24px; !* 박스 사이 간격 *!*/
+/*    max-width: 1400px;*/
+/*    margin: 0 auto;*/
+/*    padding: 20px;*/
+/*}*/
+
+/*!* 모바일에서는 세로로 떨어지게 *!*/
+/*@media (max-width: 1000px) {*/
+/*    .dashboard-container {*/
+/*        grid-template-columns: 1fr;*/
+/*    }*/
+/*}*/
+
+/*!* ================================================= *!*/
+/*!* 3. 카드 스타일 (이미지의 흰색 박스 느낌)            *!*/
+/*!* ================================================= *!*/
+/*!* chart-wrapper(왼쪽), calendar-wrapper(오른쪽) 공통 스타일 *!*/
+/*.chart-wrapper, .calendar-wrapper, .top3-card, .last-month-box {*/
+/*    background: #ffffff;       !* 흰색 배경 *!*/
+/*    border-radius: 16px;       !* 둥근 모서리 *!*/
+/*    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); !* 부드러운 그림자 *!*/
+/*    padding: 24px;             !* 내부 여백 *!*/
+/*    box-sizing: border-box;    !* 패딩 포함 크기 계산 *!*/
+
+/*    !* 내용물이 넘치지 않도록 방지 *!*/
+/*    overflow: hidden;*/
+/*}*/
+
+/*!* ================================================= *!*/
+/*!* 4. 캘린더 위치 잡기 (벗어나는 문제 해결)            *!*/
+/*!* ================================================= *!*/
+/*.calendar-wrapper {*/
+/*    !* 높이를 강제로 주지 말고, 내용물에 맞게 늘어나거나 최소 높이만 지정 *!*/
+/*    min-height: 600px;*/
+/*    height: auto;*/
+/*}*/
+
+/*!* FullCalendar가 부모 박스를 뚫고 나가는 것 방지 *!*/
+/*#calendar {*/
+/*    max-width: 100%;*/
+/*    height: 600px; !* 고정 높이 *!*/
+/*}*/
+/*!* ========================================= *!*/
+/*!* DataTables 커스텀 레이아웃                *!*/
+/*!* ========================================= *!*/
+
+/*!* 1. 상단 툴바 (엑셀 버튼 위치) *!*/
+/*.top-toolbar {*/
+/*    display: flex;*/
+/*    justify-content: flex-end; !* 오른쪽 정렬 *!*/
+/*    margin-bottom: 10px;       !* 테이블과 간격 *!*/
+/*}*/
+
+/*!* 2. 하단 툴바 (정보 - 검색 - 페이징) *!*/
+/*.bottom-toolbar {*/
+/*    display: flex;*/
+/*    justify-content: space-between; !* 양 끝과 중앙에 배치 *!*/
+/*    align-items: center;            !* 수직 중앙 정렬 *!*/
+/*    margin-top: 15px;*/
+/*    padding-top: 15px;*/
+/*    border-top: 1px solid #eee;     !* 구분선 *!*/
+/*    flex-wrap: wrap;                !* 화면 작으면 줄바꿈 *!*/
+/*    gap: 10px;*/
+/*}*/
+
+/*!* 3. 검색창 커스텀 (하단 중앙) *!*/
+/*.dataTables_filter {*/
+/*    !* DataTables 기본 마진 제거 *!*/
+/*    margin: 0 !important;*/
+/*    float: none !important;*/
+/*    text-align: center !important;*/
+/*}*/
+
+/*.dataTables_filter input {*/
+/*    border: 1px solid #ddd;*/
+/*    border-radius: 20px;       !* 둥글게 *!*/
+/*    padding: 5px 15px;*/
+/*    margin-left: 5px;*/
+/*    outline: none;*/
+/*    transition: all 0.3s;*/
+/*}*/
+
+/*.dataTables_filter input:focus {*/
+/*    border-color: #4a90e2;*/
+/*    box-shadow: 0 0 5px rgba(74, 144, 226, 0.3);*/
+/*}*/
+
+/*!* 4. 정보(Info)와 페이징(Pagination) 위치 보정 *!*/
+/*.dataTables_info {*/
+/*    padding-top: 0 !important;*/
+/*    font-size: 0.9em;*/
+/*    color: #666;*/
+/*}*/
+
+/*.dataTables_paginate {*/
+/*    padding-top: 0 !important;*/
+/*}*/
+
+/*!* 모바일 대응 *!*/
+/*@media (max-width: 768px) {*/
+/*    .bottom-toolbar {*/
+/*        flex-direction: column; !* 세로로 쌓기 *!*/
+/*        justify-content: center;*/
+/*    }*/
+/*}*/
+/*!* ========================================= *!*/
+/*!* Collapse (접기/펼치기) 애니메이션         *!*/
+/*!* ========================================= *!*/
+
+/*!* 1. 기본 화살표 상태 (펼쳐짐) *!*/
+/*.toggle-icon {*/
+/*    display: inline-block;*/
+/*    font-size: 1.2rem;*/
+/*    color: #888;*/
+/*    transform: rotate(0deg); !* 원래대로 *!*/
+/*    transition: transform 0.3s ease; !* 부드럽게 회전 *!*/
+/*}*/
+
+/*!* 2. 접혔을 때 화살표 상태 (Bootstrap이 .collapsed 클래스를 붙여줌) *!*/
+/*[aria-expanded="false"] .toggle-icon {*/
+/*    transform: rotate(-90deg); !* 90도 회전 (옆으로 눕기) *!*/
+/*}*/
+
+/*!* 3. 헤더에 마우스 올렸을 때 효과 *!*/
+/*.table-wrapper .d-flex:hover .toggle-icon {*/
+/*    color: #4a90e2; !* 파란색으로 변경 *!*/
+/*}*/
+
+/*!* ========================================= *!*/
+/*!* 반응형 네비게이션 (PC vs Mobile)          *!*/
+/*!* ========================================= *!*/
+
+/*!* 1. 기본 상태 (PC 화면) *!*/
+/*.mobile-nav-only {*/
+/*    display: none !important; !* 모바일용 숨김 *!*/
+/*}*/
+
+/*.desktop-nav-only {*/
+/*    display: flex !important; !* PC용 보임 *!*/
+/*}*/
+
+/*!* 2. 모바일 상태 (화면 너비 992px 이하) *!*/
+/*@media (max-width: 992px) {*/
+/*    !* 모바일용 보임 (맨 상단) *!*/
+/*    .mobile-nav-only {*/
+/*        display: flex !important;*/
+/*        justify-content: center;*/
+/*        margin-bottom: 20px;*/
+/*    }*/
+
+/*    !* PC용 숨김 (캘린더 내부) *!*/
+/*    .desktop-nav-only {*/
+/*        display: none !important;*/
+/*    }*/
+/*}*/
+/*!* ========================================= *!*/
+/*!* 1. Month Navigation (모던 스타일)         *!*/
+/*!* ========================================= *!*/
+/*.month-nav {*/
+/*    display: flex;*/
+/*    align-items: center;*/
+/*    justify-content: center;*/
+/*    gap: 15px;*/
+/*    background: transparent; !* 배경 제거 *!*/
+/*    padding: 10px;*/
+/*}*/
+
+/*!* 날짜 텍스트 (2025년 10월) *!*/
+/*.neo-label {*/
+/*    font-size: 1.5rem;       !* 큼직하게 *!*/
+/*    font-weight: 800;        !* 아주 굵게 *!*/
+/*    color: #2d3436;          !* 진한 회색 *!*/
+/*    background: none;        !* 회색 박스 제거 *!*/
+/*    box-shadow: none;        !* 그림자 제거 *!*/
+/*    padding: 0;*/
+/*    margin: 0 20px;*/
+/*    letter-spacing: -0.5px;  !* 자간 살짝 좁게 *!*/
+/*}*/
+
+/*!* 화살표 버튼 (심플한 원형 아이콘) *!*/
+/*.neo-btn {*/
+/*    width: 36px;*/
+/*    height: 36px;*/
+/*    border: 1px solid #e1e4e8; !* 얇은 테두리 *!*/
+/*    background: #fff;*/
+/*    border-radius: 50%;        !* 완전 원형 *!*/
+/*    color: #636e72;*/
+/*    font-size: 14px;*/
+/*    cursor: pointer;*/
+/*    transition: all 0.2s ease;*/
+
+/*    !* 그림자 없애고 플랫하게 *!*/
+/*    box-shadow: none;*/
+
+/*    !* 중앙 정렬 *!*/
+/*    display: flex;*/
+/*    align-items: center;*/
+/*    justify-content: center;*/
+/*}*/
+
+/*.neo-btn:hover {*/
+/*    background: #f1f2f6;      !* 마우스 올리면 살짝 회색 *!*/
+/*    color: #2d3436;*/
+/*    border-color: #dcdde1;*/
+/*}*/
+
+/*!* ========================================= *!*/
+/*!* 2. 캘린더 히트맵 스타일 보정              *!*/
+/*!* ========================================= *!*/
+/*.heatmap-event {*/
+/*    border-radius: 4px;       !* 모서리 살짝 둥글게 *!*/
+/*    padding: 2px 4px;         !* 내부 여백 *!*/
+/*    margin-bottom: 2px !important;*/
+/*    font-size: 0.85em;        !* 글씨 크기 조정 *!*/
+/*    font-weight: 500;*/
+/*    box-shadow: 0 1px 2px rgba(0,0,0,0.1); !* 살짝 입체감 *!*/
+/*    transition: transform 0.1s;*/
+/*}*/
+
+/*.heatmap-event:hover {*/
+/*    transform: scale(1.02);   !* 마우스 올리면 살짝 커짐 *!*/
+/*    z-index: 10;*/
+/*}*/
+
+/*!* 캘린더 날짜(숫자) 스타일 *!*/
+/*.fc-daygrid-day-number {*/
+/*    color: #636e72;*/
+/*    font-weight: 600;*/
+/*    padding: 8px !important;*/
+/*}*/
+
+/*!* 오늘 날짜 표시 *!*/
+/*.fc-day-today {*/
+/*    background-color: #f8f9fa !important; !* 아주 연한 회색 배경 *!*/
+/*}*/
+
+/*!* 🔹 전체 오버레이 *!*/
+/*#globalSkeleton {*/
+/*    position: fixed !important;*/
+/*    inset: 0;*/
+/*    display: none;*/
+/*    align-items: center;*/
+/*    justify-content: center;*/
+/*    z-index: 9999;*/
+
+/*    background: rgba(0, 0, 0, 0.30);*/
+/*    backdrop-filter: blur(4px);*/
+/*    animation: bgFade 0.4s ease;*/
+/*}*/
+
+/*!* 🔹 Glass-style dark tile *!*/
+/*#singleSkeletonCard {*/
+/*    width: 300px;*/
+/*    height: 170px;*/
+/*    border-radius: 18px;*/
+
+/*    !* Darker, softer glass *!*/
+/*    background: rgba(255, 255, 255, 0.08);*/
+/*    backdrop-filter: blur(10px);*/
+
+/*    !* 약한 밝기와 은근한 음영 *!*/
+/*    border: 1px solid rgba(255,255,255,0.15);*/
+/*    box-shadow:*/
+/*            0 6px 24px rgba(0,0,0,0.35),*/
+/*            inset 0 0 6px rgba(255,255,255,0.08);*/
+
+/*    position: relative;*/
+/*    overflow: hidden;*/
+
+/*    animation:*/
+/*            pulse 2.3s ease-in-out infinite,*/
+/*            float 6s ease-in-out infinite;*/
+/*}*/
+
+/*!* 🌊 아주 은은한 shimmer *!*/
+/*#singleSkeletonCard::after {*/
+/*    content: "";*/
+/*    position: absolute;*/
+/*    inset: 0;*/
+/*    background: linear-gradient(*/
+/*            110deg,*/
+/*            transparent 0%,*/
+/*            rgba(255,255,255,0.20) 40%,*/
+/*            transparent 80%*/
+/*    );*/
+/*    transform: translateX(-100%);*/
+/*    animation: shimmer 1.9s infinite linear;*/
+/*}*/
+
+/*!* 🎬 Keyframes *!*/
+
+/*!* 부드러운 shimmer *!*/
+/*@keyframes shimmer {*/
+/*    0%   { transform: translateX(-100%); }*/
+/*    100% { transform: translateX(100%); }*/
+/*}*/
+
+/*!* pulse를 거의 정적으로 (눈 편안) *!*/
+/*@keyframes pulse {*/
+/*    0%,100% { opacity: 0.85; }*/
+/*    50%     { opacity: 0.95; }*/
+/*}*/
+
+/*!* float는 아주 천천히 *!*/
+/*@keyframes float {*/
+/*    0%,100% { transform: translateY(0px); }*/
+/*    50%     { transform: translateY(-4px); }*/
+/*}*/
+
+/*!* Fade-in overlay *!*/
+/*@keyframes bgFade {*/
+/*    from { opacity: 0; }*/
+/*    to   { opacity: 1; }*/
+/*}*/
+
 .file-drop-zone {
     border: 2px dashed #aaa;
     border-radius: 12px;
@@ -1077,4 +1587,71 @@ div#driver-popover-item {
     transform: scale(1.1);
     /* z-index를 높여서 다른 요소 위에 표시되게 함 */
     z-index: 100;
+}
+
+.primary-import-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+
+    width: 100%;
+    max-width: 520px;
+
+    padding: 16px 20px;
+
+    background: linear-gradient(135deg, #0d6efd, #4d8dff);
+    color: #fff;
+
+    border: none;
+    border-radius: 12px;
+
+    cursor: pointer;
+    text-align: left;
+
+    box-shadow: 0 6px 16px rgba(13, 110, 253, 0.25);
+
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.primary-import-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(13, 110, 253, 0.35);
+}
+
+.primary-import-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2);
+}
+
+.primary-import-btn .icon {
+    font-size: 28px;
+    line-height: 1;
+}
+
+.primary-import-btn .text {
+    display: flex;
+    flex-direction: column;
+}
+
+.primary-import-btn .text strong {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.primary-import-btn .text small {
+    font-size: 13px;
+    opacity: 0.9;
+}
+
+.import-main-section {
+    max-width: 100%;
+    margin: 10px;
+}
+
+.primary-import-btn {
+    width: 100%;
+    max-width: 100%; /* container 기준 */
+}
+.d-none {
+    display: none !important;
 }

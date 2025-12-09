@@ -1,10 +1,13 @@
 package com.smu.householdaccount.repository.hotdeal;
 
+import jakarta.persistence.LockModeType;
 import com.smu.householdaccount.entity.hotdeal.HotdealOption;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface HotdealOptionRepository extends JpaRepository<HotdealOption, Long> {
@@ -15,4 +18,7 @@ public interface HotdealOptionRepository extends JpaRepository<HotdealOption, Lo
 
     @Override
     List<HotdealOption> findAllById(Iterable<Long> longs);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE) //재고조회
+    Optional<HotdealOption> findById(Long id);
 }

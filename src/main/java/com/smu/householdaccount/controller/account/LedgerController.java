@@ -4,6 +4,8 @@ import com.smu.householdaccount.dto.ledger.LedgerSummaryDto;
 import com.smu.householdaccount.dto.python.ClassifyTransactionResponse;
 import com.smu.householdaccount.service.ai.AIService;
 import com.smu.householdaccount.service.account.LedgerService;
+import com.smu.householdaccount.service.common.RedisService;
+import com.smu.householdaccount.util.Log;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +13,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Controller
 @RequiredArgsConstructor
@@ -20,6 +25,7 @@ public class LedgerController {
 
     private final LedgerService ledgerService;
     private final AIService aiService;
+    private final RedisService redisService;
 
     /**
      * 환율 받아오는 API
@@ -37,8 +43,10 @@ public class LedgerController {
      * @return
      */
     @GetMapping("/request/userLedger/all")
-    public ResponseEntity<?> getAllLedger(){
-        ledgerService.getLedgerAll();
+    public ResponseEntity<?> getAllLedger(
+            @SessionAttribute(name="loginUserId") String memberId
+    ){
+        ledgerService.getLedgerAll(memberId);
         return ResponseEntity.ok("test");
     }
 
@@ -50,9 +58,10 @@ public class LedgerController {
     public ResponseEntity<?> getMonthlyGroupLedger(
             @RequestParam("year") int start_year,
             @RequestParam("month") int start_month,
-            @RequestParam("period") int period
+            @RequestParam("period") int period,
+            @SessionAttribute(name="loginUserId") String memberId
             ){
-        return ResponseEntity.ok(ledgerService.getMonthLedger(start_year, start_month, period));
+        return ResponseEntity.ok(ledgerService.getMonthLedger(start_year, start_month, period, memberId));
     }
 
     /**
@@ -63,9 +72,10 @@ public class LedgerController {
     public ResponseEntity<?> getMonthlyLedgerList(
             @RequestParam("year") int start_year,
             @RequestParam("month") int start_month,
-            @RequestParam("period") int period
+            @RequestParam("period") int period,
+            @SessionAttribute(name="loginUserId") String memberId
     ){
-        return ResponseEntity.ok(ledgerService.get6MonthLedger(start_year, start_month, period));
+        return ResponseEntity.ok(ledgerService.get6MonthLedger(start_year, start_month, period, memberId));
     }
 
     /**
@@ -77,9 +87,10 @@ public class LedgerController {
     @GetMapping("/chart")
     public ResponseEntity<?> getMonthlyChart(
             @RequestParam("year") int start_year,
-            @RequestParam("month") int start_month
+            @RequestParam("month") int start_month,
+            @SessionAttribute(name="loginUserId") String memberId
     ) {
-        LedgerSummaryDto dto = ledgerService.getMonthlyChart(start_year, start_month);
+        LedgerSummaryDto dto = ledgerService.getMonthlyChart(start_year, start_month, memberId);
         return ResponseEntity.ok(
                 dto
         );
@@ -111,6 +122,8 @@ public class LedgerController {
         String memberId = (String) session.getAttribute("loginUserId");
         ClassifyTransactionResponse res  = ledgerService.getLedgerTransaction(memberId, null);
 
+        if(res != null)
+            redisService.setGroupId(memberId);
         return ResponseEntity.ok(res);
     }
 
@@ -143,7 +156,25 @@ public class LedgerController {
         String memberId = (String) session.getAttribute("loginUserId");
         ClassifyTransactionResponse res  = ledgerService.handleExcelClassification(memberId, result);
 
+        if(res != null)
+            redisService.setGroupId(memberId);
+
         // 🔥 정상 응답이면 그대로 전달
         return ResponseEntity.ok(res);
+    }
+
+    @GetMapping("/request/group_id")
+    @ResponseBody
+    public Map<String, Object> getGroupId(HttpSession session) {
+        String memberId = (String) session.getAttribute("loginUserId");
+
+        Optional<Long> groupIdOpt =
+                redisService.getGroupIdByMemberId(memberId);
+
+        Map<String, Object> res = new HashMap<>();
+        res.put("hasGroup", groupIdOpt.isPresent());
+        res.put("groupId", groupIdOpt.orElse(null));
+
+        return res;
     }
 }

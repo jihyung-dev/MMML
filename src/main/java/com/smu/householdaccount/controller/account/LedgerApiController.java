@@ -3,7 +3,10 @@ package com.smu.householdaccount.controller.account;
 import com.smu.householdaccount.dto.ledger.LedgerDetailDto;
 import com.smu.householdaccount.dto.ledger.LedgerSaveRequest;
 import com.smu.householdaccount.dto.ledger.LedgerSummaryDto;
+import com.smu.householdaccount.dto.ledger.LedgerSummaryDto.DailySummary;
+import com.smu.householdaccount.entity.account.LedgerEntry;
 import com.smu.householdaccount.service.account.LedgerService;
+import com.smu.householdaccount.service.common.RedisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,22 +23,26 @@ import java.util.List;
 public class LedgerApiController {
 
     private final LedgerService ledgerService;
+    private final RedisService redisService;
     // [New] 대시보드(차트+캘린더) 데이터 통합 API
     @GetMapping("/dashboard-data")
     public ResponseEntity<LedgerSummaryDto> getDashboardData(
             @RequestParam("year") int year,
-            @RequestParam("month") int month
+            @RequestParam("month") int month,
+            @SessionAttribute(name = "loginUserId", required = false) String memberId
     ) {
-        return ResponseEntity.ok(ledgerService.getDashboardDataNew(year, month));
+        return ResponseEntity.ok(ledgerService.getDashboardDataNew(year, month, memberId));
     }
     // [수정] DataTables용 상세 내역 리스트 API
     @GetMapping("/transaction-list")
     public ResponseEntity<List<LedgerDetailDto>> getTransactionList(
             @RequestParam int year,
-            @RequestParam int month
+            @RequestParam int month,
+            @SessionAttribute(name = "loginUserId", required = false) String memberId
     ) {
 // 서비스 메서드 호출 (이름 바꿨으니 맞춰주세요)
-        return ResponseEntity.ok(ledgerService.getTransactionList(1L, year, month));
+        Long groupId = redisService.getGroupIdByMemberId(memberId).orElse(null); // 일단 group_id가 null일 경우 진행 안되게 js에서 처리는 해놨는데, 여기까지 들어오면 에러 100퍼
+        return ResponseEntity.ok(ledgerService.getTransactionList(groupId, year, month));
     }
     // [New] 단건 등록 API
     @PostMapping("/entry")

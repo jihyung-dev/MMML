@@ -22,6 +22,7 @@ import com.smu.householdaccount.repository.account.BudgetGroupRepository;
 import com.smu.householdaccount.repository.account.CategoryRepository;
 import com.smu.householdaccount.repository.account.LedgerRepository;
 import com.smu.householdaccount.repository.common.MemberRepository;
+import com.smu.householdaccount.service.common.RedisService;
 import com.smu.householdaccount.util.Log;
 import com.smu.householdaccount.util.Utility;
 import com.smu.householdaccount.web.SafeHttpClient;
@@ -67,6 +68,7 @@ public class LedgerService {
     private final BudgetGroupRepository budgetGroupRepository;
     private final CategoryRepository categoryRepository;
     private final MemberRepository memberRepository;
+    private final RedisService redisService;
 
     private final LedgerSaveService ledgerSaveService;
 
@@ -91,8 +93,9 @@ public class LedgerService {
     /**
      * 사용자의 모든 거래 내역
      */
-    public List<LedgerEntry> getLedgerAll(){
-        BudgetGroup group = budgetGroupRepository.findById(1l).orElseThrow();
+    public List<LedgerEntry> getLedgerAll(String memberId){
+        Long groupId = redisService.getGroupIdByMemberId(memberId).orElse(null);
+        BudgetGroup group = budgetGroupRepository.findById(groupId).orElseThrow();
         LocalDateTime start = LocalDateTime.of(2025, 8, 1,0,0,0);
         LocalDateTime end   = LocalDateTime.of(2025, 8, 31,0,0,0);
         Log.d("데이터 확인", group.toString());
@@ -103,8 +106,9 @@ public class LedgerService {
     /**
      * 월별 사용자의 거래 내역
      */
-    public LedgerSummaryDto getMonthLedger(int year, int month, int period){
-        BudgetGroup group = budgetGroupRepository.findById(1l).orElseThrow(); // 수정 필요.하드코딩
+    public LedgerSummaryDto getMonthLedger(int year, int month, int period, String memberId){
+        Long groupId = redisService.getGroupIdByMemberId(memberId).orElse(null);
+        BudgetGroup group = budgetGroupRepository.findById(groupId).orElseThrow(); // 수정 필요.하드코딩
         LocalDateTime date = LocalDateTime.of(year, month, 1,0,0,0);
         // 기준이 되는 달의 1일
         LocalDate targetMonth = LocalDate.of(year, month, 1);
@@ -118,8 +122,9 @@ public class LedgerService {
         return getLedgerSummary(entries);
     }
 
-    public List<MonthlyLedgerDto> get6MonthLedger(int year, int month, int period){
-        BudgetGroup group = budgetGroupRepository.findById(1l).orElseThrow(); // 수정 필요.하드코딩
+    public List<MonthlyLedgerDto> get6MonthLedger(int year, int month, int period, String memberId){
+        Long groupId = redisService.getGroupIdByMemberId(memberId).orElse(null);
+        BudgetGroup group = budgetGroupRepository.findById(groupId).orElseThrow(); // 수정 필요.하드코딩
         LocalDateTime date = LocalDateTime.of(year, month, 1,0,0,0);
         // 기준이 되는 달의 1일
         LocalDate targetMonth = LocalDate.of(year, month, 1);
@@ -133,8 +138,9 @@ public class LedgerService {
         return getMonthlySummary(entries);
     }
 
-    public LedgerSummaryDto getMonthlyChart(int year, int month) {
-        BudgetGroup group = budgetGroupRepository.findById(1l).orElseThrow(); // 수정 필요.하드코딩
+    public LedgerSummaryDto getMonthlyChart(int year, int month, String memberId) {
+        Long groupId = redisService.getGroupIdByMemberId(memberId).orElse(null);
+        BudgetGroup group = budgetGroupRepository.findById(groupId).orElseThrow(); // 수정 필요.하드코딩
         LocalDateTime date_start = LocalDateTime.of(year, month, 1,0,0,0);
         LocalDateTime date_end = LocalDateTime.of(year, month, Utility.endOfMonth(year, month),0,0,0);
         List<LedgerEntry> entries = ledgerRepository.findByGroupAndDateRange(group, date_start, date_end);
@@ -148,8 +154,9 @@ public class LedgerService {
      * @param month
      * @return
      */
-    public List<LedgerEntry> getYearDataToExcel(int year, int month) {
-        BudgetGroup group = budgetGroupRepository.findById(1l).orElseThrow(); // 수정 필요.하드코딩
+    public List<LedgerEntry> getYearDataToExcel(int year, int month, String memberId) {
+        Long groupId = redisService.getGroupIdByMemberId(memberId).orElse(null);
+        BudgetGroup group = budgetGroupRepository.findById(groupId).orElseThrow(); // 수정 필요.하드코딩
         LocalDateTime date_start = LocalDateTime.of(year, 1, 1, 0, 0, 0);
         LocalDateTime date_end = LocalDateTime.of(year, month, Utility.endOfMonth(year, month), 0, 0, 0);
 
@@ -242,11 +249,12 @@ public class LedgerService {
     // ========================================================
 // [New] 대시보드 데이터 처리 (기존 로직 영향 없음)
 // ========================================================
-    public LedgerSummaryDto getDashboardDataNew(int year, int month) {
+    public LedgerSummaryDto getDashboardDataNew(int year, int month, String memberId) {
+        Long groupId = redisService.getGroupIdByMemberId(memberId).orElse(null);
         // 1. 날짜 및 그룹 설정
         LocalDateTime start = LocalDateTime.of(year, month, 1, 0, 0, 0);
         LocalDateTime end = start.plusMonths(1).minusSeconds(1);
-        BudgetGroup myGroup = budgetGroupRepository.findById(1L).orElseThrow(); // 임시 그룹 ID 1
+        BudgetGroup myGroup = budgetGroupRepository.findById(groupId).orElseThrow();
 
         // 2. 카테고리별 합계
         List<CategorySumDto> catSums = ledgerRepository.findCategorySumNew(myGroup, start, end);

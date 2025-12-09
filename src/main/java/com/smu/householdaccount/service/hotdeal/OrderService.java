@@ -32,4 +32,8 @@ public interface OrderService { //핫딜 전용 service(주문 생성, 재고 �
     //최종결제금액
     BigDecimal calculatePrice(Long itemId, Long optionId, int qty);
 
+
+    //주문 수정
+    void cancelPendingOrder(String merchantUid);
+
 }
