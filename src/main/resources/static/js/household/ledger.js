@@ -12,6 +12,9 @@ const now = new Date();
 let currentYear = now.getFullYear();
 let currentMonth = now.getMonth() + 1;
 
+// 이번 달 vs 3 개월 데이터 비교 플래그
+let isThreeMonthBarChartDrawn = false;
+
 let modalJustOpened = false; // 모달 팝업 플래그
 let modalChartInstance = null;
 
@@ -39,7 +42,10 @@ let ageChart = null;
 let AGE_LABELS = [];
 // 엑셀 데이터
 let lastExcelRows = null;
-
+// 일별 데이터 막대 그래프 인스턴스
+let dailyLineChartInstance = null;
+//top3 차트
+const top3ChartInstances = { top1: null, top2: null, top3: null };
 function prepareAgeLabels() {
     const ageSet = new Set();
 
@@ -120,9 +126,10 @@ async function loadLedgerChart({ year, month }) {
 
     drawCategoryPieChart(bundle.current.categories);
     drawDailyLineChart(bundle.current.daily, bundle.prev1.daily);
-    await renderFullCategoryChart();
+    if(!isThreeMonthBarChartDrawn)
+        await renderFullCategoryChart();
 
-    // [수정 포인트 2] 새 데이터 로드 시 호출
+    // [New] 소계 업데이트 // 추가!
     if(bundle.current.daily) updateMonthlyTotals(bundle.current);
 
     // [추가 2] 데이터를 새로 가져왔을 때 캘린더 그리기
@@ -132,6 +139,12 @@ async function loadLedgerChart({ year, month }) {
 }
 
 function drawCategoryPieChart(categories) {
+    if (!categories || categories.length === 0) {
+        showChartEmpty("categoryChart");
+        return;
+    }
+    showChart("categoryChart");
+
     Highcharts.chart('categoryChart', {
         chart: { type: 'pie' },
         title: { text: currentYear + '년 ' + currentMonth + '월 소비 내역' },
@@ -164,8 +177,44 @@ function drawCategoryPieChart(categories) {
     });
 }
 
+function showEmptyChart(wrapperEl, chartId) {
+    // empty overlay 표시
+    const emptyEl = wrapperEl.querySelector(".chart-empty");
+    if (emptyEl) emptyEl.style.display = "flex";
+
+    // 실제 차트 div 숨김
+    const chartEl = wrapperEl.querySelector(`#${chartId}`);
+    if (chartEl) chartEl.style.display = "none";
+}
+
+function hideEmptyChart(wrapperEl, chartId) {
+    const emptyEl = wrapperEl.querySelector(".chart-empty");
+    if (emptyEl) emptyEl.style.display = "none";
+
+    const chartEl = wrapperEl.querySelector(`#${chartId}`);
+    if (chartEl) chartEl.style.display = "block";
+}
+
 // 3개월 평균 데이터와 이번 달 지출 막대 차트로 출력
 function drawCategoryComparisonBarChart(categoryList) {
+    const wrapper = document
+        .getElementById("threeMonthBarChart")
+        .closest(".bar-chart-wrapper");
+
+    // ✅ 데이터 없음 처리 (여기가 핵심)
+    if (!Array.isArray(categoryList) || categoryList.length === 0) {
+        showEmptyChart(wrapper, "threeMonthBarChart");
+
+        // 혹시 이전 차트가 있으면 제거
+        if (threeMonthBarChartInstance) {
+            threeMonthBarChartInstance.destroy();
+            threeMonthBarChartInstance = null;
+        }
+        return;
+    }
+    hideEmptyChart(wrapper, "threeMonthBarChart");
+
+    isThreeMonthBarChartDrawn = true;
     Highcharts.chart('threeMonthBarChart', {
         chart: { type: 'column' },
         title: {
@@ -230,61 +279,118 @@ function drawModalComparePieChart(currentAmount, avgAmount, categoryName) {
         }]
     });
 }
+function emptyTop3(cardKey) {
+    const card = document.querySelector(`.top3-card[data-key="${cardKey}"]`);
+
+    // 1) 이전 차트 완전 제거
+    if (top3ChartInstances[cardKey]) {
+        top3ChartInstances[cardKey].destroy();
+        top3ChartInstances[cardKey] = null;
+    }
+
+    // 2) UI 전환
+    card.classList.add('is-empty');
+}
+function showTop3Chart(cardKey, containerId, history, overspend) {
+    const card = document.querySelector(`.top3-card[data-key="${cardKey}"]`);
+
+    // 1) empty 상태 해제
+    card.classList.remove('is-empty');
+
+    // 2) 기존 차트 제거 (안전장치)
+    if (top3ChartInstances[cardKey]) {
+        top3ChartInstances[cardKey].destroy();
+        top3ChartInstances[cardKey] = null;
+    }
+
+    // 3) 새 차트 생성
+    top3ChartInstances[cardKey] = Highcharts.chart(containerId, {
+        chart: { type: 'line', height: 120, backgroundColor: 'transparent' },
+        title: { text: null },
+        credits: { enabled: false },
+        exporting: { enabled: false },
+        xAxis: { visible: false },
+        yAxis: { visible: false },
+        legend: { enabled: false },
+        series: [{
+            data: history.map(h => h.total),
+            color: overspend ? '#ff4d4d' : '#4a90e2'
+        }]
+    });
+}
 
 function drawTop3LineChart(containerId, category, history, overspend) {
 
     const categories = history.map(h => h.month);
     const data = history.map(h => h.total);
 
-    Highcharts.chart(containerId, {
+    return  Highcharts.chart(containerId, {
         chart: {
             type: 'line',
-            height: 80,          // 🔥 최소 높이
+            height: 80,
             backgroundColor: 'transparent',
             margin: [10, 0, 10, 0]
         },
         title: { text: null },
 
-        // X축 완전 미니멀
         xAxis: {
             categories,
             tickLength: 0,
             lineWidth: 0,
-            labels: { enabled: false } // 글자 제거
+            labels: { enabled: false }
         },
 
-        // Y축 완전 미니멀
         yAxis: {
             title: { text: null },
             gridLineWidth: 0,
             labels: { enabled: false },
-            tickAmount: 2   // 혹시 모를 흔들림 방지
+            tickAmount: 2
         },
 
-        // 포인트 표시 제거
         plotOptions: {
             series: {
                 lineWidth: 2,
                 marker: { enabled: false },
-                enableMouseTracking: false // 마우스 오버 효과 제거
+                enableMouseTracking: false
             }
         },
 
-        tooltip: { enabled: false }, // 툴팁 제거
-
+        tooltip: { enabled: false },
         legend: { enabled: false },
         credits: { enabled: false },
 
         series: [{
             name: category,
-            data: data,
+            data,
             color: overspend ? '#ff4d4d' : '#4a90e2'
         }]
     });
 }
 
-
+// 일별 데이터(막대 그래프)
 function drawDailyLineChart(currentDaily, prevDaily) {
+    const wrapper = document
+        .getElementById("dailyChart")
+        .closest(".bar-chart-wrapper");
+
+    // ✅ 1. 데이터 없음 처리 (여기가 핵심)
+    if (
+        !Array.isArray(currentDaily) || currentDaily.length === 0 ||
+        !Array.isArray(prevDaily) || prevDaily.length === 0
+    ) {
+        showEmptyChart(wrapper, "dailyChart");
+
+        // 이전 차트 있으면 제거
+        if (dailyLineChartInstance) {
+            dailyLineChartInstance.destroy();
+            dailyLineChartInstance = null;
+        }
+        return;
+    }
+
+    // ✅ 2. 데이터 있으면 empty 숨김
+    hideEmptyChart(wrapper, "dailyChart");
+
     // prevDaily가 일수 다를 수 있으니 날짜 기준 맞추기
     const prevExpenseAligned = currentDaily.map(d => {
         // 안전하게 날짜 문자열 처리 (YYYY-MM-DD 형식 가정)
@@ -773,13 +879,16 @@ function getTop3FromCategories(entries) {
     return sorted.map(([category]) => category);
 }
 
-// top 3 카테고리 선형 차트
 function updateTop3CardsAndCharts(top3, thisMonthCategories, last6) {
+    if (!globalAvgLedger) globalAvgLedger = [];
 
-    if (!globalAvgLedger) {
-        console.warn("globalAvg 데이터가 없음");
-        globalAvgLedger = [];
+    // ✅ 1. 무조건 전체 리셋 (핵심)
+    for (let i = 0; i < 3; i++) {
+        setTop3CardStateByIndex(i, false);
     }
+
+    // ✅ 2. 실제 있는 데이터만 다시 채움
+    if (!Array.isArray(top3) || top3.length === 0) return;
 
     const cardIds = [
         { cat: "top1-category", my: "top1-my", diff: "top1-diff", chart: "top1-chart" },
@@ -790,31 +899,69 @@ function updateTop3CardsAndCharts(top3, thisMonthCategories, last6) {
     top3.forEach((category, i) => {
         const card = cardIds[i];
 
+        // ✅ 값 자체가 없으면 empty
+        if (!category) {
+            console.log("데이터 없음", i)
+            // 🔥 기존 차트 제거
+            if (top3ChartInstances[i]) {
+                top3ChartInstances[i].destroy();
+                top3ChartInstances[i] = null;
+            }
+
+            setTop3CardStateByIndex(i, false);
+            return;
+        }
+
         // 이번달 금액
         const thisItem = thisMonthCategories.find(c => c.categoryName === category);
         const thisMonthTotal = thisItem ? Number(thisItem.amount) : 0;
 
         document.getElementById(card.cat).textContent = category;
-        document.getElementById(card.my).textContent = `${thisMonthTotal.toLocaleString()} 원`;
+        document.getElementById(card.my).textContent =
+            `${thisMonthTotal.toLocaleString()} 원`;
 
-        // 전체 평균 가져오기
-        const globalItem = globalAvgLedger.find(c => c.category  === category);
+        // 전체 평균
+        const globalItem = globalAvgLedger.find(c => c.category === category);
         const globalValue = globalItem ? Number(globalItem.avg) : 0;
 
         const diffPercent = globalValue > 0
             ? (((thisMonthTotal - globalValue) / globalValue) * 100).toFixed(1)
             : 0;
 
-        const overspend = globalValue > 0 && thisMonthTotal > globalValue * 1.2;  // 평균보다 20% 초과일 경우 빨간 색으로 차트 생성
+        const overspend = globalValue > 0 && thisMonthTotal > globalValue * 1.2;
 
-        document.getElementById(card.diff).textContent = `${diffPercent}%`;
+        const diffEl = document.getElementById(card.diff);
+        diffEl.textContent = `${diffPercent}%`;
+        diffEl.classList.toggle("text-danger", overspend);
+        diffEl.classList.toggle("text-primary", !overspend);
 
-        // 6개월 라인 차트
+        // ✅ 히스토리
         const history = getHistoryForCategory(last6, category);
-        drawTop3LineChart(card.chart, category, history, overspend);
+        const valid = hasValidHistory(history);
+
+        // ✅ 유효하지 않으면 차트 먼저 제거
+        if (!valid) {
+            if (top3ChartInstances[i]) {
+                top3ChartInstances[i].destroy();
+                top3ChartInstances[i] = null;
+            }
+            setTop3CardStateByIndex(i, false);
+            return;
+        }
+
+        // ✅ 유효 → empty 해제
+        setTop3CardStateByIndex(i, true);
+
+        // ✅ 기존 차트 제거 후 재생성 (안전)
+        if (top3ChartInstances[i]) {
+            top3ChartInstances[i].destroy();
+            top3ChartInstances[i] = null;
+        }
+
+        top3ChartInstances[i] =
+            drawTop3LineChart(card.chart, category, history, overspend);
     });
 }
-
 
 // 지난 달 사용자 데이터 호출
 async function loadGlobalAvgData() {
@@ -1981,40 +2128,6 @@ function openEditModal(item) {
             modalJustOpened = false;
         }, 100);
     }
-//기존 코드
-    // function closeAddEntryModal() {
-    //     const modal = document.getElementById("addEntryModal");
-    //     modal.style.display = "none";
-    //     modal.classList.remove("show");
-    // }
-    //
-    // async function deleteEntry() {
-    //     const id = document.getElementById("entryId").value;
-    //     if (!id) return;
-    //
-    //     if (!confirm("정말 이 내역을 삭제하시겠습니까?")) return;
-    //
-    //     try {
-    //         const res = await fetch(`/api/ledger/entry/${id}`, {
-    //             method: 'DELETE'
-    //         });
-    //
-    //         if (res.ok) {
-    //             alert("삭제되었습니다.");
-    //             closeAddEntryModal();
-    //             closeDayListModal();
-    //
-    //             const key = `${currentYear}-${currentMonth}`;
-    //             ledgerCache.delete(key);
-    //             updateChart();
-    //         } else {
-    //             alert("삭제 실패");
-    //         }
-    //     } catch (e) {
-    //         console.error(e);
-    //         alert("에러 발생");
-    //     }
-    // }
 
 // 공통: 폼 리셋
 function resetEntryForm() {
@@ -2048,15 +2161,20 @@ async function deleteEntry() {
 
             const key = `${currentYear}-${currentMonth}`;
             ledgerCache.delete(key);
-            await updateChartWithTop3();
-        } else {
-            alert("삭제 실패");
+            if (`${currentYear}-${currentMonth}` === `${new Date().getFullYear()}-${new Date().getMonth() + 1}`) {
+                // 이번 달 삭제 일 경우 top3까지 수정
+                await updateChartWithTop3();
+            } else {
+                await updateChartNoTop3();
+            }
+            } else {
+                alert("삭제 실패");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("에러 발생");
         }
-    } catch (e) {
-        console.error(e);
-        alert("에러 발생");
     }
-}
 async function updateChartWithTop3(){
     showSkeleton()
     await updateChart();
@@ -2122,8 +2240,13 @@ async function submitNewEntry() {
         if(res.ok) {
             closeDayListModal();
             closeAddEntryModal();
-            ledgerCache.delete(`${currentYear}-${currentMonth}`); //
-            await updateChartWithTop3();
+            ledgerCache.delete(`${currentYear}-${currentMonth}`);
+            if (`${currentYear}-${currentMonth}` === `${new Date().getFullYear()}-${new Date().getMonth() + 1}`) {
+                // 이번 달
+                await updateChartWithTop3();
+            } else {
+                await updateChartNoTop3();
+            }
             // 파이썬 호출(유저 카테고리 저장)
             updateCategory(payload);
 
@@ -2617,7 +2740,7 @@ function initCache(){
 
 function updateCategory(payload){
     console.log(payload)
-    console.log(payload.memo)
+    console.log(payload.categoryName)
     const res = fetch("ai/update-category",{
         method:"POST",
         headers:{
@@ -2629,7 +2752,7 @@ function updateCategory(payload){
                     placeOfUse: payload.place,
                     entryAmount: payload.amount,
                     memo: payload.memo,
-                    category: payload.category,
+                    category: payload.categoryName,
                     occurredAt: normalizeDateTime(payload.dateTime)
                 }
             ]
@@ -2642,4 +2765,47 @@ function normalizeDateTime(dt) {
 
     // 2025-12-17T10:55:00 → 2025-12-17 10:55:00
     return dt.replace('T', ' ').substring(0, 19);
+}
+
+// 차트 데이터가 없을 경우
+function showChartEmpty(chartId) {
+    const chart = document.getElementById(chartId);
+    const empty = chart.parentElement.querySelector(".chart-empty");
+
+    chart.style.display = "none";
+    empty.style.display = "flex";
+}
+
+// 차트 데이터가 있을 경우
+function showChart(chartId) {
+    const chart = document.getElementById(chartId);
+    const empty = chart.parentElement.querySelector(".chart-empty");
+
+    empty.style.display = "none";
+    chart.style.display = "block";
+}
+
+// top3 empty 관리
+function setTop3CardStateByIndex(index, hasData) {
+    const card = document.querySelectorAll(".top3-card")[index];
+    if (!card) return;
+
+    const content = card.querySelector(".top3-content");
+    const empty = card.querySelector(".top3-empty");
+    console.log("TOP", index + 1, "hasData =", hasData);
+    if (hasData) {
+        empty.style.display = "none";
+        content.style.display = "block";
+    } else {
+        content.style.display = "none";
+        empty.style.display = "block";
+    }
+}
+
+function hasValidHistory(history) {
+    return (
+        Array.isArray(history) &&
+        history.length > 0 &&
+        history.some(h => Number(h.total) > 0)
+    );
 }
