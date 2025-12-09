@@ -109,6 +109,9 @@ async function loadLedgerChart({ year, month }) {
         drawCategoryPieChart(cached.current.categories);
         drawDailyLineChart(cached.current.daily, cached.prev1.daily);
 
+        // [수정 포인트 1] 캐시 사용 시 호출
+        if(cached.current.daily) updateMonthlyTotals(cached.current);
+
         // [추가 1] 캐시가 있을 때 캘린더 그리기
         if(cached.current.daily) initCalendar(cached.current.daily);
 
@@ -122,7 +125,7 @@ async function loadLedgerChart({ year, month }) {
     drawDailyLineChart(bundle.current.daily, bundle.prev1.daily);
     await renderFullCategoryChart();
 
-    // [New] 소계 업데이트 // 추가!
+    // [수정 포인트 2] 새 데이터 로드 시 호출
     if(bundle.current.daily) updateMonthlyTotals(bundle.current);
 
     // [추가 2] 데이터를 새로 가져왔을 때 캘린더 그리기
@@ -1059,7 +1062,7 @@ function initCalendar(dailyData) {
             let htmlString = `
                 <div class="fc-event-title" style="width: 100%; display: flex; justify-content: center; align-items: baseline;">
                     <div style="position: relative;">
-                        <span class="fw-bold" style="letter-spacing: -0.5px;">${title}</span>
+                        <span class="fw-bold calendar-amount" style="letter-spacing: -0.5px;">${title}</span>
                         ${(count && count >= 2) ?
                 `<span style="
                                 position: absolute; 
@@ -2496,3 +2499,4 @@ async function openDayListModal(dateStr) {
         // 내부 저장 데이터 초기화
         lastExcelRows = null;
 }
+
