@@ -1284,6 +1284,9 @@ async function startDocu() {
     buildCategorySelectList();
     initCharts();
     prepareAgeLabels();
+
+    initMonthPicker();
+
     hideSkeleton();
 
 // ★ 확장된 인터랙티브 투어 시작
@@ -2832,4 +2835,27 @@ function hasValidHistory(history) {
         history.length > 0 &&
         history.some(h => Number(h.total) > 0)
     );
+}
+
+// 월 선택기 초기화 함수 (데스크톱 & 모바일 공용)
+function initMonthPicker() {
+    // 🌟 [확인] 여기에 'monthPickerMobile'이 포함되어야 합니다.
+    const pickerIds = ['monthPicker', 'monthPickerMobile'];
+
+    pickerIds.forEach(id => {
+        const picker = document.getElementById(id);
+        if (!picker) return;
+
+        picker.addEventListener('change', function() {
+            if (!this.value) return; // 취소 시 무시
+
+            const [year, month] = this.value.split('-').map(Number);
+
+            if (year && month) {
+                currentYear = year;
+                currentMonth = month;
+                updateChart(); // 화면 갱신
+            }
+        });
+    });
 }
