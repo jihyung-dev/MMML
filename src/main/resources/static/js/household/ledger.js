@@ -44,6 +44,7 @@ let AGE_LABELS = [];
 let lastExcelRows = null;
 // 일별 데이터 막대 그래프 인스턴스
 let dailyLineChartInstance = null;
+let threeMonthBarChartInstance = null;
 //top3 차트
 const top3ChartInstances = { top1: null, top2: null, top3: null };
 function prepareAgeLabels() {
@@ -106,8 +107,15 @@ function updateMonthlyTotals(data) {
     `;
 }
 
-async function loadLedgerChart({ year, month }) {
+async function loadLedgerChart({ year, month , dataUpdate = false}) {
     const key = `${year}-${month}`;
+    // 👉 오늘 기준으로 monthDiff 계산 (0 = 이번달, 1 = 지난달, 2 = 지지난달)
+    const now = new Date();
+    const nowYear = now.getFullYear();
+    const nowMonth = now.getMonth() + 1;
+
+    const monthDiff = (nowYear - year) * 12 + (nowMonth - month);
+    const isWithinLast3Months = monthDiff >= 0 && monthDiff <= 2; // 0~2만 true
 
     // 캐시 확인
     let cached = getCache(key);
@@ -126,8 +134,10 @@ async function loadLedgerChart({ year, month }) {
 
     drawCategoryPieChart(bundle.current.categories);
     drawDailyLineChart(bundle.current.daily, bundle.prev1.daily);
-    if(!isThreeMonthBarChartDrawn)
+    // ✅ 예전 달이면 처음 한 번만, 최근 3개월이면 항상
+    if (!isThreeMonthBarChartDrawn || (isWithinLast3Months && dataUpdate)) {
         await renderFullCategoryChart();
+    }
 
     // [New] 소계 업데이트 // 추가!
     if(bundle.current.daily) updateMonthlyTotals(bundle.current);
@@ -197,29 +207,35 @@ function hideEmptyChart(wrapperEl, chartId) {
 
 // 3개월 평균 데이터와 이번 달 지출 막대 차트로 출력
 function drawCategoryComparisonBarChart(categoryList) {
-    const wrapper = document
-        .getElementById("threeMonthBarChart")
-        .closest(".bar-chart-wrapper");
+    const chartEl = document.getElementById("threeMonthBarChart");
+    const wrapper = chartEl.closest(".bar-chart-wrapper");
 
-    // ✅ 데이터 없음 처리 (여기가 핵심)
-    if (!Array.isArray(categoryList) || categoryList.length === 0) {
+    const hasAnyValue =
+        Array.isArray(categoryList) &&
+        categoryList.some(c => (c.current ?? 0) > 0 || (c.average ?? 0) > 0);
+
+    // ✅ empty 판단
+    if (!hasAnyValue) {
         showEmptyChart(wrapper, "threeMonthBarChart");
 
-        // 혹시 이전 차트가 있으면 제거
         if (threeMonthBarChartInstance) {
             threeMonthBarChartInstance.destroy();
             threeMonthBarChartInstance = null;
         }
         return;
     }
+
     hideEmptyChart(wrapper, "threeMonthBarChart");
 
+    // ✅ 항상 초기화 후 재생성
+    if (threeMonthBarChartInstance) {
+        threeMonthBarChartInstance.destroy();
+    }
     isThreeMonthBarChartDrawn = true;
-    Highcharts.chart('threeMonthBarChart', {
+
+    threeMonthBarChartInstance = Highcharts.chart('threeMonthBarChart', {
         chart: { type: 'column' },
-        title: {
-            text: '이번 달 vs 최근 3개월 평균 (카테고리별)'
-        },
+        title: { text: '이번 달 vs 최근 3개월 평균 (카테고리별)' },
         xAxis: {
             categories: categoryList.map(c => c.name),
             crosshair: true
@@ -245,6 +261,7 @@ function drawCategoryComparisonBarChart(categoryList) {
         }]
     });
 }
+
 
 // 모달 팝업 내 차트
 function drawModalComparePieChart(currentAmount, avgAmount, categoryName) {
@@ -497,9 +514,9 @@ function nextMonth() {
 
 // ✔ 차트 업데이트 → API 호출 + 화면 렌더링
 // 이번달 데이터 호출 -> 6개월 데이터 호출
-async function updateChart() {
+async function updateChart(dataUpdate = false) {
     updateMonthLabel();
-    await loadLedgerChart({ year: currentYear, month: currentMonth });
+    await loadLedgerChart({ year: currentYear, month: currentMonth, dataUpdate: dataUpdate });
     // ★ [추가] 리스트 테이블 로딩/갱신
     initDataTable();
 }
@@ -2177,14 +2194,14 @@ async function deleteEntry() {
     }
 async function updateChartWithTop3(){
     showSkeleton()
-    await updateChart();
+    await updateChart(true);
     await loadTopData();
     hideSkeleton();
 }
 
 async function updateChartNoTop3(){
     showSkeleton();
-    await updateChart();
+    await updateChart(true);
     hideSkeleton();
 }
 
