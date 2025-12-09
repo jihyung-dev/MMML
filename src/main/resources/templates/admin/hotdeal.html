@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/default_layout}"
+      th:with="CONTENT_TITLE='핫딜 관리 | 내돈내삶'">
+
+<head>
+    <meta charset="UTF-8">
+    <title>핫딜 관리</title>
+</head>
+
+<body>
+<main layout:fragment="content" class="container" style="min-height: 70vh;">
+
+    <h1 class="mt-4 mb-2">핫딜 관리</h1>
+    <p class="text-muted mb-4">판매자들이 등록한 핫딜 상품을 검수·관리합니다.</p>
+
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+            <thead class="table-light">
+            <tr>
+                <th>상품 ID</th>
+                <th>상품명</th>
+                <th>원가</th>
+                <th>판매가</th>
+                <th>조회수</th>
+                <th>인기도</th>
+                <th>판매기간</th>
+                <th>판매상태</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="i : ${items}">
+                <!-- PK -->
+                <td th:text="${i.id}">1</td>
+
+                <!-- 상품명 -->
+                <td th:text="${i.itemName}">상품명</td>
+
+                <!-- 원가: getFormattedOriginalPrice() 사용 가능 -->
+                <td th:text="${i.formattedOriginalPrice}">10,000원</td>
+
+                <!-- 판매가: getFormattedPrice() 사용 (Transient 메서드) -->
+                <td th:text="${i.formattedPrice}">9,000원</td>
+
+                <!-- 조회수 -->
+                <td th:text="${i.viewCount}">0</td>
+
+                <!-- 인기도 점수 -->
+                <td th:text="${i.popularityScore}">0</td>
+
+                <!-- 판매기간: 시작~종료 (시작이 null일 수도 있으니 보호) -->
+                <td>
+                    <span th:text="${i.saleStartAt != null ? #temporals.format(i.saleStartAt, 'yyyy-MM-dd') : '-'}">
+                        -
+                    </span>
+                    ~
+                    <span th:text="${#temporals.format(i.saleEndAt, 'yyyy-MM-dd')}">
+                        2025-01-10
+                    </span>
+                </td>
+
+                <!-- 판매 상태 -->
+                <td th:text="${i.saleStatus}">ON_SALE</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+</body>
+</html>

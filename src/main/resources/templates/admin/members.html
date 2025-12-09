@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/default_layout}"
+      th:with="CONTENT_TITLE='회원 관리 | 내돈내삶'">
+
+<head>
+    <meta charset="UTF-8">
+    <style layout:fragment="css">
+        .admin-table-wrapper { margin-top: 30px; }
+        .admin-table-title { font-size: 24px; margin-bottom: 10px; }
+        .badge-enabled { padding: 2px 6px; border-radius: 4px; background: #e3f2fd; font-size: 12px; }
+        .badge-disabled { padding: 2px 6px; border-radius: 4px; background: #ffebee; font-size: 12px; }
+    </style>
+</head>
+
+<body>
+<main layout:fragment="content" class="container" style="min-height: 70vh;">
+
+    <h1 class="admin-table-title">회원 관리</h1>
+    <p class="text-muted">사이트에 가입한 전체 회원 목록입니다.</p>
+
+    <div class="admin-table-wrapper table-responsive">
+        <table class="table table-sm table-hover align-middle">
+            <thead class="table-light">
+            <tr>
+                <th>아이디</th>
+                <th>이름</th>
+                <th>닉네임</th>
+                <th>권한(ROLE)</th>
+                <th>상태</th>
+                <th>가입일</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="m : ${members}">
+                <td th:text="${m.memberId}">user01</td>
+                <td th:text="${m.memberName}">홍길동</td>
+                <td th:text="${m.memberNickname}">길동이</td>
+                <td th:text="${m.role}">USER</td>
+                <td>
+                    <span th:if="${m.enabled == 'Y'}" class="badge-enabled">활성</span>
+                    <span th:if="${m.enabled != 'Y'}" class="badge-disabled">비활성/탈퇴</span>
+                </td>
+                <td th:text="${#temporals.format(m.createdAt, 'yyyy-MM-dd HH:mm')}">2025-01-01</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+</body>
+</html>

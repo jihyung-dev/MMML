@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/default_layout}"
+      th:with="CONTENT_TITLE='판매자 관리 | 내돈내삶'">
+
+<head>
+    <meta charset="UTF-8">
+    <title>판매자 관리</title>
+</head>
+
+<body>
+<main layout:fragment="content" class="container" style="min-height: 70vh;">
+
+    <h1 class="mt-4 mb-2">판매자 관리</h1>
+    <p class="text-muted mb-4">판매자로 등록된 회원/사업자 정보를 확인합니다.</p>
+
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+            <thead class="table-light">
+            <tr>
+                <th>판매자 ID</th>
+                <th>회원 ID</th>
+                <th>회원 닉네임</th>
+                <th>사업자번호</th>
+                <th>상호명</th>
+                <th>연락처</th>
+                <th>이메일</th>
+                <th>등록일</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="s : ${sellers}">
+                <!-- ✅ SELLER_ID: 엔티티 필드가 id -->
+                <td th:text="${s.id}">1</td>
+
+                <!-- ✅ MEMBER_ID: Member 연관관계에서 꺼내야 함 -->
+                <td th:text="${s.member != null ? s.member.memberId : '알수없음'}">user01</td>
+
+                <!-- 선택: 닉네임도 보여주면 편함 -->
+                <td th:text="${s.member != null ? s.member.memberNickname : '-'}">길동이</td>
+
+                <td th:text="${s.bizNo}">123-45-67890</td>
+                <td th:text="${s.bizName}">내돈내삶샵</td>
+                <td th:text="${s.bizPhone}">010-0000-0000</td>
+                <td th:text="${s.bizEmail}">shop@example.com</td>
+
+                <!-- createdAt 포맷 -->
+                <td th:text="${#temporals.format(s.createdAt, 'yyyy-MM-dd HH:mm')}">2025-01-01 10:00</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</main>
+</body>
+</html>
