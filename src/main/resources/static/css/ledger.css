@@ -150,7 +150,9 @@ body {
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     padding: 20px;
     min-width: 300px;
-    /*height: 600px;    !* 높이 조금 더 확보  삭제!*/
+    /* 🌟 [추가/수정] 무한 늘어남 방지 🌟 */
+    min-height: 450px; /* 차트(400px) + 소계 영역보다 약간 크게 설정 */
+    height: auto;      /* 내용물 크기만큼 유동적으로 */
     box-sizing: border-box;
 }
 #categoryChart {
