@@ -52,4 +52,10 @@ public interface MemberService {
 
     // 회원 정보 받아오기
     Member getMember(String memberId);
+
+    // 🔹 회원탈퇴 (ENABLED = 'N' 으로 비활성 처리)  // ⭐ [추가 설명]
+    void withdraw(String memberId);
+
+    // ⭐ 재가입 (탈퇴회원 다시 활성화 + 비밀번호 변경)
+    void rejoin(String memberId, String newPassword);
 }

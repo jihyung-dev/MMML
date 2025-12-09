@@ -22,5 +22,5 @@ public interface BoardPostRepository extends JpaRepository<BoardPost, Long> {
     Page<BoardPost> findByBoardLikes_MemberId(String memberId,Pageable pageable);
     //List<BoardPost> findByWriterId(String memberId);
 
-
+    Page<BoardPost> findByCategoryOrderByCreatedAtDesc(String category, Pageable pageable);
 }

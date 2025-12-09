@@ -167,4 +167,33 @@ public class MemberServiceImp implements MemberService {
     public Member getMember(String memberId) {
         return memberRepository.findByMemberId(memberId).orElse(null);
     }
+
+
+    // 회원탈퇴관련
+    @Override
+    public void withdraw(String memberId) {
+        memberRepository.findById(memberId).ifPresent(member -> {
+            member.setEnabled("N");
+            memberRepository.save(member);
+            // 필요하면 전화번호/주소/이메일 마스킹도 여기서 가능
+        });
+    }
+
+    @Override
+    public void rejoin(String memberId, String newPassword) {
+        memberRepository.findById(memberId).ifPresent(member -> {
+
+            // (선택) 방어 코드: 탈퇴 회원이 아닌 경우 막고 싶으면 사용
+            if (member.getEnabled() != null && !"N".equalsIgnoreCase(member.getEnabled())) {
+                throw new IllegalStateException("이미 활성화된 회원은 재가입 대상이 아닙니다.");
+            }
+
+            String encodedPw = passwordEncoder.encode(newPassword);
+            member.setPassword(encodedPw);   // 새 비밀번호 설정
+            member.setEnabled("Y");          // 다시 활성화
+
+            memberRepository.save(member);
+        });
+
+    }
 }

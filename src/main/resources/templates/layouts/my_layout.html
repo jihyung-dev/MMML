@@ -35,6 +35,12 @@
                 </div>
             </div>
             <nav class="flex flex-col gap-2">
+                <a class="navbar-brand d-flex align-items-center brand-purple" href="/">
+                    <svg fill="currentColor" viewBox="0 0 48 48" width="40" height="40">
+                        <path d="M24 4H42V17.3333V30.6667H24V44H6V30.6667V17.3333H24V4Z"></path>
+                    </svg>
+                    <span class="ms-2 fw-bold">내돈내삶</span>
+                </a>
                 <a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-primary/20 rounded-lg" href="/board">
                     <span class="material-symbols-outlined">dashboard</span>
                     <p class="text-sm font-medium leading-normal">게시판</p>
@@ -56,15 +62,23 @@
 <!--                    <p class="text-sm font-medium leading-normal">Ledger</p>-->
 <!--                </a>-->
             </nav>
+
             <div class="mt-auto flex flex-col gap-1">
-                <a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-primary/20 rounded-lg" href="#">
-                    <span class="material-symbols-outlined">settings</span>
-                    <p class="text-sm font-medium leading-normal">Settings</p>
-                </a>
-                <a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-primary/20 rounded-lg" href="#">
+                <a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-primary/20 rounded-lg" href="/logout">
                     <span class="material-symbols-outlined">logout</span>
                     <p class="text-sm font-medium leading-normal">Logout</p>
                 </a>
+
+                <!-- 🔹 로그인한 사용자만 노출 -->
+                <th:block th:if="${session.loginUser != null}">
+                    <form th:action="@{/member/withdraw}" method="get">
+                        <button type="submit"
+                                class="btn btn-outline-danger btn-sm w-100">
+                            회원탈퇴
+                        </button>
+                    </form>
+                </th:block>
+
             </div>
         </aside>
         <!-- Main Content -->

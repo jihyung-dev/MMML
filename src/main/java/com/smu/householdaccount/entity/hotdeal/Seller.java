@@ -2,6 +2,7 @@ package com.smu.householdaccount.entity.hotdeal;
 
 import com.smu.householdaccount.entity.common.Member;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -35,7 +36,6 @@ public class Seller {
 
 
     //main 에 유지됬던 내용, 1:1관계면 이걸 유지
-    @NotNull
     @OneToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "MEMBER_ID", nullable = false, unique = true)
     private Member member;
@@ -48,18 +48,22 @@ public class Seller {
     //private Member member;
 
     @Size(max = 50)
+    @NotNull
     @Column(name = "BIZ_TYPE", length = 50)
     private String bizType; // 업태/종목 등
 
     @Size(max = 255)
+    @NotNull
     @Column(name = "BIZ_ADDRESS", length = 255)
     private String bizAddress;
 
     @Size(max = 20)
+    @NotNull
     @Column(name = "BIZ_PHONE", length = 20)
     private String bizPhone;
 
     @Size(max = 100)
+    @NotNull
     @Column(name = "BIZ_EMAIL", length = 100)
     private String bizEmail;
 

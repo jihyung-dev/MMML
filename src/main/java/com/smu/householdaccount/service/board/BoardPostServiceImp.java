@@ -115,4 +115,10 @@ public class BoardPostServiceImp implements BoardPostService {
                         keyword, keyword, pageable
                 );
     }
+
+    public Page<BoardPost> findByCategory(String category, Pageable pageable) {
+        return boardPostRepository.findByCategoryOrderByCreatedAtDesc(category, pageable);
+    }
+
+
 }

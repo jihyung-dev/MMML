@@ -12,6 +12,7 @@ import com.smu.householdaccount.repository.hotdeal.HotdealOptionRepository;
 import com.smu.householdaccount.repository.hotdeal.ItemDetailImageRepository;
 import com.smu.householdaccount.repository.hotdeal.ItemRepository;
 import com.smu.householdaccount.service.common.S3Service;
+import com.smu.householdaccount.service.hotdeal.SellerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -41,15 +42,24 @@ public class SellerItemController {
     private final CategoryRepository categoryRepository;
     private final ItemDetailImageRepository itemDetailImageRepository;
     private final S3Service s3Service;
+    private final SellerService sellerService;
 
     /** 판매자 본인이 등록한 상품 목록 */
     @GetMapping
     public String list(
             Model model,
-            @SessionAttribute("loginUser") Member loginUser,
+            @SessionAttribute(value = "loginUser", required = false) Member loginUser,
             @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        Seller seller = loginUser.getSeller();
+        if (loginUser == null) {
+            return "redirect:/login";
+        }
+
+        Seller seller = sellerService.getSellerByMemberId(loginUser.getMemberId());
+        if (seller == null) {
+            return "redirect:/seller/join";
+        }
+
         Page<Item> itemPage = itemRepository.findBySellerId(seller.getId(), pageable);
         model.addAttribute("itemPage", itemPage);
 
@@ -77,11 +87,15 @@ public class SellerItemController {
             @SessionAttribute(value = "loginUser", required = false) Member loginUser,
             Model model
     ) {
-        if (loginUser == null || loginUser.getSeller() == null) {
+        if (loginUser == null) {
+            return "redirect:/login";
+        }
+
+        Seller seller = sellerService.getSellerByMemberId(loginUser.getMemberId());
+        if (seller == null) {
             return "redirect:/seller/join";
         }
 
-        // 빈 초기화
         model.addAttribute("sellerItemNewBean", new SellerItemNewBean());
         prepareFormModel(model);
         return "seller/item-form";
@@ -96,11 +110,18 @@ public class SellerItemController {
             BindingResult bindingResult,
             Model model
     ) throws IOException {
-        // 로그인 / 판매자 체크
-        if (loginUser == null || loginUser.getSeller() == null) {
+
+        // 1) 로그인 / 판매자 여부 체크
+        if (loginUser == null) {
+            return "redirect:/login";
+        }
+
+        Seller seller = sellerService.getSellerByMemberId(loginUser.getMemberId());
+        if (seller == null) {
             return "redirect:/seller/join";
         }
-        Seller seller = loginUser.getSeller();
+
+
 
         // 기본 Bean 검증 실패 시
         if (bindingResult.hasErrors()) {

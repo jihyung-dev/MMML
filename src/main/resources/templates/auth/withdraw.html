@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/default_layout}"
+      th:with="IS_LOGIN=true, CONTENT_TITLE='회원탈퇴 | 내돈내삶'">
+<!-- ⭐ [신규 파일] 회원탈퇴 화면 -->
+
+<head>
+    <link rel="stylesheet" th:href="@{/css/login.css}">
+</head>
+
+<main layout:fragment="content"
+      class="container d-flex justify-content-center align-items-center"
+      style="min-height: 70vh;">
+
+    <div class="login-container">
+        <h2>회원탈퇴</h2>
+
+        <!-- 에러 메시지 -->
+        <p th:if="${error}" class="error-text" th:text="${error}"></p>
+
+        <p class="mb-3">
+            <strong th:text="${loginUser != null ? loginUser.memberId : ''}">user</strong> 님,<br/>
+            정말로 회원탈퇴를 진행하시겠습니까?<br/>
+            탈퇴 후에는 동일 아이디로 직접 로그인은 불가능하며,<br/>
+            재가입은 별도의 절차로 진행됩니다.
+        </p>
+
+        <form th:action="@{/member/withdraw}" method="post">
+            <!-- 필요 시 비밀번호 확인 -->
+            <label>비밀번호 확인</label>
+            <input type="password"
+                   name="password"
+                   placeholder="현재 비밀번호를 입력하세요"
+                   required> <!-- ⭐ [추가] 일단 필수값 -->
+
+            <button type="submit" style="margin-top: 16px; background-color: #dc3545;">
+                탈퇴하기
+            </button>
+        </form>
+
+        <div class="login-links" style="margin-top: 16px;">
+            <a th:href="@{/mypage}">마이페이지로 돌아가기</a> |
+            <a th:href="@{/}">메인으로 가기</a>
+        </div>
+    </div>
+</main>
+</html>

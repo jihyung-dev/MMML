@@ -3,12 +3,11 @@
        xmlns:th="http://www.thymeleaf.org"
        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
        layout:decorate="~{layouts/default_layout}"
-        th:with="IS_LOGIN=false,CONTENT_TITLE='로그인 | 내돈내삶'">
+       th:with="IS_LOGIN=false,CONTENT_TITLE='로그인 | 내돈내삶'">
 
 <head>
     <link rel="stylesheet" th:href="@{/css/login.css}">
 </head>
-
 
 <!-- 🔹 로그인 컨텐츠: 화면 중앙 정렬 -->
 <main layout:fragment="content"
@@ -54,6 +53,19 @@
         </div>
 
     </div>
+
+    <!-- 🔹 탈퇴회원일 때만 실행되는 재가입 안내 팝업 -->
+    <script th:if="${withdrawn}" th:inline="javascript">
+        /*<![CDATA[*/
+        if (confirm('탈퇴한 회원입니다.\n재가입을 진행하시겠습니까?')) {
+            // 예 → 재가입 화면으로 이동
+            window.location.href = /*[[@{/rejoin}]]*/ '/rejoin';
+        } else {
+            // 아니요 → 메인 화면으로 이동
+            window.location.href = /*[[@{/}]]*/ '/';
+        }
+        /*]]>*/
+    </script>
 
 </main>
 </html>

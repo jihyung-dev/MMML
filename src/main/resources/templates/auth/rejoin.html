@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/default_layout}"
+      th:with="IS_LOGIN=false, CONTENT_TITLE='재가입 | 내돈내삶'">
+<!-- IS_LOGIN=false → 비로그인 헤더 사용 -->
+
+<head>
+    <link rel="stylesheet" th:href="@{/css/login.css}">
+</head>
+
+<!-- 🔹 재가입 컨텐츠: 화면 중앙 정렬 -->
+<main layout:fragment="content"
+      class="container d-flex justify-content-center align-items-center"
+      style="min-height: 70vh;">
+
+    <div class="login-container">
+        <h2>재가입</h2>
+
+        <!-- 에러 메시지 -->
+        <p th:if="${error}" class="error-text" th:text="${error}"></p>
+
+        <!-- 로그인에서 전달된 탈퇴회원 아이디 안내 -->
+        <p class="mb-3">
+            <strong th:text="${memberId}">user</strong> 님,<br/>
+            탈퇴한 계정을 다시 사용하시려면<br/>
+            새 비밀번호를 설정해 주세요.
+        </p>
+
+        <!-- 🔹 재가입 폼 -->
+        <form th:action="@{/rejoin}" method="post">
+
+            <label>새 비밀번호</label>
+            <input type="password"
+                   name="newPassword"
+                   placeholder="새 비밀번호를 입력하세요"
+                   required>
+
+            <label>새 비밀번호 확인</label>
+            <input type="password"
+                   name="confirmPassword"
+                   placeholder="새 비밀번호를 다시 입력하세요"
+                   required>
+
+            <button type="submit" style="margin-top: 16px;">
+                재가입 완료
+            </button>
+        </form>
+
+        <div class="login-links" style="margin-top: 16px;">
+            <a th:href="@{/login}">로그인 화면으로 돌아가기</a> |
+            <a th:href="@{/}">메인으로 가기</a>
+        </div>
+    </div>
+
+</main>
+</html>

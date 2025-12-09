@@ -19,6 +19,7 @@ public class LoginController {
     private final MemberService memberService;
     private final SellerService sellerService;
     private final RedisService redisService;
+
     /**
      * 로그인 페이지
      **/
@@ -39,8 +40,21 @@ public class LoginController {
 
         Member loginUser = memberService.login(memberId, password);
 
+        // 1) 아이디/비번 불일치
         if (loginUser == null) {
             model.addAttribute("error", "아이디 또는 비밀번호가 올바르지 않습니다.");
+            return "auth/login";
+        }
+
+        // 2) 탈퇴 회원(enabled = 'N') 인지 확인
+        if ("N".equalsIgnoreCase(loginUser.getEnabled())) {
+            // 재가입 시 쓰기 위해 세션에 아이디 저장
+            session.setAttribute("withdrawnMemberId", loginUser.getMemberId());
+
+            // 로그인은 막고, 에러 메시지 + 재가입 유도 플래그
+            model.addAttribute("error", "탈퇴한 회원입니다. 재가입을 진행하시겠습니까?");
+            model.addAttribute("withdrawn", true);   // ⭐ 팝업 띄우기용 플래그
+
             return "auth/login";
         }
 
@@ -51,7 +65,7 @@ public class LoginController {
         session.setAttribute("loginUser", loginUser);
         session.setAttribute("loginUserId", loginUser.getMemberId());
 
-        // ⭐ 여기 추가: 이 회원이 판매자인지 여부 세션에 저장
+        // 이 회원이 판매자인지 여부 세션에 저장
         boolean isSeller = sellerService.getSellerByMemberId(loginUser.getMemberId()) != null;
         session.setAttribute("isSeller", isSeller);
 
@@ -62,7 +76,6 @@ public class LoginController {
 
         return "redirect:/";
     }
-
 
     /**
      * 로그아웃
@@ -119,7 +132,9 @@ public class LoginController {
 
     // 수신 메일 인증
     @GetMapping("/request/check_mail")
-    public ResponseEntity<Boolean> checkMail(HttpSession session,@RequestParam String email, @RequestParam String inputCode) {
+    public ResponseEntity<Boolean> checkMail(HttpSession session,
+                                             @RequestParam String email,
+                                             @RequestParam String inputCode) {
         Boolean isValid = redisService.validateAuthCode(email, inputCode);
         return ResponseEntity.ok(isValid);
     }
@@ -135,7 +150,7 @@ public class LoginController {
 
         if (!valid) {
             model.addAttribute("error", "입력하신 정보와 일치하는 회원이 없습니다.");
-            return "auth/find-pw"; // 고쳐야됨. 리다이렉트 막고, 응답값만 받아서 처리해야됨
+            return "auth/find-pw"; // TODO: 추후 비동기 처리 고려
         }
 
         // 본인 확인이 끝났으면, 비밀번호 재설정 페이지로 이동

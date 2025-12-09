@@ -2,7 +2,7 @@
 <html lang="ko"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layouts/default_layout}"> <!-- ##1. 공통 레이아웃 상속 선언 -->
+      layout:decorate="~{layouts/default_layout}">
 <head>
     <title>게시판 목록</title>
 
@@ -10,27 +10,22 @@
     <th:block layout:fragment="css">
         <link rel="stylesheet" th:href="@{/css/list.css}">
         <style>
-            /* 추가 스타일 (필요시) */
             .board-container { max-width: 1000px; margin: 0 auto; }
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
             th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: center; }
             th { background-color: #f8f9fa; }
-            /* ... list.css의 내용이 있다면 여기 스타일은 제거 가능 ... */
         </style>
     </th:block>
 </head>
 <body>
 
-<!-- 상단 로고 & 로그인 정보 -->
 <div layout:fragment="content">
-    <div class="container mt-4 board-container"> <!-- Bootstrap container로 여백 확보 -->
+    <div class="container mt-4 board-container">
 
-
-
-<!-- 상단 배너 이미지 -->
-<img th:src="@{/img/게시판 이미지.jpg}"
-     alt="게시판 이미지"
-     style="width:100%; max-height:150px; object-fit:cover; margin-bottom:20px; border-radius: 5px">
+        <!-- 상단 배너 이미지 -->
+        <img th:src="@{/img/게시판 이미지.jpg}"
+             alt="게시판 이미지"
+             style="width:100%; max-height:150px; object-fit:cover; margin-bottom:20px; border-radius: 5px">
 
         <h2 class="fw-bold mb-4">가계부 게시판 목록</h2>
 
@@ -49,6 +44,40 @@
                     글쓰기
                 </button>
             </th:block>
+        </div>
+
+        <!-- ===========================
+               카테고리 바로가기 버튼
+               (게시판 목록 바로 위)
+        ============================= -->
+        <div class="d-flex gap-2 mb-3">
+            <!-- 전체 -->
+            <a th:href="@{/board(keyword=${keyword})}"
+               class="btn btn-sm"
+               th:classappend="${selectedCategory} == null ? ' btn-primary' : ' btn-outline-primary'">
+                전체
+            </a>
+
+            <!-- 자유게시판 -->
+            <a th:href="@{/board(category='자유게시판', keyword=${keyword})}"
+               class="btn btn-sm"
+               th:classappend="${selectedCategory} == '자유게시판' ? ' btn-primary' : ' btn-outline-primary'">
+                자유게시판
+            </a>
+
+            <!-- 핫딜 팁 -->
+            <a th:href="@{/board(category='핫딜 팁', keyword=${keyword})}"
+               class="btn btn-sm"
+               th:classappend="${selectedCategory} == '핫딜 팁' ? ' btn-primary' : ' btn-outline-primary'">
+                핫딜 팁
+            </a>
+
+            <!-- 가계부 팁 -->
+            <a th:href="@{/board(category='가계부 팁', keyword=${keyword})}"
+               class="btn btn-sm"
+               th:classappend="${selectedCategory} == '가계부 팁' ? ' btn-primary' : ' btn-outline-primary'">
+                가계부 팁
+            </a>
         </div>
 
         <!-- ===========================
@@ -79,12 +108,11 @@
 
                     <td th:text="${p.writer != null ? p.writer.memberNickname : '작성자 없음'}"></td>
 
-                    <!-- 날짜 포맷팅 (오늘 날짜면 시간만, 아니면 날짜 표시 등) -->
                     <td th:text="${#temporals.format(p.createdAt, 'MM-dd')}"></td>
 
                     <td th:text="${p.viewCnt}"></td>
                 </tr>
-                <!-- 게시글 없을 때 처리 -->
+
                 <tr th:if="${posts.isEmpty()}">
                     <td colspan="6" class="text-center py-5">등록된 게시글이 없습니다.</td>
                 </tr>
@@ -100,6 +128,9 @@
         <form class="board-search-box d-flex justify-content-center gap-2 mb-4"
               th:action="@{/board}" method="get">
 
+            <!-- 카테고리 유지용 hidden -->
+            <input type="hidden" name="category" th:value="${selectedCategory}"/>
+
             <input type="text" name="keyword" class="form-control w-50"
                    th:value="${keyword}"
                    placeholder="검색어를 입력하세요 (제목+내용)">
@@ -107,48 +138,50 @@
             <button type="submit" class="btn btn-outline-dark">검색</button>
         </form>
 
-<br/>
+        <br/>
 
-<!-- 페이징 -->
-<!-- ===========================
-           페이징 (≪ 1 2 3 ≫)
-============================= -->
-<div th:with="page=${posts.number}, last=${posts.totalPages}, size=${posts.size}"
-     class="my-4 d-flex justify-content-center">
+        <!-- ===========================
+                   페이징 (≪ 1 2 3 ≫)
+        ============================= -->
+        <div th:with="page=${posts.number}, last=${posts.totalPages}, size=${posts.size}"
+             class="my-4 d-flex justify-content-center">
 
-    <nav>
-        <ul class="pagination">
+            <nav>
+                <ul class="pagination">
 
-            <!-- 맨 처음 페이지로 (≪) -->
-            <li class="page-item"
-                th:classappend="${page == 0} ? ' disabled'">
-                <a class="page-link"
-                   th:href="@{/board(page=0, size=${size}, keyword=${keyword})}">
-                    ≪
-                </a>
-            </li>
+                    <!-- 맨 처음 페이지로 (≪) -->
+                    <li class="page-item"
+                        th:classappend="${page == 0} ? ' disabled'">
+                        <a class="page-link"
+                           th:href="@{/board(page=0, size=${size}, keyword=${keyword}, category=${selectedCategory})}">
+                            ≪
+                        </a>
+                    </li>
 
-            <!-- 페이지 번호 목록 -->
-            <li class="page-item"
-                th:each="i : ${#numbers.sequence(1, last)}"
-                th:classappend="${(i - 1) == page} ? ' active'">
-                <a class="page-link"
-                   th:href="@{/board(page=${i - 1}, size=${size}, keyword=${keyword})}"
-                   th:text="${i}">
-                </a>
-            </li>
+                    <!-- 페이지 번호 목록 -->
+                    <li class="page-item"
+                        th:each="i : ${#numbers.sequence(1, last)}"
+                        th:classappend="${(i - 1) == page} ? ' active'">
+                        <a class="page-link"
+                           th:href="@{/board(page=${i - 1}, size=${size}, keyword=${keyword}, category=${selectedCategory})}"
+                           th:text="${i}">
+                        </a>
+                    </li>
 
-            <!-- 맨 마지막 페이지로 (≫) -->
-            <li class="page-item"
-                th:classappend="${page == (last - 1)} ? ' disabled'">
-                <a class="page-link"
-                   th:href="@{/board(page=${last - 1}, size=${size}, keyword=${keyword})}">
-                    ≫
-                </a>
-            </li>
+                    <!-- 맨 마지막 페이지로 (≫) -->
+                    <li class="page-item"
+                        th:classappend="${page == (last - 1)} ? ' disabled'">
+                        <a class="page-link"
+                           th:href="@{/board(page=${last - 1}, size=${size}, keyword=${keyword}, category=${selectedCategory})}">
+                            ≫
+                        </a>
+                    </li>
 
-        </ul>
-    </nav>
+                </ul>
+            </nav>
+        </div>
+
+    </div>
 </div>
 
 </body>

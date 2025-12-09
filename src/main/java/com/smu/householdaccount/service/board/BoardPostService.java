@@ -26,4 +26,7 @@ public interface BoardPostService {
 
     /** 검색 기능 */
     Page<BoardPost> search(String keyword, Pageable pageable);
+
+    /** 카테고리 검색기능 */
+    Page<BoardPost> findByCategory(String category, Pageable pageable);
 }

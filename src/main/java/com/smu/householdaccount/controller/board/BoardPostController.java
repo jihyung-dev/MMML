@@ -27,20 +27,29 @@ public class BoardPostController {
     public String list(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String category,
             Model model
     ) {
 
         PageRequest pageable = PageRequest.of(page, 10);
         Page<BoardPost> posts;
 
-        if (keyword != null && !keyword.isBlank()) {
+        // 🔹 1순위: 카테고리 필터
+        if (category != null && !category.isBlank()) {
+            posts = boardPostService.findByCategory(category, pageable);
+
+            // 🔹 2순위: 검색어
+        } else if (keyword != null && !keyword.isBlank()) {
             posts = boardPostService.search(keyword, pageable);
+
+            // 🔹 둘 다 없으면 전체
         } else {
             posts = boardPostService.findAll(pageable);
         }
 
         model.addAttribute("posts", posts);
         model.addAttribute("keyword", keyword);
+        model.addAttribute("selectedCategory", category); // 카테고리 버튼 active 표시용
 
         return "board/list";
     }
