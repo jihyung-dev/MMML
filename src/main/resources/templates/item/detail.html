@@ -151,7 +151,7 @@
                         <!-- 수량 -->
                         <div class="mb-3 d-flex align-items-center gap-2">
                             <!--<label class="option-label mb-0">수량</label>-->
-                            <input id="qtyInput" name="qty" type="number" min="1" value="1" class="form-control" style="width:100px;"/>
+<!--                            <input id="qtyInput" name="qty" type="number" min="1" value="1" class="form-control" style="width:100px;"/>-->
                             <div class="ms-3 text-muted">남은재고: <span id="stockDisplay">—</span></div>
                         </div>
 
@@ -251,10 +251,12 @@
                 for(const sel of groupSelects){
                     if(!sel.value) return; // 선택 안 된 옵션 무시
                     const opt = sel.options[sel.selectedIndex];
-                    optionText += `${opt.text} / `;
+                    optionText += `${opt.text.split(' - ')[1].split(' (+')[0]} / `; // 옵션 값만 추출
                     optionId += sel.value + ",";
                     additionalPrice += parseInt(opt.dataset.additionalPrice || 0);
                     stock = stock === null ? parseInt(opt.dataset.stock || 0) : Math.min(stock, parseInt(opt.dataset.stock || 0));
+                    // 선택 완료 후 셀렉트 박스 초기화 (다음 옵션 선택을 위함)
+                    sel.value = "";
                 }
                 optionText = optionText.slice(0, -3);
                 optionId = optionId.slice(0, -1);
@@ -262,14 +264,19 @@
                 const sel = document.querySelector('.single-option');
                 if(!sel.value) return;
                 const opt = sel.options[sel.selectedIndex];
-                optionText = opt.text;
+                optionText = opt.text.split(' - ')[1].split(' (+')[0]; // 옵션 값만 추출
                 optionId = sel.value;
                 additionalPrice = parseInt(opt.dataset.additionalPrice || 0);
                 stock = parseInt(opt.dataset.stock || 0);
+                // 선택 완료 후 셀렉트 박스 초기화
+                sel.value = "";
             }
 
-            // 장바구니에 같은 옵션 있으면 수량 1 증가
-            const existing = cart.find(c => c.optionId === optionId);
+            // 🌟 [수정]: 옵션 재고를 `stockDisplay`에 표시합니다. (셀렉트 박스 초기화 직후)
+            stockDisplay.textContent = stock !== null ? stock : '—';
+
+            // 장바구니에 같은 옵션 있으면 수량 1 증가, 아니면 새로 추가
+            const existing = window.cart.find(c => c.optionId === optionId);
             if(existing){
                 if(existing.quantity + 1 > stock){
                     alert("재고가 부족합니다.");
@@ -277,11 +284,11 @@
                 }
                 existing.quantity += 1;
             } else {
-                cart.push({ optionId, optionText, quantity: 1, additionalPrice, basePrice, stock });
+                window.cart.push({ optionId, optionText, quantity: 1, additionalPrice, basePrice, stock });
             }
 
             renderCart();
-            updateStockDisplay();
+            //updateStockDisplay();
         }
 
         function renderCart() {
@@ -289,8 +296,7 @@
             let totalCartPrice = 0;
             let totalAdd = 0;
 
-            cart.forEach((item, index) => {
-                console.log(item)
+            window.cart.forEach((item, index) => {
                 const itemTotal = (item.basePrice + item.additionalPrice) * item.quantity;
                 totalCartPrice += itemTotal;
                 totalAdd += item.additionalPrice * item.quantity;
@@ -298,23 +304,25 @@
                 const li = document.createElement('li');
                 li.className = "list-group-item d-flex justify-content-between align-items-center";
 
+                // 🌟 중요 수정: type="hidden"으로 변경하고, name="qty"로 수정
                 li.innerHTML = `
-                <input type="text" name="optionId" value="${item.optionId}">
-                <input type="number" name="quantity" value="${item.quantity}">
-                <div>
-                    <strong>${item.optionText}</strong>
-                    <br>
-                    <small>${currencyFmt(item.basePrice + item.additionalPrice)} / 개</small>
-                </div>
-                <div class="d-flex align-items-center gap-2">
-                    <button class="btn btn-sm btn-outline-secondary cart-minus" data-index="${index}"
-                             style="padding:0.2rem 0.3rem; font-size:0.6rem; line-height:2; width: 1.5rem; min-width:0;">-</button>
-                    <span>${item.quantity}</span>
-                    <button class="btn btn-sm btn-outline-secondary cart-plus" data-index="${index}"
-                            style="padding:0.2rem 0.3rem; font-size:0.6rem; line-height:2; width: 1.5rem; min-width:0;">+</button>
-                    <strong class="ms-2">${currencyFmt(itemTotal)}</strong>
-                </div>
-            `;
+                    <input type="hidden" name="optionId" value="${item.optionId}">
+                    <input type="hidden" name="quantity" value="${item.quantity}">
+                    <div>
+                        <strong>${item.optionText}</strong>
+                        <br>
+                        <small>${currencyFmt(item.basePrice + item.additionalPrice)} / 개</small>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary cart-minus" data-index="${index}"
+                                 style="padding:0.2rem 0.3rem; font-size:0.6rem; line-height:2; width: 1.5rem; min-width:0;">-</button>
+                        <span>${item.quantity}</span>
+                        <button type="button" class="btn btn-sm btn-outline-secondary cart-plus" data-index="${index}"
+                                type="button"
+                                style="padding:0.2rem 0.3rem; font-size:0.6rem; line-height:2; width: 1.5rem; min-width:0;">+</button>
+                        <strong class="ms-2">${currencyFmt(itemTotal)}</strong>
+                    </div>
+                `;
                 semiCartList.appendChild(li);
             });
 
@@ -362,19 +370,19 @@
         }
 
         function changeQty(idx, diff) {
-            const item = cart[idx];
+            const item = window.cart[idx];
             const newQty = item.quantity + diff;
 
             if(newQty < 1){
-                alert("최소 수량은 1개입니다!");
-                return;
+                window.cart.splice(idx, 1); // 수량 1 미만이면 장바구니에서 제거
             }
-            if(newQty > item.stock){
+            else if(newQty > item.stock){
                 alert("재고보다 많이 담을 수 없습니다.");
                 return;
+            } else {
+                item.quantity = newQty;
             }
 
-            item.quantity = newQty;
             renderCart();
         }
 
@@ -410,56 +418,46 @@
         // 아래 예시는 너가 올려준 코드와 합쳐서 사용한다고 가정.
 
         const purchaseForm = document.getElementById('purchaseForm');
+        if (purchaseForm) {
+            purchaseForm.addEventListener('submit', function(e) {
+                // 장바구니에 담긴 옵션이 없으면 제출 방지
+                if (!window.cart || window.cart.length === 0) {
+                    e.preventDefault();
+                    alert('구매할 옵션을 1개 이상 선택해 주세요.');
+                    return;
+                }
+
+                // cart가 비어있지 않으면, renderCart가 생성한 hidden input들을 통해 폼이 정상 제출됩니다.
+            });
+        }
+
+        if (purchaseForm) {
+            purchaseForm.addEventListener('submit', function(e) {
+                // 장바구니에 담긴 옵션이 없으면 제출 방지
+                if (!window.cart || window.cart.length === 0) {
+                    e.preventDefault();
+                    alert('구매할 옵션을 1개 이상 선택해 주세요.');
+                    return;
+                }
+
+                // cart가 비어있지 않으면, renderCart가 생성한 hidden input들을 통해 폼이 정상 제출됩니다.
+            });
+        }
+
         const buyBtn = document.getElementById('buyBtn');
-        // cart은 기존 스크립트에서 관리되는 배열 (각 항목: { optionId, optionText, quantity, additionalPrice, basePrice, stock })
-        // 만약 cart가 여기 스코프에 없다면 전역으로 올려놓거나 동일 스코프로 합쳐줘.
 
-        // 안전 체크: 폼이 있으면 submit 이벤트 붙임
-
-        // if (purchaseForm) {
-        //     purchaseForm.addEventListener('submit', function(e) {
-        //         e.preventDefault();
-        //
-        //         // assume cart exists in outer scope
-        //         if (!window.cart || window.cart.length === 0) {
-        //             alert('장바구니에 담긴 옵션이 없습니다. 옵션을 선택하세요.');
-        //             return;
-        //         }
-        //
-        //         // CSRF hidden input은 thymeleaf가 이미 넣어주고 있다면 여기선 생략.
-        //         // Remove any previously injected optionId/qty inputs to avoid duplicates
-        //         Array.from(purchaseForm.querySelectorAll('input[name="optionId"], input[name="qty"]')).forEach(n => n.remove());
-        //
-        //         // Append inputs for each cart item (so server can receive lists)
-        //         window.cart.forEach(item => {
-        //             // optionId (repeatable)
-        //             const opt = document.createElement('input');
-        //             opt.type = 'hidden';
-        //             opt.name = 'optionId';
-        //             opt.value = item.optionId; // semiCart에 저장한 optionId (문자 or number)
-        //             purchaseForm.appendChild(opt);
-        //
-        //             // qty
-        //             const q = document.createElement('input');
-        //             q.type = 'hidden';
-        //             q.name = 'qty';
-        //             q.value = item.quantity;
-        //             purchaseForm.appendChild(q);
-        //         });
-        //
-        //         // itemId는 originally inside the form as hidden; ensure it exists
-        //         const itemIdInput = purchaseForm.querySelector('input[name="itemId"]');
-        //         if (!itemIdInput) {
-        //             alert('상품 정보가 없습니다.');
-        //             return;
-        //         }
-        //
-        //         // submit the form (will send itemId + optionId[] + qty[] + csrf token)
-        //         purchaseForm.submit();
-        //     });
-        // }
 
     });
+
+    // 판매자 정보 토글 함수 (HTML에서 호출됨)
+    function toggleSellerInfo() {
+        const arrow = document.getElementById('arrow');
+        if(arrow.textContent === '▼') {
+            arrow.textContent = '▲';
+        } else {
+            arrow.textContent = '▼';
+        }
+    }
 
 </script>
 

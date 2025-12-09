@@ -476,12 +476,8 @@ async function load3MonthData(key) {
 }
 
 // 이전 6개월 데이터 호출, 데이터 캐싱, 최초 한번만 호출
+// 2025/12/9 수정 - 데이터 변경 발생 시 다시 호출하는 걸로 변경
 async function load6MonthData() {
-    // 캐시 있으면 그대로 반환
-    if (loaded6MonthCache !== null) {
-        return loaded6MonthCache;
-    }
-
     // 없으면 fetch 해서 가져오고 저장 후 return
     const last6 = await fetch(`/ledger/request/userLedger/6month?year=${currentYear}&month=${currentMonth}&period=6`);
     const data = await last6.json();
@@ -2018,7 +2014,7 @@ async function deleteEntry() {
 
                 const key = `${currentYear}-${currentMonth}`;
                 ledgerCache.delete(key);
-                updateChart();
+            await updateChartWithTop3();
             } else {
                 alert("삭제 실패");
             }
@@ -2027,6 +2023,18 @@ async function deleteEntry() {
             alert("에러 발생");
         }
     }
+async function updateChartWithTop3(){
+    showSkeleton()
+    await updateChart();
+    await loadTopData();
+    hideSkeleton();
+}
+
+async function updateChartNoTop3(){
+    showSkeleton();
+    await updateChart();
+    hideSkeleton();
+}
 
 // 4. 저장/삭제 로직 수정 (ID 유무에 따라 POST/PUT/DELETE 분기)
 async function submitNewEntry() {
@@ -2081,9 +2089,10 @@ async function submitNewEntry() {
             closeDayListModal();
             closeAddEntryModal();
             ledgerCache.delete(`${currentYear}-${currentMonth}`); //
+            await updateChartWithTop3();
             // 파이썬 호출(유저 카테고리 저장)
+            updateCategory(payload);
 
-            updateChart();
         } else {
             alert("처리 실패");
         }
@@ -2570,4 +2579,33 @@ function initCache(){
     ageChart = null;
     AGE_LABELS = [];
     lastExcelRows = null;
+}
+
+function updateCategory(payload){
+    console.log(payload)
+    console.log(payload.memo)
+    const res = fetch("ai/update-category",{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+            transActions: [
+                {
+                    placeOfUse: payload.place,
+                    entryAmount: payload.amount,
+                    memo: payload.memo,
+                    category: payload.category,
+                    occurredAt: normalizeDateTime(payload.dateTime)
+                }
+            ]
+        })
+    })
+}
+
+function normalizeDateTime(dt) {
+    if (!dt) return null;
+
+    // 2025-12-17T10:55:00 → 2025-12-17 10:55:00
+    return dt.replace('T', ' ').substring(0, 19);
 }

@@ -32,8 +32,12 @@ public class ItemSpecifications {
     // 이름에 키워드 포함 (null 또는 빈값이면 null)
     public static Specification<Item> nameContains(String keyword) {
         if (keyword == null || keyword.isBlank()) return null;
+        String lowerCaseKeyword = "%" + keyword.trim().toLowerCase() + "%";
+
+        // 💡 디버깅 로그 추가
+        System.out.println("DEBUG: Specification keyword used: " + lowerCaseKeyword);
         return (root, query, cb) ->
-                cb.like(cb.lower(root.get("itemName")), "%" + keyword.trim().toLowerCase() + "%");
+                cb.like(cb.lower(root.get("itemName")), lowerCaseKeyword);
     }
 
     // 가격범위 (min 또는 max 둘 중 하나만 있어도 동작)

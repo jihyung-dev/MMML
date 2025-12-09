@@ -149,8 +149,17 @@
         if (cancelBtn) {
             cancelBtn.addEventListener('click', function () {
                 if (!confirm('주문을 취소하시겠습니까?')) return;
-                //window.location.href = /*[[@{/hotdeal}]]*/ '/hotdeal';
-                window.location.href = /*[[@{'/hotdeal/order/cancel?merchant_uid=' + __${merchantUid}__}]]*/ '/hotdeal/order/cancel?merchant_uid=';
+                // 1. 필요한 merchantUid 값을 Hidden Input에서 가져옵니다.
+                const targetMerchantUid = document.getElementById('merchantUid').value;
+
+                if (!targetMerchantUid || targetMerchantUid === 'order-unknown') {
+                    alert('주문 고유 식별자(Merchant ID)를 찾을 수 없어 취소할 수 없습니다.');
+                    return;
+                }
+
+                // 2. 서버의 OrderMainController의 GET /hotdeal/order/cancel?merchant_uid={ID} 경로로 요청
+                // merchantUid 변수는 이미 위에 Thymeleaf를 통해 안전하게 설정됨
+                window.location.href = '/hotdeal/order/cancel?merchant_uid=' + targetMerchantUid;
             });
         }
 
