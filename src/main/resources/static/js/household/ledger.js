@@ -197,24 +197,24 @@ function hideEmptyChart(wrapperEl, chartId) {
 
 // 3개월 평균 데이터와 이번 달 지출 막대 차트로 출력
 function drawCategoryComparisonBarChart(categoryList) {
-    const wrapper = document
-        .getElementById("threeMonthBarChart")
-        .closest(".bar-chart-wrapper");
-
-    // ✅ 데이터 없음 처리 (여기가 핵심)
-    if (!Array.isArray(categoryList) || categoryList.length === 0) {
-        showEmptyChart(wrapper, "threeMonthBarChart");
-
-        // 혹시 이전 차트가 있으면 제거
-        if (threeMonthBarChartInstance) {
-            threeMonthBarChartInstance.destroy();
-            threeMonthBarChartInstance = null;
-        }
-        return;
-    }
-    hideEmptyChart(wrapper, "threeMonthBarChart");
-
-    isThreeMonthBarChartDrawn = true;
+    // const wrapper = document
+    //     .getElementById("threeMonthBarChart")
+    //     .closest(".bar-chart-wrapper");
+    //
+    // // ✅ 데이터 없음 처리 (여기가 핵심)
+    // if (!Array.isArray(categoryList) || categoryList.length === 0) {
+    //     showEmptyChart(wrapper, "threeMonthBarChart");
+    //
+    //     // 혹시 이전 차트가 있으면 제거
+    //     if (threeMonthBarChartInstance.is) {
+    //         threeMonthBarChartInstance.destroy();
+    //         threeMonthBarChartInstance = null;
+    //     }
+    //     return;
+    // }
+    // hideEmptyChart(wrapper, "threeMonthBarChart");
+    //
+    // isThreeMonthBarChartDrawn = true;
     Highcharts.chart('threeMonthBarChart', {
         chart: { type: 'column' },
         title: {
@@ -1344,6 +1344,8 @@ window.finishTour = function() {
 function startExtendedTour() {
     // if (localStorage.getItem('tour_complete_final_v16')) return;
 
+    // [추가] 현재 년/월을 기반으로 '현재 달 1일' 날짜 문자열 생성
+    const dynamicDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
     // 1. 투어용 CSS 주입
     const styleId = 'driver-custom-style';
     if (!document.getElementById(styleId)) {
@@ -1461,8 +1463,11 @@ function startExtendedTour() {
                 }
             },
             {
-                element: '.fc-daygrid-day[data-date="2025-10-01"]',
-                popover: { title: '2. 캘린더 조회', description: '<b>10월 1일</b>을 클릭하여<br>상세 내역을 확인해보세요.', side: "top", showButtons: [] },
+                element: `.fc-daygrid-day[data-date="${dynamicDate}"]`, // ✅ 수정 후
+                popover: { title: '2. 캘린더 조회',
+                    description: `<b>${currentMonth}월 1일</b>을 클릭하여<br>상세 내역을 확인해보세요.`,
+                    side: "top",
+                    showButtons: [] }, //
                 onHighlightStarted: (el) => {
                     if (!el) { const firstDay = document.querySelector('.fc-daygrid-day'); if(firstDay) el = firstDay; }
                     if (el) {
@@ -1479,7 +1484,7 @@ function startExtendedTour() {
                 popover: { title: '3. 내역 등록', description: '새 내역을 등록해봅시다.<br><b>[+추가하기] 버튼을 클릭!</b>', side: "top", showButtons: [] },
                 onHighlightStarted: (el) => {
                     const listModal = document.getElementById("dayListModal");
-                    if(listModal.style.display !== 'flex') openDayListModal('2025-10-01');
+                    if(listModal.style.display !== 'flex') openDayListModal(dynamicDate);    // ✅ 수정 후
                     listModal.style.zIndex = "100005";
                     el.classList.add('neon-active');
                     el.addEventListener('click', () => {
@@ -1494,7 +1499,7 @@ function startExtendedTour() {
                 onHighlightStarted: (el) => {
                     const addModal = document.getElementById("addEntryModal");
                     if (!addModal || addModal.style.display === 'none') {
-                        const dateText = document.getElementById('dayListDate').innerText || '2025-10-01';
+                        const dateText = document.getElementById('dayListDate').innerText || dynamicDate;    // ✅ 수정 후
                         openAddEntryModal(dateText);
                     }
                     addModal.style.zIndex = "100005";
@@ -1538,16 +1543,33 @@ function startExtendedTour() {
             },
             {
                 element: '#addEntryModal .close-btn',
-                popover: { title: '6. 수정 및 삭제', description: '내용을 확인하셨으면<br>우측 상단 <b>[X] 버튼을 눌러 닫아주세요.</b>', side: "left", showButtons: [] },
+                element: '#addEntryModal .btn-primary:last-child', // ✅ 수정 후 (수정하기 버튼 타겟)
+                popover: {
+                    title: '6. 금액 수정 및 저장',
+                    // 🌟 수정 내용 안내 🌟
+                    description: '현재 금액 5,000원을 **4,500원**으로 수정한 뒤, <br>하단의 **[수정하기]** 버튼을 눌러주세요.',
+                    side: "top",
+                    showButtons: []
+                },
                 onHighlightStarted: (el) => {
-                    closeDayListModal();
+                    // [추가] 금액 입력창에 4500을 직접 입력하도록 하이라이트
+                    const amountInput = document.getElementById("inputAmount");
+                    if(amountInput) {
+                        amountInput.classList.add('neon-active');
+                    }
+
                     const addModal = document.getElementById("addEntryModal");
                     addModal.style.zIndex = "100005";
                     el.classList.add('neon-active');
+
                     el.addEventListener('click', () => {
                         el.classList.remove('neon-active');
+                        if(amountInput) amountInput.classList.remove('neon-active');
+
+                        // 폼 제출 시와 동일하게 모달 닫기
                         addModal.style.zIndex = "";
                         closeAddEntryModal();
+
                         setTimeout(() => driverObj.moveNext(), 800);
                     }, { once: true });
                 }
@@ -1592,13 +1614,14 @@ function startExtendedTour() {
             },
             {
                 element: '#ledgerTable tbody tr:first-child',
-                popover: { title: '10. 상세 내역 관리', description: '리스트를 클릭하여<br><b>수정 화면을 띄워보세요.</b>', side: "top", showButtons: [] },
+                popover: { title: '10. 수정 내역 확인', description: '방금 4,500원으로 수정한 내역을<br>리스트에서 **클릭**하여 확인해보세요.', side: "top", showButtons: [] },
                 onHighlightStarted: (el) => {
                     if(!el) {
                         const tbody = document.querySelector('#ledgerTable tbody');
                         if(tbody) {
                             const tr = document.createElement('tr');
-                            tr.innerHTML = '<td>10-01</td><td><span class="badge bg-danger">지출</span></td><td>식비</td><td>투어용</td><td>투어용</td><td>카드</td><td>10,000원</td>';
+                            // 🌟 가짜 내역을 4,500원으로 주입 🌟
+                            tr.innerHTML = '<td>10-01</td><td><span class="badge bg-danger">지출</span></td><td>식비</td><td>투어용 커피</td><td>투어용</td><td>카드</td><td>4,500원</td>';
                             tbody.prepend(tr);
                             el = tr;
                         }
@@ -1607,7 +1630,8 @@ function startExtendedTour() {
                         el.classList.add('neon-active');
                         el.addEventListener('click', () => {
                             el.classList.remove('neon-active');
-                            const fakeItem = { id: 8888, entryAmount: 15000, occurredAt: '2025-10-05T14:00:00', entryType: 'EXPENSE', categoryName: '쇼핑', placeOfUse: '투어용 쇼핑', memo: '상세 내역 클릭 테스트', payType: 'CARD' };
+                            // 🌟 열리는 수정 모달에 보여줄 가짜 데이터 🌟
+                            const fakeItem = { id: 8888, entryAmount: 4500, occurredAt: '2025-10-01T14:00:00', entryType: 'EXPENSE', categoryName: '식비', placeOfUse: '투어용 커피', memo: '금액 수정 확인', payType: 'CARD' };
                             openEditModal(fakeItem);
                             setTimeout(() => driverObj.moveNext(), 500);
                         }, { once: true });
