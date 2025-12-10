@@ -109,27 +109,27 @@
 
 
     <!-- 정렬(드롭다운) -->
-<!-- 서버로는 ?sort=NEWEST, PRICE_ASC, PRICE_DESC, POPULAR 등으로 전달 -->
-<div class="dropdown d-flex justify-content-end">
-    <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="sortDropdown"
-            data-bs-toggle="dropdown" aria-expanded="false">
-        정렬: <span th:text="${currentSortLabel != null ? currentSortLabel : '최신순'}">최신순</span>
-    </button>
-    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="sortDropdown">
-        <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='createdAt,desc')}">최신순</a></li>
-        <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='itemSaleprice,asc')}">낮은 가격</a></li>
-        <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='itemSaleprice,desc')}">높은 가격</a></li>
-        <!-- 수정필요                <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='createdAt,desc')}">인기도</a></li>-->
+    <div class="dropdown d-flex justify-content-end" id="sortDropdownWrap">
+        <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="sortDropdown"
+                data-bs-toggle="dropdown" aria-expanded="false">
+            정렬:
+            <!-- 서버에서 currentSortLabel 넘겨주면 우선 사용, 아니면 param.sort 또는 JS가 채움 -->
+            <span th:text="${currentSortLabel != null ? currentSortLabel : '최신순'}"
+                  id="sortDropdownLabel">최신순</span>
+        </button>
 
-        <!-- 인기도 추가 -->
-        <li>
-            <a class="dropdown-item"
-               th:href="@{/hotdeal(page=0, sort='popularityScore,desc', categoryId=${param.categoryId}, q=${param.q}, minPrice=${param.minPrice}, maxPrice=${param.maxPrice}, status=${param.status})}">
-                인기도순
-            </a>
-        </li>
-    </ul>
-</div>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="sortDropdown" id="sortDropdownMenu">
+            <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='createdAt,desc')}">최신순</a></li>
+            <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='itemSaleprice,asc')}">낮은 가격</a></li>
+            <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='itemSaleprice,desc')}">높은 가격</a></li>
+            <li>
+                <a class="dropdown-item"
+                   th:href="@{/hotdeal(page=0, sort='popularityScore,desc', categoryId=${param.categoryId}, q=${param.q}, minPrice=${param.minPrice}, maxPrice=${param.maxPrice}, status=${param.status})}">
+                    인기도순
+                </a>
+            </li>
+        </ul>
+    </div>
 
     <div  class="d-flex justify-content-end py-2">
         <small th:text="'총 ' + ${itemPage.totalElements} + '개'">총 0개</small>
@@ -228,6 +228,69 @@
             .catch(error => console.error("Error:", error));
     }
 
+        (function(){ //정렬 키워드 바뀌는 js
+            // 1) 콘솔에 JS 에러 있는지 먼저 확인 (디버그용 로그)
+            try {
+                // 2) URL에서 sort 파라미터 읽기
+                function getParam(name) {
+                    const url = new URL(window.location.href);
+                    return url.searchParams.get(name);
+                }
+                const sortParam = getParam('sort');
+
+                // 3) 레이블 선택 로직 (서버가 넘긴 값이 없을 때 클라이언트에서 채움)
+                const labelEl = document.getElementById('sortDropdownLabel');
+                if (labelEl) {
+                    if (!labelEl.textContent || labelEl.textContent.trim() === '' || labelEl.textContent.trim() === '최신순') {
+                        // only override if server didn't explicitly set another label
+                        if (sortParam && sortParam.includes('itemSaleprice,asc')) labelEl.textContent = '낮은 가격';
+                        else if (sortParam && sortParam.includes('itemSaleprice,desc')) labelEl.textContent = '높은 가격';
+                        else if (sortParam && sortParam.includes('popularityScore,desc')) labelEl.textContent = '인기도순';
+                        else labelEl.textContent = '최신순';
+                    }
+                }
+
+                // 4) Bootstrap JS가 로드되어 있지 않다면 간단한 폴백으로 드롭다운 동작 제공
+                var dropdownToggle = document.getElementById('sortDropdown');
+                var dropdownMenu = document.getElementById('sortDropdownMenu');
+                if (dropdownToggle && dropdownMenu) {
+                    var bootstrapLoaded = (typeof bootstrap !== 'undefined') && bootstrap.Dropdown;
+                    if (!bootstrapLoaded) {
+                        // 폴백 토글 (간단 구현)
+                        dropdownToggle.addEventListener('click', function(e){
+                            e.stopPropagation();
+                            var isShown = dropdownMenu.classList.contains('show');
+                            if (isShown) {
+                                dropdownMenu.classList.remove('show');
+                                dropdownToggle.setAttribute('aria-expanded', 'false');
+                            } else {
+                                dropdownMenu.classList.add('show');
+                                dropdownToggle.setAttribute('aria-expanded', 'true');
+                            }
+                        });
+                        // 바깥 클릭 시 닫기
+                        document.addEventListener('click', function(){
+                            if (dropdownMenu.classList.contains('show')) {
+                                dropdownMenu.classList.remove('show');
+                                dropdownToggle.setAttribute('aria-expanded','false');
+                            }
+                        });
+                        // ESC로 닫기
+                        document.addEventListener('keydown', function(e){
+                            if (e.key === 'Escape' && dropdownMenu.classList.contains('show')) {
+                                dropdownMenu.classList.remove('show');
+                                dropdownToggle.setAttribute('aria-expanded','false');
+                            }
+                        });
+                    } else {
+                        // Bootstrap이 있다면, JS 에러가 없는지 확인 (개발자 콘솔 권장)
+                        // (Bootstrap이 자동으로 작동하므로 추가 설정 불필요)
+                    }
+                }
+            } catch (err) {
+                console.error('sort dropdown script error:', err);
+            }
+        })();
 
 </script>
 
