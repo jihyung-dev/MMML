@@ -19,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
@@ -29,6 +31,7 @@ public class OrderServiceImpl implements OrderService{
     private final ItemRepository itemRepository;
     private final OrderItemRepository orderItemRepository;
     private final HotdealOptionRepository hotdealOptionRepository;
+    private Item item;
 
     @Override
     @Transactional
@@ -62,6 +65,7 @@ public class OrderServiceImpl implements OrderService{
         //3. OrderItem 저장
         OrderItem oi=new OrderItem();
 //        oi.setOrderId(saved.getId());
+        oi.setItem(item);
         oi.setItemId(itemId);
         oi.setOptionId(optionId);
         oi.setQty((long) qty);
@@ -74,52 +78,81 @@ public class OrderServiceImpl implements OrderService{
     @Transactional
     @Override
     public OrderMain createHotdealOrder(HotdealOrderBean hotdealOrderBean) {
-        Optional<Item> itemOpt = itemRepository.findById(hotdealOrderBean.getItemId());
-        if(itemOpt.isEmpty()){
-            throw new IllegalStateException("삭제된 아이템 입니다.");
+        // 1) item 존재 여부(최소 1개 아이템) 확인
+        if (hotdealOrderBean.getOptionId() == null || hotdealOrderBean.getOptionId().isEmpty()) {
+            throw new IllegalArgumentException("옵션이 비어있습니다.");
         }
-        Long originalPrice=itemOpt.get().getOriginalPrice().longValue();
-        Long salePrice=itemOpt.get().getItemSaleprice().longValue();
+
+        // 옵션 목록 조회 (이미 service에서 options 변수로 조회하셨던 로직과 유사)
         List<HotdealOption> options = hotdealOptionRepository.findAllById(hotdealOrderBean.getOptionId());
-        if(options==null || options.size()==0){
+        if (options == null || options.isEmpty()) {
             throw new IllegalArgumentException("삭제된 아이템 옵션 입니다.");
         }
 
-        List<OrderItem> orderItems=new ArrayList<>();
-        long totalAmout=0;
-        for(int i=0; i<options.size(); i++){
-            HotdealOption option=options.get(i);
-            long additionalPrice=option.getAdditionalPrice().longValue();
-            long quantity=hotdealOrderBean.getQuantity().get(i);
-            //[1,2]
-            long amount=( (additionalPrice+salePrice) * quantity);
-            totalAmout+=amount;
+        // --- 성능 개선: 모든 itemId를 모아서 한 번에 Item들을 조회 ---
+        Set<Long> itemIds = options.stream()
+                .map(HotdealOption::getItemId)
+                .collect(Collectors.toSet());
 
-            OrderItem orderItem=new OrderItem();
+        List<Item> items = itemRepository.findAllById(itemIds); // 한 번에 조회
+        Map<Long, Item> itemMap = items.stream()
+                .collect(Collectors.toMap(Item::getId, Function.identity()));
+
+        // 검사: 모든 option의 item이 존재하는지 확인
+        for (HotdealOption option : options) {
+            if (!itemMap.containsKey(option.getItemId())) {
+                throw new IllegalStateException("옵션에 연결된 상품이 없습니다. itemId=" + option.getItemId());
+            }
+        }
+
+        // 주문아이템 생성 및 총액 계산
+        List<OrderItem> orderItems = new ArrayList<>();
+        long totalAmount = 0L;
+
+        for (int i = 0; i < options.size(); i++) {
+            HotdealOption option = options.get(i);
+            long additionalPrice = option.getAdditionalPrice() != null ? option.getAdditionalPrice().longValue() : 0L;
+            long quantity = hotdealOrderBean.getQuantity().get(i); // 가정: quantity 리스트 길이 == options 길이
+            long salePrice = itemMap.get(option.getItemId()).getItemSaleprice().longValue();
+
+            long amount = (additionalPrice + salePrice) * quantity;
+            totalAmount += amount;
+
+            // OrderItem 생성
+            OrderItem orderItem = new OrderItem();
+
+
+            // 반드시 item 엔티티를 세팅해서 템플릿에서 oi.item.itemName을 바로 사용할 수 있게 함
+            Item item = itemMap.get(option.getItemId());
+            orderItem.setItem(item);
+            orderItem.setOption(option);
+
             orderItem.setItemId(option.getItemId());
             orderItem.setQty(hotdealOrderBean.getQuantity().get(i));
             orderItem.setPrice(BigDecimal.valueOf(amount));
+
             orderItems.add(orderItem);
-            orderItem.setOptionId(option.getId());
-
-
         }
-        OrderMain orderMain=new OrderMain();
+
+        // OrderMain 생성 및 저장
+        OrderMain orderMain = new OrderMain();
         orderMain.setBuyerId(hotdealOrderBean.getBuyerId());
-        orderMain.setTotalAmount(totalAmout);
+        orderMain.setTotalAmount(totalAmount);
         orderMain.setSellerId(hotdealOrderBean.getSellerId());
         orderMain.setOrderStatus("PENDING");
-        orderMain.setMerchantUid("order-"+UUID.randomUUID());
-        orderMain=orderMainRepository.save(orderMain);
+        orderMain.setMerchantUid("order-" + UUID.randomUUID());
+        orderMain = orderMainRepository.save(orderMain);
 
-        for(OrderItem orderItem:orderItems){
-            //orderItem.setOrderId(orderMain.getId()); //OrderItem.java에 관계 설정 메서드(serOrder) 추가해서 필요없음.
-            orderItem.setOrder(orderMain); //객체 참조 설정
+        // OrderItem에 주문 설정 (양방향 설정)
+        for (OrderItem orderItem : orderItems) {
+            orderItem.setOrder(orderMain); // order.setOrder(...) 내부에서 orderId도 세팅됨
         }
+
         orderItemRepository.saveAll(orderItems);
-//        orderMain.setOrderItems(orderItems.stream().collect(java.util.stream.Collectors.toSet()));
+
         return orderMain;
     }
+
 
     @Override
     @Transactional
@@ -261,6 +294,12 @@ public class OrderServiceImpl implements OrderService{
         // 4. 주문 상태 변경
         order.setOrderStatus(OrderStatus.CANCELED.name()); // 주문을 취소 상태로 변경
         orderMainRepository.save(order);
+    }
+
+    @Transactional(readOnly = true)
+    public OrderMain getOrderWithItems(String merchantUid) {
+        return orderMainRepository.findByMerchantUid(merchantUid)
+                .orElseThrow(() -> new NoSuchElementException("Order not found: " + merchantUid));
     }
 }
 

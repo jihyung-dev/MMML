@@ -10,9 +10,7 @@ import com.smu.householdaccount.repository.account.CategoryRepository;
 import com.smu.householdaccount.service.hotdeal.ItemService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
@@ -20,9 +18,12 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/hotdeal")
@@ -31,14 +32,6 @@ import java.util.List;
 public class ItemController {    // 명시적 생성자 주입 (Lombok 없이 안전)
     private final ItemService itemService;
     private final CategoryRepository categoryRepository;
-
-    /*@GetMapping
-    public String list(Model model,@PageableDefault(size = 10,page = 0,sort = "createdAt",direction = Sort.Direction.DESC) Pageable pageable){
-        Page<Item> itemPage=itemService.findByCategory("H01",pageable);
-        model.addAttribute("itemPage",itemPage);
-
-        return "hotdeal/list";
-    }*/
 
 
     // 목록: 검색 파라미터 모두 optional
@@ -51,7 +44,7 @@ public class ItemController {    // 명시적 생성자 주입 (Lombok 없이 �
             @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(required = false) String status, // 판매 상태 (ON_SALE, ENDED, SOLD_OUT 등)
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime date, // 특정 날짜 기준 검색
-            @PageableDefault(page=0, size = 8, sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
+            @PageableDefault(page = 0, size = 8, sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
             Model model,
 
             // ★ [수정] 로그인 사용자 정보 가져오기 (ItemWishController와 동일한 방식)
@@ -104,17 +97,7 @@ public class ItemController {    // 명시적 생성자 주입 (Lombok 없이 �
             @PathVariable Long id,
             Model model,
             RedirectAttributes redirectAttrs,
-//    수정 주석처리
-//    ) {
-//        // 1️⃣ 조회수 증가 (원자적 업데이트)
-//        itemService.incrementViewCount(id);
-//
-//        // 2️⃣ 아이템 조회
-//        Item item = itemService.findByIdForResponse(id);
-//        if(item == null){
-//            redirectAttrs.addFlashAttribute("errorMessage", "존재하지 않는 상품입니다.");
-//            return "redirect:/hotdeal";
-//        }
+
             @SessionAttribute(name = "loginUser", required = false) Member loginUser
     ) {
         try {
@@ -140,17 +123,6 @@ public class ItemController {    // 명시적 생성자 주입 (Lombok 없이 �
             return "redirect:/hotdeal";
         }
 
-//        model.addAttribute("item", item);
-//
-//        // 옵션 그룹 만들기 (예: 옵션 타입별로 그룹핑)
-//        Map<String, List<HotdealOption>> optionGroups = item.getHotdealOptions().stream()
-//                .collect(Collectors.groupingBy(
-//                        HotdealOption::getOptionType, // key: 옵션 타입
-//                        LinkedHashMap::new,           // 순서 유지
-//                        Collectors.toList()           // value: 옵션 리스트
-//                ));
-//        model.addAttribute("optionGroups", optionGroups);
-//        return "item/detail";
     }
 
 
@@ -189,4 +161,35 @@ public class ItemController {    // 명시적 생성자 주입 (Lombok 없이 �
         return "redirect:/item/" + id;
     }
 
+    @GetMapping
+    public String mainHotdeal(Model model) {
+        // 1) 기존 서비스로 핫딜 상품 조회
+        Page<Item> hotdealItems = itemService.searchItems(
+                null,        // sellerId
+                null,        // categoryId
+                null,        // keyword
+                null,        // minPrice
+                null,        // maxPrice
+                "HOTDEAL",   // saleStatus = 핫딜 상품만
+                LocalDateTime.now(), // activeOn = 현재 판매 중인 상품
+                PageRequest.of(0, 20) // 첫 페이지, 20개 출력
+        );
+
+        // 2) 컨트롤러 내부에서 D-Day 계산 → ItemDto로 변환
+        List<ItemResponseDto> itemsWithDday = hotdealItems.getContent().stream()
+                .map(item -> {
+                    long daysLeft = ChronoUnit.DAYS.between(
+                            LocalDate.now(),
+                            item.getSaleEndAt().toLocalDate()
+                    );
+
+                    return new ItemResponseDto(item, daysLeft);  // ← 여기서 DTO 객체 생성
+                })
+                .toList();
+
+        // 3) 타임리프로 전달
+        model.addAttribute("items", itemsWithDday);
+
+        return "item/list";
+    }
 }
