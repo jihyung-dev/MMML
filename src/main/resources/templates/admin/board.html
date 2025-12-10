@@ -7,64 +7,217 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>게시판 관리</title>
+    <style layout:fragment="css">
+        .admin-page-wrapper {
+            margin-top: 30px;
+            margin-bottom: 40px;
+        }
+
+        .admin-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .admin-title-box {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .admin-table-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .admin-subtext {
+            margin: 0;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .admin-legend {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .admin-legend span::before {
+            content: "• ";
+        }
+
+        .admin-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f1f3f5;
+            padding: 16px 18px 14px;
+        }
+
+        .admin-table-wrapper {
+            margin-top: 10px;
+        }
+
+        .admin-pagination-wrapper {
+            margin-top: 16px;
+        }
+    </style>
 </head>
 
 <body>
 <main layout:fragment="content" class="container" style="min-height: 70vh;">
 
-    <h1 class="mt-4 mb-2">게시판 관리</h1>
-    <p class="text-muted mb-4">작성한 게시글 목록입니다.</p>
+    <div class="admin-page-wrapper">
 
-    <div class="table-responsive">
-        <table class="table table-sm table-hover align-middle">
-            <thead class="table-light">
-            <tr>
-                <th>글 ID</th>
-                <th>카테고리</th>
-                <th>제목</th>
-                <th>작성자</th>
-                <th>작성일</th>
-                <th>조회수</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="p : ${posts}">
-                <!-- 글 ID -->
-                <td th:text="${p.id}">1</td>
+        <!-- 상단 헤더 -->
+        <div class="admin-header">
+            <div class="admin-title-box">
+                <h1 class="admin-table-title">게시판 관리</h1>
+                <p class="admin-subtext">
+                    사용자들이 작성한 게시글을 조회하고 관리합니다.
+                </p>
+            </div>
 
-                <!-- 카테고리 -->
-                <td th:text="${p.category}">자유</td>
+            <div class="admin-legend">
+                <span>제목, 작성자 닉네임으로 검색할 수 있습니다.</span>
+                <span>제목을 클릭하면 사용자 게시판 상세로 이동합니다.</span>
+            </div>
+        </div>
 
-                <!-- 제목 (사용자 게시판 상세로 이동) -->
-                <td>
-                    <a th:href="@{'/board/' + ${p.id}}"
-                       th:text="${p.postTitle}">
-                        게시글 제목
-                    </a>
-                </td>
+        <!-- 🔍 검색 폼 -->
+        <form class="row g-2 mb-3" th:action="@{/admin/board}" method="get">
+            <div class="col-sm-4 col-8">
+                <input type="text"
+                       name="keyword"
+                       class="form-control form-control-sm"
+                       placeholder="제목 / 작성자 닉네임 검색"
+                       th:value="${keyword}">
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-sm btn-primary" type="submit">검색</button>
+            </div>
+            <div class="col-auto" th:if="${keyword != null and !#strings.isEmpty(keyword)}">
+                <a class="btn btn-sm btn-outline-secondary" th:href="@{/admin/board}">초기화</a>
+            </div>
+        </form>
 
-                <!-- 작성자 닉네임 (Member 연관관계) -->
-                <td>
-                    <span th:if="${p.writer != null}"
-                          th:text="${p.writer.memberNickname}">
-                        닉네임
-                    </span>
-                    <span th:if="${p.writer == null}" class="text-muted">
-                        알 수 없음
-                    </span>
-                </td>
+        <!-- 카드 + 테이블 -->
+        <div class="admin-card">
+            <div class="admin-table-wrapper table-responsive">
+                <table class="table table-sm table-hover align-middle mb-2">
+                    <thead class="table-light">
+                    <tr>
+                        <th>글 ID</th>
+                        <th>카테고리</th>
+                        <th>제목</th>
+                        <th>작성자</th>
+                        <th>작성일</th>
+                        <th>조회수</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="p : ${postPage.content}">
+                        <!-- 글 ID -->
+                        <td th:text="${p.id}">1</td>
 
-                <!-- 작성일 (null일 수도 있으니 보호) -->
-                <td th:text="${p.createdAt != null ? #temporals.format(p.createdAt, 'yyyy-MM-dd HH:mm') : ''}">
-                    2025-01-01 12:00
-                </td>
+                        <!-- 카테고리 -->
+                        <td th:text="${p.category}">자유</td>
 
-                <!-- ✅ 조회수: viewCnt 로 수정 -->
-                <td th:text="${p.viewCnt}">0</td>
-            </tr>
-            </tbody>
-        </table>
+                        <!-- 제목 (사용자 게시판 상세로 이동) -->
+                        <td>
+                            <a th:href="@{'/board/' + ${p.id}}"
+                               th:text="${p.postTitle}">
+                                게시글 제목
+                            </a>
+                        </td>
+
+                        <!-- 작성자 닉네임 -->
+                        <td>
+                            <span th:if="${p.writer != null}"
+                                  th:text="${p.writer.memberNickname}">
+                                닉네임
+                            </span>
+                            <span th:if="${p.writer == null}" class="text-muted">
+                                알 수 없음
+                            </span>
+                        </td>
+
+                        <!-- 작성일 -->
+                        <td th:text="${p.createdAt != null ? #temporals.format(p.createdAt, 'yyyy-MM-dd HH:mm') : ''}">
+                            2025-01-01 12:00
+                        </td>
+
+                        <!-- 조회수 -->
+                        <td th:text="${p.viewCnt}">0</td>
+                    </tr>
+
+                    <tr th:if="${#lists.isEmpty(postPage.content)}">
+                        <td colspan="6" class="text-center text-muted py-4">
+                            조건에 맞는 게시글이 없습니다.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 페이지네이션 -->
+            <div class="d-flex justify-content-center admin-pagination-wrapper"
+                 th:if="${postPage.totalPages > 1}">
+                <ul class="pagination pagination-sm mb-0">
+
+                    <!-- 처음 페이지 -->
+                    <li class="page-item" th:classappend="${postPage.first} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{'/admin/board'(page=0, size=${postPage.size}, keyword=${keyword})}">
+                            ≪
+                        </a>
+                    </li>
+
+                    <!-- 이전 페이지 -->
+                    <li class="page-item" th:classappend="${postPage.first} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{'/admin/board'(page=${postPage.number - 1}, size=${postPage.size}, keyword=${keyword})}">
+                            ‹
+                        </a>
+                    </li>
+
+                    <!-- 페이지 번호들 -->
+                    <li class="page-item"
+                        th:each="pNum : ${#numbers.sequence(0, postPage.totalPages - 1)}"
+                        th:classappend="${pNum == postPage.number} ? 'active'">
+                        <a class="page-link"
+                           th:href="@{'/admin/board'(page=${pNum}, size=${postPage.size}, keyword=${keyword})}"
+                           th:text="${pNum + 1}">
+                            1
+                        </a>
+                    </li>
+
+                    <!-- 다음 페이지 -->
+                    <li class="page-item" th:classappend="${postPage.last} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{'/admin/board'(page=${postPage.number + 1}, size=${postPage.size}, keyword=${keyword})}">
+                            ›
+                        </a>
+                    </li>
+
+                    <!-- 마지막 페이지 -->
+                    <li class="page-item" th:classappend="${postPage.last} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{'/admin/board'(page=${postPage.totalPages - 1}, size=${postPage.size}, keyword=${keyword})}">
+                            ≫
+                        </a>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+
     </div>
 
 </main>

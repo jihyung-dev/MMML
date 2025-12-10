@@ -22,24 +22,35 @@
 <div layout:fragment="content">
     <div class="container mt-4 board-container">
 
-        <!-- 상단 배너 이미지 -->
-        <img th:src="@{/img/게시판 이미지.jpg}"
-             alt="게시판 이미지"
-             style="width:100%; max-height:150px; object-fit:cover; margin-bottom:20px; border-radius: 5px">
+        <!-- ===========================
+               상단 헤더 (이미지 대신)
+        ============================= -->
+        <div class="board-header d-flex align-items-center mb-4">
+            <div class="board-header-icon">
+                <span class="board-header-bar bar-top"></span>
+                <span class="board-header-bar bar1"></span>
+                <span class="board-header-bar bar2"></span>
+                <span class="board-header-bar bar3"></span>
+            </div>
 
-        <h2 class="fw-bold mb-4">가계부 게시판 목록</h2>
+            <div class="ms-3">
+                <h1 class="board-header-title mb-1">가계부 게시판</h1>
+                <p class="board-header-subtitle mb-0">
+                    가계부 자유게시판, 핫딜 팁, 가계부 팁 등을 공유하는 게시판입니다.
+                </p>
+            </div>
+        </div>
 
         <!-- ===========================
-               글쓰기 버튼 (로그인만)
+               글쓰기 버튼 (기존 그대로)
         ============================= -->
         <div class="d-flex justify-content-end mb-3">
             <th:block th:if="${session.loginUser != null}">
-                <a class="btn primary-btn" href="/board/write">글쓰기</a>
+                <a class="btn btn-sm primary-btn" href="/board/write">글쓰기</a>
             </th:block>
 
-            <!-- 비로그인 상태 → 안내 버튼 -->
             <th:block th:if="${session.loginUser == null}">
-                <button class="btn btn-secondary"
+                <button class="btn btn-sm btn-secondary"
                         onclick="alert('로그인 후 이용 가능합니다.');">
                     글쓰기
                 </button>
@@ -48,7 +59,6 @@
 
         <!-- ===========================
                카테고리 바로가기 버튼
-               (게시판 목록 바로 위)
         ============================= -->
         <div class="d-flex gap-2 mb-3">
             <!-- 전체 -->

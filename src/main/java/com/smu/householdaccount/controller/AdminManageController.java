@@ -10,10 +10,13 @@ import com.smu.householdaccount.repository.board.BoardPostRepository;
 import com.smu.householdaccount.repository.hotdeal.ItemRepository;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequiredArgsConstructor
@@ -34,38 +37,116 @@ public class AdminManageController {
 
     /** 1) 회원 관리 */
     @GetMapping("/members")
-    public String members(HttpSession session, Model model) {
+    public String members(HttpSession session,
+                          Model model,
+                          @RequestParam(defaultValue = "0") int page,
+                          @RequestParam(defaultValue = "10") int size,
+                          @RequestParam(required = false) String keyword) {
+
         if (isNotAdmin(session)) return "redirect:/";
 
-        model.addAttribute("members", memberRepository.findAll());
-        return "admin/members";   // → templates/admin/members.html
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<Member> memberPage;
+
+        if (keyword != null && !keyword.isBlank()) {
+            memberPage = memberRepository
+                    .findByMemberIdContainingIgnoreCaseOrMemberNameContainingIgnoreCaseOrMemberNicknameContainingIgnoreCase(
+                            keyword, keyword, keyword, pageable
+                    );
+        } else {
+            memberPage = memberRepository.findAll(pageable);
+            keyword = ""; // 뷰에서 쓰기 편하게
+        }
+
+        model.addAttribute("memberPage", memberPage);
+        model.addAttribute("keyword", keyword);
+
+        return "admin/members";
     }
 
     /** 2) 판매자 관리 */
     @GetMapping("/sellers")
-    public String sellers(HttpSession session, Model model) {
+    public String sellers(HttpSession session,
+                          Model model,
+                          @RequestParam(defaultValue = "0") int page,
+                          @RequestParam(defaultValue = "10") int size,
+                          @RequestParam(required = false) String keyword) {
+
         if (isNotAdmin(session)) return "redirect:/";
 
-        model.addAttribute("sellers", sellerRepository.findAll());
-        return "admin/sellers";   // → templates/admin/sellers.html
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<Seller> sellerPage;
+
+        if (keyword != null && !keyword.isBlank()) {
+            sellerPage = sellerRepository
+                    .findByMember_MemberIdContainingIgnoreCaseOrMember_MemberNicknameContainingIgnoreCaseOrBizNameContainingIgnoreCase(
+                            keyword, keyword, keyword, pageable
+                    );
+        } else {
+            sellerPage = sellerRepository.findAll(pageable);
+            keyword = "";
+        }
+
+        model.addAttribute("sellerPage", sellerPage);
+        model.addAttribute("keyword", keyword);
+
+        return "admin/sellers";   // templates/admin/sellers.html
     }
 
     /** 3) 게시판 관리 */
     @GetMapping("/board")
-    public String board(HttpSession session, Model model) {
+    public String board(HttpSession session,
+                        Model model,
+                        @RequestParam(defaultValue = "0") int page,
+                        @RequestParam(defaultValue = "10") int size,
+                        @RequestParam(required = false) String keyword) {
+
         if (isNotAdmin(session)) return "redirect:/";
 
-        model.addAttribute("posts", boardPostRepository.findAll());
-        return "admin/board";     // → templates/admin/board.html
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<BoardPost> postPage;
+
+        if (keyword != null && !keyword.isBlank()) {
+            postPage = boardPostRepository
+                    .findByPostTitleContainingIgnoreCaseOrWriter_MemberNicknameContainingIgnoreCase(
+                            keyword, keyword, pageable
+                    );
+        } else {
+            postPage = boardPostRepository.findAll(pageable);
+            keyword = "";
+        }
+
+        model.addAttribute("postPage", postPage);
+        model.addAttribute("keyword", keyword);
+
+        return "admin/board";     // templates/admin/board.html
     }
+
 
     /** 4) 핫딜 관리 */
     @GetMapping("/hotdeal")
-    public String hotdeal(HttpSession session, Model model) {
+    public String hotdeal(HttpSession session,
+                          Model model,
+                          @RequestParam(defaultValue = "0") int page,
+                          @RequestParam(defaultValue = "10") int size,
+                          @RequestParam(required = false) String keyword) {
+
         if (isNotAdmin(session)) return "redirect:/";
 
-        model.addAttribute("items", itemRepository.findAll());
-        return "admin/hotdeal";   // → templates/admin/hotdeal.html
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<Item> itemPage;
+
+        if (keyword != null && !keyword.isBlank()) {
+            itemPage = itemRepository.findByItemNameContainingIgnoreCase(keyword, pageable);
+        } else {
+            itemPage = itemRepository.findAll(pageable);
+            keyword = "";
+        }
+
+        model.addAttribute("itemPage", itemPage);
+        model.addAttribute("keyword", keyword);
+
+        return "admin/hotdeal";   // templates/admin/hotdeal.html
     }
 
     /** 5) 가계부 관리 (일단은 화면만) */
@@ -76,6 +157,32 @@ public class AdminManageController {
         // 나중에 ledgerRepository 붙이면 여기서 데이터 넣기
         return "admin/ledger";    // → templates/admin/ledger.html
     }
+
+
+    // 유저 활성/비활성 토글용 메서드
+    @PostMapping("/members/{memberId}/toggle")
+    public String toggleMemberEnabled(@PathVariable String memberId,
+                                      @RequestParam(defaultValue = "0") int page,
+                                      @RequestParam(defaultValue = "10") int size,
+                                      HttpSession session) {
+
+        if (isNotAdmin(session)) return "redirect:/";
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("회원이 존재하지 않습니다: " + memberId));
+
+        // enabled 컬럼이 'Y' / 'N' 이라고 가정
+        if ("Y".equalsIgnoreCase(member.getEnabled())) {
+            member.setEnabled("N");
+        } else {
+            member.setEnabled("Y");
+        }
+
+        memberRepository.save(member);
+
+        return "redirect:/admin/members?page=" + page + "&size=" + size;
+    }
+
 
 
 }

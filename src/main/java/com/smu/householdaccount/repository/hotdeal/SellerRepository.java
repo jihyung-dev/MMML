@@ -1,6 +1,8 @@
 package com.smu.householdaccount.repository.hotdeal;
 
 import com.smu.householdaccount.entity.hotdeal.Seller;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -19,6 +21,14 @@ public interface SellerRepository extends JpaRepository<Seller, Long> {
             String memberId,
             String memberName,
             String phone
+    );
+
+    //관리자게시판 판매자 검색기능
+    Page<Seller> findByMember_MemberIdContainingIgnoreCaseOrMember_MemberNicknameContainingIgnoreCaseOrBizNameContainingIgnoreCase(
+            String memberId,
+            String nickname,
+            String bizName,
+            Pageable pageable
     );
 
 

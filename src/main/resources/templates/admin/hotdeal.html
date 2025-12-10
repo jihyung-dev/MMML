@@ -7,65 +7,218 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>핫딜 관리</title>
+    <style layout:fragment="css">
+        .admin-page-wrapper {
+            margin-top: 30px;
+            margin-bottom: 40px;
+        }
+
+        .admin-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .admin-title-box {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .admin-table-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .admin-subtext {
+            margin: 0;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .admin-legend {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .admin-legend span::before {
+            content: "• ";
+        }
+
+        .admin-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f1f3f5;
+            padding: 16px 18px 14px;
+        }
+
+        .admin-table-wrapper {
+            margin-top: 10px;
+        }
+
+        .admin-pagination-wrapper {
+            margin-top: 16px;
+        }
+    </style>
 </head>
 
 <body>
 <main layout:fragment="content" class="container" style="min-height: 70vh;">
 
-    <h1 class="mt-4 mb-2">핫딜 관리</h1>
-    <p class="text-muted mb-4">판매자들이 등록한 핫딜 상품을 검수·관리합니다.</p>
+    <div class="admin-page-wrapper">
 
-    <div class="table-responsive">
-        <table class="table table-sm table-hover align-middle">
-            <thead class="table-light">
-            <tr>
-                <th>상품 ID</th>
-                <th>상품명</th>
-                <th>원가</th>
-                <th>판매가</th>
-                <th>조회수</th>
-                <th>인기도</th>
-                <th>판매기간</th>
-                <th>판매상태</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="i : ${items}">
-                <!-- PK -->
-                <td th:text="${i.id}">1</td>
+        <!-- 상단 헤더 -->
+        <div class="admin-header">
+            <div class="admin-title-box">
+                <h1 class="admin-table-title">핫딜 관리</h1>
+                <p class="admin-subtext">
+                    판매자들이 등록한 핫딜 상품을 검수·관리합니다.
+                </p>
+            </div>
 
-                <!-- 상품명 -->
-                <td th:text="${i.itemName}">상품명</td>
+            <div class="admin-legend">
+                <span>상품명으로 검색할 수 있습니다.</span>
+                <span>판매기간과 판매상태를 기준으로 모니터링할 수 있습니다.</span>
+            </div>
+        </div>
 
-                <!-- 원가: getFormattedOriginalPrice() 사용 가능 -->
-                <td th:text="${i.formattedOriginalPrice}">10,000원</td>
+        <!-- 🔍 검색 폼 -->
+        <form class="row g-2 mb-3" th:action="@{/admin/hotdeal}" method="get">
+            <div class="col-sm-4 col-8">
+                <input type="text"
+                       name="keyword"
+                       class="form-control form-control-sm"
+                       placeholder="상품명 검색"
+                       th:value="${keyword}">
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-sm btn-primary" type="submit">검색</button>
+            </div>
+            <div class="col-auto" th:if="${keyword != null and !#strings.isEmpty(keyword)}">
+                <a class="btn btn-sm btn-outline-secondary" th:href="@{/admin/hotdeal}">초기화</a>
+            </div>
+        </form>
 
-                <!-- 판매가: getFormattedPrice() 사용 (Transient 메서드) -->
-                <td th:text="${i.formattedPrice}">9,000원</td>
+        <!-- 카드 + 테이블 -->
+        <div class="admin-card">
+            <div class="admin-table-wrapper table-responsive">
+                <table class="table table-sm table-hover align-middle mb-2">
+                    <thead class="table-light">
+                    <tr>
+                        <th>상품 ID</th>
+                        <th>상품명</th>
+                        <th>원가</th>
+                        <th>판매가</th>
+                        <th>조회수</th>
+                        <th>인기도</th>
+                        <th>판매기간</th>
+                        <th>판매상태</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="i : ${itemPage.content}">
+                        <!-- PK -->
+                        <td th:text="${i.id}">1</td>
 
-                <!-- 조회수 -->
-                <td th:text="${i.viewCount}">0</td>
+                        <!-- 상품명 -->
+                        <td th:text="${i.itemName}">상품명</td>
 
-                <!-- 인기도 점수 -->
-                <td th:text="${i.popularityScore}">0</td>
+                        <!-- 원가 -->
+                        <td th:text="${i.formattedOriginalPrice}">10,000원</td>
 
-                <!-- 판매기간: 시작~종료 (시작이 null일 수도 있으니 보호) -->
-                <td>
-                    <span th:text="${i.saleStartAt != null ? #temporals.format(i.saleStartAt, 'yyyy-MM-dd') : '-'}">
-                        -
-                    </span>
-                    ~
-                    <span th:text="${#temporals.format(i.saleEndAt, 'yyyy-MM-dd')}">
-                        2025-01-10
-                    </span>
-                </td>
+                        <!-- 판매가 -->
+                        <td th:text="${i.formattedPrice}">9,000원</td>
 
-                <!-- 판매 상태 -->
-                <td th:text="${i.saleStatus}">ON_SALE</td>
-            </tr>
-            </tbody>
-        </table>
+                        <!-- 조회수 -->
+                        <td th:text="${i.viewCount}">0</td>
+
+                        <!-- 인기도 점수 -->
+                        <td th:text="${i.popularityScore}">0</td>
+
+                        <!-- 판매기간 -->
+                        <td>
+                            <span th:text="${i.saleStartAt != null ? #temporals.format(i.saleStartAt, 'yyyy-MM-dd') : '-'}">
+                                -
+                            </span>
+                            ~
+                            <span th:text="${i.saleEndAt != null ? #temporals.format(i.saleEndAt, 'yyyy-MM-dd') : '-'}">
+                                2025-01-10
+                            </span>
+                        </td>
+
+                        <!-- 판매 상태 -->
+                        <td th:text="${i.saleStatus}">ON_SALE</td>
+                    </tr>
+
+                    <tr th:if="${#lists.isEmpty(itemPage.content)}">
+                        <td colspan="8" class="text-center text-muted py-4">
+                            조건에 맞는 핫딜 상품이 없습니다.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 페이지네이션 -->
+            <div class="d-flex justify-content-center admin-pagination-wrapper"
+                 th:if="${itemPage.totalPages > 1}">
+                <ul class="pagination pagination-sm mb-0">
+
+                    <!-- 처음 페이지 -->
+                    <li class="page-item" th:classappend="${itemPage.first} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{'/admin/hotdeal'(page=0, size=${itemPage.size}, keyword=${keyword})}">
+                            ≪
+                        </a>
+                    </li>
+
+                    <!-- 이전 페이지 -->
+                    <li class="page-item" th:classappend="${itemPage.first} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{'/admin/hotdeal'(page=${itemPage.number - 1}, size=${itemPage.size}, keyword=${keyword})}">
+                            ‹
+                        </a>
+                    </li>
+
+                    <!-- 페이지 번호들 -->
+                    <li class="page-item"
+                        th:each="pNum : ${#numbers.sequence(0, itemPage.totalPages - 1)}"
+                        th:classappend="${pNum == itemPage.number} ? 'active'">
+                        <a class="page-link"
+                           th:href="@{'/admin/hotdeal'(page=${pNum}, size=${itemPage.size}, keyword=${keyword})}"
+                           th:text="${pNum + 1}">
+                            1
+                        </a>
+                    </li>
+
+                    <!-- 다음 페이지 -->
+                    <li class="page-item" th:classappend="${itemPage.last} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{'/admin/hotdeal'(page=${itemPage.number + 1}, size=${itemPage.size}, keyword=${keyword})}">
+                            ›
+                        </a>
+                    </li>
+
+                    <!-- 마지막 페이지 -->
+                    <li class="page-item" th:classappend="${itemPage.last} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{'/admin/hotdeal'(page=${itemPage.totalPages - 1}, size=${itemPage.size}, keyword=${keyword})}">
+                            ≫
+                        </a>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+
     </div>
 
 </main>

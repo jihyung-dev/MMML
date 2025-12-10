@@ -55,6 +55,11 @@ public interface ItemRepository extends JpaRepository<Item, Long>, JpaSpecificat
     Optional<Item> findById(Long id);
     @EntityGraph(attributePaths = {"category","hotdealOptions"})
     Optional<Item> findWithCategoryWithHotdealOptionsById(Long id);
+
+    //관리자 페이지 아이템 검색기능
+    Page<Item> findByItemNameContainingIgnoreCase(String itemName, Pageable pageable);
+
+
     // 1. 상품 단건 조회 ( 상품 하나 불러오기 => 결제 페이지에서 상세 정보 띄울 때 사용 )
 //    Optional<Item> findById(Long id);
 
@@ -76,6 +81,9 @@ public interface ItemRepository extends JpaRepository<Item, Long>, JpaSpecificat
 
     // 4. 카테고리별 상품 조회 (필요하면)
 //     Page<Item> findByCategoryId(String categoryId, Pageable pageable);
+
+
+
 
 
 }

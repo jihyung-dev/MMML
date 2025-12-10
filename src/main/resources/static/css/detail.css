@@ -1,89 +1,267 @@
+/* ===========================
+   게시글 상세 공통 스타일
+   =========================== */
+
 body {
-    font-family: 'Noto Sans KR', sans-serif;
-    background: #f5f5f5;
-    margin: 30px;
+    font-family: 'Noto Sans KR', 'Malgun Gothic',
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f3f4f6;
+    margin: 0;
     font-size: 13px;
+    color: #111827;
 }
 
 .detail-container {
-    background: white;
-    padding: 25px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    width: 100%;
+    max-width: 840px;
+    background: #ffffff;
+    padding: 28px 32px 32px;
+    border-radius: 24px;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+}
+
+@media (max-width: 768px) {
+    .detail-container {
+        padding: 20px 16px 24px;
+        border-radius: 18px;
+    }
+}
+
+/* 제목 */
+.detail-title {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+    color: #111827;
+}
+
+/* 메타 정보 (카테고리, 작성자, 날짜, 조회수) */
+.detail-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    font-size: 12px;
+    color: #6b7280;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 10px;
+    margin-bottom: 18px;
 }
 
 .detail-meta span {
-    display: inline-block;
-    margin-right: 15px;
-    margin-top: 5px;
+    display: inline-flex;
+    align-items: center;
 }
 
-.detail-content {
-    background: #f1d6d6;
-    padding: 15px;
-    border-radius: 6px;
-    margin-top: 15px;
-    white-space: pre-wrap;
-    min-height: 200px;
+.detail-meta span b {
+    margin-left: 4px;
+    color: #111827;
+    font-weight: 600;
+}
 
+/* 본문 내용 */
+.detail-content {
+    background: #f9fafb;
+    padding: 18px 20px;
+    border-radius: 16px;
+    margin-top: 6px;
+    margin-bottom: 20px;
+    white-space: pre-wrap;
+    min-height: 220px;
+    line-height: 1.7;
+    font-size: 14px;
+    color: #111827;
+}
+
+/* ===========================
+   좋아요 영역
+   =========================== */
+
+/* "몇 명이 좋아합니다" */
+.like-summary {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 8px;
+}
+
+.like-summary b {
+    color: #111827;
+}
+
+/* 좋아요 / 취소 버튼 묶음 */
+.like-actions form {
+    display: inline-block;
+    margin-right: 4px;
+}
+
+/* 기본 버튼 공통 스타일 (이 페이지 안) */
+.detail-container button {
+    padding: 6px 13px;
+    border-radius: 999px;
+    border: none;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
 }
 
 /* 좋아요 버튼 */
-button {
-    padding: 6px 12px;
-    background: #1976d2;
-    color: white;
-    border-radius: 4px;
-    border: none;
-    cursor: pointer;
-}
-button:hover {
-    background: #1258a0;
+.like-actions form:first-of-type button {
+    background: #6c63ff;      /* 내돈내삶 보라색 */
+    color: #ffffff;
 }
 
-/* 좋아요 창너비 조정 */
-input[name="memberId"] {
-    width: 80px;   /* 원하는 너비 */
+.like-actions form:first-of-type button:hover {
+    background: #574bff;
 }
 
+/* 좋아요 취소 버튼 */
+.like-actions form:last-of-type button {
+    background: #e5e7eb;
+    color: #374151;
+}
 
+.like-actions form:last-of-type button:hover {
+    background: #d1d5db;
+}
 
-/* 댓글 */
+/* 비로그인 안내 링크 */
+.detail-container a {
+    color: #6c63ff;
+    text-decoration: none;
+}
+.detail-container a:hover {
+    text-decoration: underline;
+}
+
+/* ===========================
+   댓글 영역
+   =========================== */
+
 .comment-box {
-    margin-top: 30px;
+    margin-top: 28px;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 18px;
 }
 
+.comment-box h4 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+/* 부모 댓글 + 대댓글 공통 박스 */
 .comment-item {
-    padding: 10px;
-    border-bottom: 1px solid #eee;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 8px;
 }
 
+/* 대댓글 */
 .comment-item.reply {
-    margin-left: 30px;
-    border-left: 3px solid #1976d2;
-    padding-left: 15px;
+    margin-left: 24px;
+    border-left: 3px solid #6c63ff;
+    padding-left: 12px;
+    background: #f5f3ff;
 }
 
+/* 작성자 */
 .comment-author {
-    font-weight: bold;
+    font-weight: 700;
+    margin-right: 6px;
+    color: #111827;
 }
 
+/* 댓글 삭제 버튼 */
 .comment-delete-btn {
-    background: #d32f2f;
-}
-.comment-delete-btn:hover {
-    background: #a82828;
+    background: #ef4444 !important;
+    color: #ffffff !important;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 11px;
+    margin-left: 4px;
 }
 
+.comment-delete-btn:hover {
+    background: #dc2626 !important;
+}
+
+/* 댓글 textarea */
 textarea {
     width: 100%;
-    padding: 8px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    font-size: 13px;
+    resize: vertical;
+    min-height: 70px;
 }
 
+textarea:focus {
+    outline: none;
+    border-color: #6c63ff;
+    box-shadow: 0 0 0 1px rgba(108, 99, 255, 0.2);
+}
 
-/* 간단한 추가 스타일 (필요시 옮기세요) */
+/* 댓글 작성 닉네임 입력창 (readonly) */
+input[type="text"][readonly] {
+    width: 100%;
+    max-width: 240px;
+    margin-bottom: 6px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+    font-size: 13px;
+}
+
+/* 댓글 등록 버튼 */
+.comment-box button {
+    margin-top: 6px;
+}
+
+/* "답글 달기" details/summary */
+details {
+    margin-top: 6px;
+}
+
+details summary {
+    cursor: pointer;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+/* 댓글 페이징 */
+.comment-pagination {
+    margin-top: 12px;
+    font-size: 12px;
+}
+
+.comment-pagination a {
+    margin-right: 6px;
+    text-decoration: none;
+    color: #6b7280;
+    padding: 3px 7px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+}
+
+.comment-pagination a.active {
+    background: #6c63ff;
+    color: #ffffff;
+    border-color: #6c63ff;
+}
+
+.comment-pagination a:hover {
+    border-color: #d1d5db;
+}
+
+/* ===========================
+   (기존 핫딜/판매자 관련 스타일 유지)
+   =========================== */
+
+/* 이미지/카드 등 다른 페이지에서 재사용되는 스타일 */
 .thumb {
     object-fit: cover;
     width: 100%;
@@ -125,7 +303,7 @@ textarea {
     .thumb { height: 420px; }
 }
 
-/*판매자 정보 드롭다운*/
+/* 판매자 정보 드롭다운 */
 .seller-header {
     cursor: pointer;
     display: flex;
@@ -145,7 +323,7 @@ textarea {
 }
 
 #seller-info.expanded {
-    max-height: 200px; /* 펼쳤을 때 높이 넉넉하게 */
+    max-height: 200px;
     opacity: 1;
 }
 

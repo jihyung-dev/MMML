@@ -5,7 +5,36 @@
       th:with="title='마이페이지'"
 >
 <head>
-    <style layout:fragment="css"></style>
+    <style layout:fragment="css">
+        .admin-dashboard-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            border: 1px solid rgba(108, 99, 255, 0.6);
+            color: #6c63ff;
+            background: rgba(108, 99, 255, 0.06);
+            transition: all 0.15s ease-in-out;
+        }
+
+        .admin-dashboard-btn .arrow {
+            font-size: 13px;
+            margin-top: -1px; /* 살짝 위로 */
+        }
+
+        .admin-dashboard-btn:hover {
+            background: #6c63ff;
+            color: #ffffff;
+            border-color: #6c63ff;
+            box-shadow: 0 6px 14px rgba(108, 99, 255, 0.35);
+            transform: translateY(-1px);
+        }
+
+    </style>
 </head>
 <body>
     <div layout:fragment="content">
@@ -16,7 +45,8 @@
 
                         <!-- 중앙 프로필 사진 -->
 
-                        <img src="/src/img/undraw_pic-profile_nr49.svg" class="rounded-circle" width="128" height="128" alt="Alex">
+                        <img th:src="@{/img/memberimg.png}"
+                             class="rounded-circle" width="128" height="128" alt="Profile">
 
                         <button class="absolute bottom-0 right-0 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-primary text-black dark:text-black">
                             <span class="material-symbols-outlined" style="font-size: 20px; color: white;">edit</span>
@@ -42,6 +72,19 @@
         <div id="info-section" class="flex flex-col gap-8">
             <!-- Contact Details Section -->
             <div class="rounded-xl border border-gray-200/50 dark:border-white/10 bg-white dark:bg-[#111813] p-4 sm:p-6">
+
+                <div th:if="${session.loginUser != null
+            and (session.loginUser.role == 'ADMIN'
+                 or session.loginUser.role == 'ROLE_ADMIN')}"
+                     class="mb-3 text-end">
+                    <a th:href="@{/admin}" class="admin-dashboard-btn">
+                        <span class="label">관리자 대시보드</span>
+                        <span class="arrow">↗</span>
+                    </a>
+                </div>
+
+
+
                 <div class="flex items-center justify-between pb-4 border-b border-gray-200/50 dark:border-white/10 mb-6">
                     <h2 class="text-gray-900 dark:text-white text-xl font-bold leading-tight tracking-[-0.015em]">회원 상세 정보</h2>
 

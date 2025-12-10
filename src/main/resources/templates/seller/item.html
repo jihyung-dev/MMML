@@ -1,59 +1,238 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/my_layout}">
+
 <head>
     <meta charset="UTF-8">
-    <title>판매자 대시보드</title>
+    <title>판매자 대시보드 - 상품 상세</title>
+
+    <style layout:fragment="css">
+        .page-wrap {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 24px 16px;
+            color: #111827;
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin-bottom: 8px;
+            color: #6c63ff; /* 보라색 포인트 */
+        }
+
+        .page-subtitle {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 20px;
+        }
+
+        .section-card {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid #e5e7eb;
+            padding: 18px 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .section-tag {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: #9ca3af;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        thead {
+            background: #f9fafb;
+        }
+
+        th, td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+        }
+
+        th {
+            font-weight: 600;
+            color: #4b5563;
+            font-size: 12px;
+        }
+
+        tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .info-table td:first-child {
+            width: 140px;
+            font-weight: 600;
+            color: #6b7280;
+            background: #f9fafb;
+        }
+
+        .info-table td:last-child {
+            font-weight: 500;
+        }
+
+        .image-wrap {
+            margin-top: 4px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .image-wrap img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            background: #f3f4f6;
+        }
+    </style>
 </head>
+
 <body>
-<h1>ITEM 정보</h1>
-<table border="1">
-    <tr>
-        <th>ID</th>
-        <th>상품명</th>
-        <th>원가</th>
-        <th>판매가</th>
-        <th>카테고리</th>
-        <th>조회수</th>
-        <th>인기점수</th>
-        <th>판매 시작일</th>
-        <th>판매 종료일</th>
-        <th>상태</th>
-    </tr>
-    <tr>
-        <td th:text="${item.id}"></td>
-        <td th:text="${item.itemName}"></td>
-        <td th:text="${item.originalPrice}"></td>
-        <td th:text="${item.itemSaleprice}"></td>
-        <td th:text="${item.categoryId}"></td>
-        <td th:text="${item.viewCount}"></td>
-        <td th:text="${item.popularityScore}"></td>
-        <td th:text="${item.saleStartAt}"></td>
-        <td th:text="${item.saleEndAt}"></td>
-        <td th:text="${item.saleStatus}"></td>
-    </tr>
-</table>
+<div layout:fragment="content">
 
-<h2>옵션 정보</h2>
-<table border="1">
-    <tr>
-        <th>옵션 ID</th>
-        <th>타입</th>
-        <th>값</th>
-        <th>추가 가격</th>
-        <th>재고</th>
-    </tr>
-    <tr th:each="option : ${item.hotdealOptions}">
-        <td th:text="${option.id}"></td>
-        <td th:text="${option.optionType}"></td>
-        <td th:text="${option.optionValue}"></td>
-        <td th:text="${option.additionalPrice}"></td>
-        <td th:text="${option.stock}"></td>
-    </tr>
-</table>
+    <div class="page-wrap">
 
-<div>
-    <img width="100" th:each="img : ${item.images}" th:src="@{${img.getImageUrl()}}" alt="">
-    &nbsp;
+        <!-- 페이지 타이틀 -->
+        <h1 class="page-title">상품 상세 정보</h1>
+        <p class="page-subtitle">
+            판매자로 등록된 핫딜 상품의 기본 정보, 옵션, 이미지를 확인할 수 있습니다.
+        </p>
+
+        <!-- 🔹 ITEM 정보 -->
+        <div class="section-card">
+            <div class="section-header">
+                <div>
+                    <div class="section-tag">ITEM INFO</div>
+                    <div class="section-title">ITEM 정보</div>
+                </div>
+            </div>
+
+            <table class="info-table">
+                <tbody>
+                <tr>
+                    <td>ID</td>
+                    <td th:text="${item.id}"></td>
+                </tr>
+                <tr>
+                    <td>상품명</td>
+                    <td th:text="${item.itemName}"></td>
+                </tr>
+                <tr>
+                    <td>원가</td>
+                    <td th:text="${item.originalPrice}"></td>
+                </tr>
+                <tr>
+                    <td>판매가</td>
+                    <td th:text="${item.itemSaleprice}"></td>
+                </tr>
+                <tr>
+                    <td>카테고리</td>
+                    <td th:text="${item.categoryId}"></td>
+                    <!-- 필요하면 item.category.categoryName 으로 교체 가능 -->
+                </tr>
+                <tr>
+                    <td>조회수</td>
+                    <td th:text="${item.viewCount}"></td>
+                </tr>
+                <tr>
+                    <td>인기점수</td>
+                    <td th:text="${item.popularityScore}"></td>
+                </tr>
+                <tr>
+                    <td>판매 시작일</td>
+                    <td th:text="${item.saleStartAt}"></td>
+                    <!-- 날짜 포맷 쓰고 싶으면 #temporals.format(...) 으로 바꿔도 됨 -->
+                </tr>
+                <tr>
+                    <td>판매 종료일</td>
+                    <td th:text="${item.saleEndAt}"></td>
+                </tr>
+                <tr>
+                    <td>상태</td>
+                    <td th:text="${item.saleStatus}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 🔹 옵션 정보 -->
+        <div class="section-card">
+            <div class="section-header">
+                <div>
+                    <div class="section-tag">HOTDEAL OPTIONS</div>
+                    <div class="section-title">옵션 정보</div>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                <tr>
+                    <th>옵션 ID</th>
+                    <th>타입</th>
+                    <th>값</th>
+                    <th>추가 가격</th>
+                    <th>재고</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="option : ${item.hotdealOptions}">
+                    <td th:text="${option.id}"></td>
+                    <td th:text="${option.optionType}"></td>
+                    <td th:text="${option.optionValue}"></td>
+                    <td th:text="${option.additionalPrice}"></td>
+                    <td th:text="${option.stock}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 🔹 이미지 영역 -->
+        <div class="section-card">
+            <div class="section-header">
+                <div>
+                    <div class="section-tag">IMAGES</div>
+                    <div class="section-title">상품 이미지</div>
+                </div>
+            </div>
+
+            <div class="image-wrap">
+                <!-- ✅ 기존 기능 그대로 유지 -->
+                <img th:each="img : ${item.images}"
+                     th:src="@{${img.getImageUrl()}}"
+                     width="100"
+                     alt="">
+            </div>
+        </div>
+
+    </div>
+
 </div>
 </body>
 </html>

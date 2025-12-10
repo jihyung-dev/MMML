@@ -7,50 +7,196 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>판매자 관리</title>
+    <style layout:fragment="css">
+        .admin-page-wrapper {
+            margin-top: 30px;
+            margin-bottom: 40px;
+        }
+
+        .admin-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .admin-title-box {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .admin-table-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .admin-subtext {
+            margin: 0;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .admin-legend {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .admin-legend span::before {
+            content: "• ";
+        }
+
+        .admin-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f1f3f5;
+            padding: 16px 18px 14px;
+        }
+
+        .admin-table-wrapper {
+            margin-top: 10px;
+        }
+
+        .admin-pagination-wrapper {
+            margin-top: 16px;
+        }
+    </style>
 </head>
 
 <body>
 <main layout:fragment="content" class="container" style="min-height: 70vh;">
 
-    <h1 class="mt-4 mb-2">판매자 관리</h1>
-    <p class="text-muted mb-4">판매자로 등록된 회원/사업자 정보를 확인합니다.</p>
+    <div class="admin-page-wrapper">
 
-    <div class="table-responsive">
-        <table class="table table-sm table-hover align-middle">
-            <thead class="table-light">
-            <tr>
-                <th>판매자 ID</th>
-                <th>회원 ID</th>
-                <th>회원 닉네임</th>
-                <th>사업자번호</th>
-                <th>상호명</th>
-                <th>연락처</th>
-                <th>이메일</th>
-                <th>등록일</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="s : ${sellers}">
-                <!-- ✅ SELLER_ID: 엔티티 필드가 id -->
-                <td th:text="${s.id}">1</td>
+        <!-- 상단 헤더 -->
+        <div class="admin-header">
+            <div class="admin-title-box">
+                <h1 class="admin-table-title">판매자 관리</h1>
+                <p class="admin-subtext">
+                    판매자로 등록된 회원 및 사업자 정보를 조회·관리합니다.
+                </p>
+            </div>
 
-                <!-- ✅ MEMBER_ID: Member 연관관계에서 꺼내야 함 -->
-                <td th:text="${s.member != null ? s.member.memberId : '알수없음'}">user01</td>
+            <div class="admin-legend">
+                <span>회원 ID, 회원 닉네임, 상호명으로 검색할 수 있습니다.</span>
+            </div>
+        </div>
 
-                <!-- 선택: 닉네임도 보여주면 편함 -->
-                <td th:text="${s.member != null ? s.member.memberNickname : '-'}">길동이</td>
+        <!-- 🔍 검색 폼 -->
+        <form class="row g-2 mb-3" th:action="@{/admin/sellers}" method="get">
+            <div class="col-sm-4 col-8">
+                <input type="text"
+                       name="keyword"
+                       class="form-control form-control-sm"
+                       placeholder="회원 ID / 닉네임 / 상호명 검색"
+                       th:value="${keyword}">
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-sm btn-primary" type="submit">검색</button>
+            </div>
+            <div class="col-auto" th:if="${keyword != null and !#strings.isEmpty(keyword)}">
+                <a class="btn btn-sm btn-outline-secondary" th:href="@{/admin/sellers}">초기화</a>
+            </div>
+        </form>
 
-                <td th:text="${s.bizNo}">123-45-67890</td>
-                <td th:text="${s.bizName}">내돈내삶샵</td>
-                <td th:text="${s.bizPhone}">010-0000-0000</td>
-                <td th:text="${s.bizEmail}">shop@example.com</td>
+        <!-- 카드 + 테이블 -->
+        <div class="admin-card">
+            <div class="admin-table-wrapper table-responsive">
+                <table class="table table-sm table-hover align-middle mb-2">
+                    <thead class="table-light">
+                    <tr>
+                        <th>판매자 ID</th>
+                        <th>회원 ID</th>
+                        <th>회원 닉네임</th>
+                        <th>사업자번호</th>
+                        <th>상호명</th>
+                        <th>연락처</th>
+                        <th>이메일</th>
+                        <th>등록일</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="s : ${sellerPage.content}">
+                        <td th:text="${s.id}">1</td>
+                        <td th:text="${s.member != null ? s.member.memberId : '알수없음'}">user01</td>
+                        <td th:text="${s.member != null ? s.member.memberNickname : '-'}">길동이</td>
+                        <td th:text="${s.bizNo}">123-45-67890</td>
+                        <td th:text="${s.bizName}">내돈내삶샵</td>
+                        <td th:text="${s.bizPhone}">010-0000-0000</td>
+                        <td th:text="${s.bizEmail}">shop@example.com</td>
+                        <td th:text="${#temporals.format(s.createdAt, 'yyyy-MM-dd HH:mm')}">
+                            2025-01-01 10:00
+                        </td>
+                    </tr>
 
-                <!-- createdAt 포맷 -->
-                <td th:text="${#temporals.format(s.createdAt, 'yyyy-MM-dd HH:mm')}">2025-01-01 10:00</td>
-            </tr>
-            </tbody>
-        </table>
+                    <tr th:if="${#lists.isEmpty(sellerPage.content)}">
+                        <td colspan="8" class="text-center text-muted py-4">
+                            조건에 맞는 판매자가 없습니다.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 페이지네이션 -->
+            <div class="d-flex justify-content-center admin-pagination-wrapper"
+                 th:if="${sellerPage.totalPages > 1}">
+                <ul class="pagination pagination-sm mb-0">
+
+                    <!-- 처음 페이지 -->
+                    <li class="page-item" th:classappend="${sellerPage.first} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{'/admin/sellers'(page=0, size=${sellerPage.size}, keyword=${keyword})}">
+                            ≪
+                        </a>
+                    </li>
+
+                    <!-- 이전 페이지 -->
+                    <li class="page-item" th:classappend="${sellerPage.first} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{'/admin/sellers'(page=${sellerPage.number - 1}, size=${sellerPage.size}, keyword=${keyword})}">
+                            ‹
+                        </a>
+                    </li>
+
+                    <!-- 페이지 번호들 -->
+                    <li class="page-item"
+                        th:each="p : ${#numbers.sequence(0, sellerPage.totalPages - 1)}"
+                        th:classappend="${p == sellerPage.number} ? 'active'">
+                        <a class="page-link"
+                           th:href="@{'/admin/sellers'(page=${p}, size=${sellerPage.size}, keyword=${keyword})}"
+                           th:text="${p + 1}">
+                            1
+                        </a>
+                    </li>
+
+                    <!-- 다음 페이지 -->
+                    <li class="page-item" th:classappend="${sellerPage.last} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{'/admin/sellers'(page=${sellerPage.number + 1}, size=${sellerPage.size}, keyword=${keyword})}">
+                            ›
+                        </a>
+                    </li>
+
+                    <!-- 마지막 페이지 -->
+                    <li class="page-item" th:classappend="${sellerPage.last} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{'/admin/sellers'(page=${sellerPage.totalPages - 1}, size=${sellerPage.size}, keyword=${keyword})}">
+                            ≫
+                        </a>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+
     </div>
 
 </main>

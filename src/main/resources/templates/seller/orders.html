@@ -1,21 +1,85 @@
 <!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-    <h1>주문 받은 내역</h1>
-    <ul>
-        <li th:each="order : ${orderMains}">
-            <div>
-                <p>
-                    오더 아이디 <span th:text="${order.id}"></span>
-                    오더 아이디 <span th:text="${order.buyer.memberName}"></span>
-                </p>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/my_layout}">
 
+<head>
+    <title>주문 받은 내역</title>
+    <style layout:fragment="css"></style>
+</head>
+
+<body>
+<div layout:fragment="content">
+
+    <div class="space-y-6">
+
+        <!-- 🔹 상단 타이틀 영역 -->
+        <div class="flex items-baseline justify-between">
+            <div>
+                <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-400">
+                    ORDER LIST
+                </p>
+                <h2 class="mt-1 text-2xl font-extrabold tracking-[-0.03em] text-[#6c63ff]">
+                    주문 받은 내역
+                </h2>
+                <p class="mt-2 text-sm text-gray-500">
+                    내돈내삶 마켓에서 현재까지 들어온 주문 목록입니다.
+                </p>
             </div>
-        </li>
-    </ul>
+
+            <!-- 총 건수 -->
+            <div class="text-right text-sm text-gray-500">
+                총
+                <span class="font-semibold text-gray-900"
+                      th:text="${#lists.size(orderMains)}">0</span>건
+            </div>
+        </div>
+
+        <!-- 🔹 주문 리스트 (없을 때 / 있을 때) -->
+        <div th:if="${#lists.isEmpty(orderMains)}"
+             class="rounded-2xl border border-dashed border-gray-300 bg-white py-10 text-center text-sm text-gray-500">
+            아직 들어온 주문이 없습니다.
+        </div>
+
+        <ul th:if="${!#lists.isEmpty(orderMains)}"
+            class="space-y-3">
+
+            <!-- 🔁 주문 한 건씩 카드로 -->
+            <li th:each="order : ${orderMains}">
+                <div class="flex items-center justify-between rounded-2xl border border-gray-200/70
+                            bg-white px-4 py-3 sm:px-5 sm:py-4 shadow-sm hover:shadow-md
+                            transition">
+
+                    <!-- 왼쪽: 주문 정보 -->
+                    <div class="min-w-0">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="inline-flex items-center rounded-full
+                                         bg-gray-100 px-3 py-1 text-[11px] font-semibold
+                                         tracking-wide text-gray-600">
+                                ORDER ID
+                            </span>
+                            <span class="text-sm font-semibold text-gray-900"
+                                  th:text="${order.id}">1</span>
+                        </div>
+
+                        <p class="mt-1 text-xs text-gray-500">
+                            구매자 :
+                            <span class="font-medium text-gray-900"
+                                  th:text="${order.buyer.memberName}">홍길동</span>
+                        </p>
+                    </div>
+
+                    <!-- 오른쪽: 상세 보기 버튼 -->
+
+                </div>
+            </li>
+        </ul>
+
+    </div>
+
+</div>
+
+<script layout:fragment="script"></script>
 </body>
 </html>

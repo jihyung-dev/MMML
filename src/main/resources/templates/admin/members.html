@@ -8,45 +8,290 @@
 <head>
     <meta charset="UTF-8">
     <style layout:fragment="css">
-        .admin-table-wrapper { margin-top: 30px; }
-        .admin-table-title { font-size: 24px; margin-bottom: 10px; }
-        .badge-enabled { padding: 2px 6px; border-radius: 4px; background: #e3f2fd; font-size: 12px; }
-        .badge-disabled { padding: 2px 6px; border-radius: 4px; background: #ffebee; font-size: 12px; }
+        .admin-page-wrapper {
+            margin-top: 30px;
+            margin-bottom: 40px;
+        }
+
+        .admin-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .admin-title-box {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .admin-table-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .admin-subtext {
+            margin: 0;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .admin-legend {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .admin-legend span::before {
+            content: "• ";
+        }
+
+        .admin-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f1f3f5;
+            padding: 16px 18px 14px;
+        }
+
+        .admin-table-wrapper {
+            margin-top: 10px;
+        }
+
+        .badge-enabled {
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: #e3f2fd;
+            color: #0d47a1;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-disabled {
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: #ffebee;
+            color: #b71c1c;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-role {
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 500;
+            background: #f1f3f5;
+            color: #495057;
+        }
+
+        .badge-role-admin {
+            background: #6c63ff11;
+            color: #6c63ff;
+        }
+
+        .badge-role-seller {
+            background: #e8fff5;
+            color: #087f5b;
+        }
+
+        .badge-role-user {
+            background: #f1f3ff;
+            color: #364fc7;
+        }
+
+        /* 🔹 아이디 칼럼 폭 제한 + 말줄임표 */
+        .col-member-id {
+            max-width: 140px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .admin-action-btn {
+            min-width: 74px;
+        }
+
+        .admin-pagination-wrapper {
+            margin-top: 16px;
+        }
     </style>
 </head>
 
 <body>
 <main layout:fragment="content" class="container" style="min-height: 70vh;">
 
-    <h1 class="admin-table-title">회원 관리</h1>
-    <p class="text-muted">사이트에 가입한 전체 회원 목록입니다.</p>
+    <div class="admin-page-wrapper">
 
-    <div class="admin-table-wrapper table-responsive">
-        <table class="table table-sm table-hover align-middle">
-            <thead class="table-light">
-            <tr>
-                <th>아이디</th>
-                <th>이름</th>
-                <th>닉네임</th>
-                <th>권한(ROLE)</th>
-                <th>상태</th>
-                <th>가입일</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="m : ${members}">
-                <td th:text="${m.memberId}">user01</td>
-                <td th:text="${m.memberName}">홍길동</td>
-                <td th:text="${m.memberNickname}">길동이</td>
-                <td th:text="${m.role}">USER</td>
-                <td>
-                    <span th:if="${m.enabled == 'Y'}" class="badge-enabled">활성</span>
-                    <span th:if="${m.enabled != 'Y'}" class="badge-disabled">비활성/탈퇴</span>
-                </td>
-                <td th:text="${#temporals.format(m.createdAt, 'yyyy-MM-dd HH:mm')}">2025-01-01</td>
-            </tr>
-            </tbody>
-        </table>
+        <!-- 상단 헤더 -->
+        <div class="admin-header">
+            <div class="admin-title-box">
+                <h1 class="admin-table-title">회원 관리</h1>
+                <p class="admin-subtext">
+                    사이트에 가입한 전체 회원 목록과 상태를 확인·관리합니다.
+                </p>
+            </div>
+
+            <div class="admin-legend">
+                <span>아이디 / 이름 / 닉네임으로 검색할 수 있습니다.</span>
+                <span>아이디가 길면 말줄임표(…)로 표시되며, 마우스를 올리면 전체를 볼 수 있습니다.</span>
+            </div>
+        </div>
+
+        <!-- 🔍 검색 폼 -->
+        <form class="row g-2 mb-3" th:action="@{/admin/members}" method="get">
+            <div class="col-sm-4 col-8">
+                <input type="text"
+                       name="keyword"
+                       class="form-control form-control-sm"
+                       placeholder="아이디 / 이름 / 닉네임 검색"
+                       th:value="${keyword}">
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-sm btn-primary" type="submit">검색</button>
+            </div>
+            <div class="col-auto" th:if="${keyword != null and !#strings.isEmpty(keyword)}">
+                <a class="btn btn-sm btn-outline-secondary" th:href="@{/admin/members}">초기화</a>
+            </div>
+        </form>
+
+        <!-- 카드 박스 + 테이블 -->
+        <div class="admin-card">
+            <div class="admin-table-wrapper table-responsive">
+                <table class="table table-sm table-hover align-middle mb-2">
+                    <thead class="table-light">
+                    <tr>
+                        <th style="width: 16%;">아이디</th>
+                        <th style="width: 14%;">이름</th>
+                        <th style="width: 16%;">닉네임</th>
+                        <th style="width: 14%;">권한(ROLE)</th>
+                        <th style="width: 12%;">상태</th>
+                        <th style="width: 18%;">가입일</th>
+                        <th style="width: 10%;">상태 변경</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!-- ✅ Page<Member> 기준으로 content 사용 -->
+                    <tr th:each="m : ${memberPage.content}">
+                        <td class="col-member-id">
+                            <span th:text="${m.memberId}"
+                                  th:title="${m.memberId}">user01</span>
+                        </td>
+                        <td th:text="${m.memberName}">홍길동</td>
+                        <td th:text="${m.memberNickname}">길동이</td>
+                        <td>
+                            <span class="badge-role"
+                                  th:classappend="
+                                        ${#strings.startsWith(m.role, 'ROLE_ADMIN')} ? ' badge-role-admin' :
+                                        (${#strings.startsWith(m.role, 'ROLE_SELLER')} ? ' badge-role-seller' :
+                                        ' badge-role-user')"
+                                  th:text="${m.role}">
+                                USER
+                            </span>
+                        </td>
+                        <td>
+                            <span th:if="${m.enabled == 'Y'}" class="badge-enabled">활성</span>
+                            <span th:if="${m.enabled != 'Y'}" class="badge-disabled">비활성/탈퇴</span>
+                        </td>
+                        <td th:text="${#temporals.format(m.createdAt, 'yyyy-MM-dd HH:mm')}">2025-01-01</td>
+
+                        <!-- ✅ 활성/비활성 토글 버튼 -->
+                        <td>
+                            <form th:action="@{'/admin/members/' + ${m.memberId} + '/toggle'}"
+                                  method="post"
+                                  class="d-inline">
+
+                                <!-- 현재 페이지 유지 -->
+                                <input type="hidden" name="page" th:value="${memberPage.number}"/>
+                                <input type="hidden" name="size" th:value="${memberPage.size}"/>
+
+                                <!-- 검색어 유지 (컨트롤러에서 안 받아도 에러는 안 남) -->
+                                <input type="hidden" name="keyword" th:value="${keyword}"/>
+
+                                <button type="submit"
+                                        th:if="${m.enabled == 'Y'}"
+                                        class="btn btn-sm btn-outline-danger admin-action-btn">
+                                    비활성화
+                                </button>
+
+                                <button type="submit"
+                                        th:if="${m.enabled != 'Y'}"
+                                        class="btn btn-sm btn-outline-success admin-action-btn">
+                                    활성화
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+
+                    <!-- 데이터 없을 때 -->
+                    <tr th:if="${#lists.isEmpty(memberPage.content)}">
+                        <td colspan="7" class="text-center text-muted py-4">
+                            조건에 맞는 회원이 없습니다.
+                        </td>
+                    </tr>
+
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ✅ 페이지네이션 -->
+            <div class="d-flex justify-content-center admin-pagination-wrapper"
+                 th:if="${memberPage.totalPages > 1}">
+                <ul class="pagination pagination-sm mb-0">
+
+                    <!-- 처음 페이지 -->
+                    <li class="page-item" th:classappend="${memberPage.first} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{'/admin/members'(page=0, size=${memberPage.size}, keyword=${keyword})}">
+                            ≪
+                        </a>
+                    </li>
+
+                    <!-- 이전 페이지 -->
+                    <li class="page-item" th:classappend="${memberPage.first} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{'/admin/members'(page=${memberPage.number - 1}, size=${memberPage.size}, keyword=${keyword})}">
+                            ‹
+                        </a>
+                    </li>
+
+                    <!-- 페이지 번호들 -->
+                    <li class="page-item"
+                        th:each="p : ${#numbers.sequence(0, memberPage.totalPages - 1)}"
+                        th:classappend="${p == memberPage.number} ? 'active'">
+                        <a class="page-link"
+                           th:href="@{'/admin/members'(page=${p}, size=${memberPage.size}, keyword=${keyword})}"
+                           th:text="${p + 1}">
+                            1
+                        </a>
+                    </li>
+
+                    <!-- 다음 페이지 -->
+                    <li class="page-item" th:classappend="${memberPage.last} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{'/admin/members'(page=${memberPage.number + 1}, size=${memberPage.size}, keyword=${keyword})}">
+                            ›
+                        </a>
+                    </li>
+
+                    <!-- 마지막 페이지 -->
+                    <li class="page-item" th:classappend="${memberPage.last} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{'/admin/members'(page=${memberPage.totalPages - 1}, size=${memberPage.size}, keyword=${keyword})}">
+                            ≫
+                        </a>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+
     </div>
 
 </main>

@@ -1,6 +1,8 @@
 package com.smu.householdaccount.repository.common;
 
 import com.smu.householdaccount.entity.common.Member;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -25,4 +27,15 @@ public interface MemberRepository extends JpaRepository<Member, String> {
 
     // 🔹 비밀번호 찾기 검증용 (ID + 이름 + 이메일)
     Optional<Member> findByMemberIdAndMemberNameAndEmail(String memberId, String memberName, String email);
+
+
+    //관리자페이지-회원관리 검색기능
+    Page<Member> findByMemberIdContainingIgnoreCaseOrMemberNameContainingIgnoreCaseOrMemberNicknameContainingIgnoreCase(
+            String memberId,
+            String memberName,
+            String memberNickname,
+            Pageable pageable
+    );
+
+
 }

@@ -11,12 +11,12 @@
         <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
         <script>tailwind.config = {darkMode: "class", theme: {extend: {colors: {primary: "#0d273d", "background-light": "#f6f7f8", "background-dark": "#121a20"}, fontFamily: {display: "Manrope"}, borderRadius: {DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px"}}}};</script>
-        <style>
-            .material-symbols-outlined {
-                font-variation-settings: 'FILL'0, 'wght'400, 'GRAD'0, 'opsz'24;
-                font-size: 24px;
-            }
-        </style>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL'0, 'wght'400, 'GRAD'0, 'opsz'24;
+            font-size: 24px;
+        }
+    </style>
         <th:block layout:fragment="css"></th:block>
     </head>
 
@@ -25,9 +25,19 @@
     <div class="flex h-full w-full flex-1">
         <!-- SideNavBar -->
         <aside class="flex w-64 flex-col gap-y-4 border-r border-gray-200/50 dark:border-white/10 bg-white dark:bg-[#111813] p-4">
+            <a href="/"
+               class="flex items-center gap-2 px-1 pb-4 mb-4 border-b border-gray-200/60 dark:border-white/10">
+                <svg viewBox="0 0 48 48" fill="currentColor" class="w-8 h-8">
+                    <path d="M24 4L6 18v22h12V28h12v12h12V18L24 4z"></path>
+                </svg>
+                <span class="text-lg font-extrabold tracking-tight text-[#6c63ff]">
+            내돈내삶
+        </span>
+            </a>
             <div class="flex items-center gap-3">
                 <!--                <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="User profile picture" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA5SaWrnFq8dPfen7u6KTpI_DTQcXDUyLzW44foiYNC-EuFkaSTBWV0K7MV6OfBVls4JUgvZnCsSepJql8-mYtNAWm08D-iIOwQaqr7HeKeY8SrGbZ0UR9WagHZEBal47x9zP7d2mbZfFXXjfna3w3-AfP2FKk9FmPR3AN6QnHDF_kva6jjfvkZi3mfz6EXIroskl6-dN9JSKdKlhAGku6dty1AY3Kzg36eL8t9ZoFliYgywHgEgHlWhUojkyXjVd_k4ER6ipAC64vr");'></div>-->
-                <img src="/src/img/undraw_pic-profile_nr49.svg" class="rounded-circle" width="40" height="40" alt="Alex">
+                <img th:src="@{/img/memberimg.png}"
+                     class="rounded-circle" width="40" height="40" alt="Profile">
 
                 <div class="flex flex-col">
                     <h1 class="text-black dark:text-white text-base font-medium leading-normal" th:text="${session.loginUser.memberName}">이름</h1>
@@ -35,12 +45,7 @@
                 </div>
             </div>
             <nav class="flex flex-col gap-2">
-                <a class="navbar-brand d-flex align-items-center brand-purple" href="/">
-                    <svg fill="currentColor" viewBox="0 0 48 48" width="40" height="40">
-                        <path d="M24 4H42V17.3333V30.6667H24V44H6V30.6667V17.3333H24V4Z"></path>
-                    </svg>
-                    <span class="ms-2 fw-bold">내돈내삶</span>
-                </a>
+
                 <a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-primary/20 rounded-lg" href="/board">
                     <span class="material-symbols-outlined">dashboard</span>
                     <p class="text-sm font-medium leading-normal">게시판</p>
@@ -73,8 +78,9 @@
                 <th:block th:if="${session.loginUser != null}">
                     <form th:action="@{/member/withdraw}" method="get">
                         <button type="submit"
-                                class="btn btn-outline-danger btn-sm w-100">
-                            회원탈퇴
+                                class="withdraw-btn">
+                            <span class="material-symbols-outlined withdraw-icon">person_off</span>
+                            <span class="withdraw-text">회원탈퇴</span>
                         </button>
                     </form>
                 </th:block>
@@ -90,7 +96,7 @@
                         <h1 th:text="${title !=null ? title : '마이 페이지'}" class="text-gray-900 dark:text-white text-4xl font-black leading-tight tracking-[-0.033em]">
 
                         </h1>
-<!--                        <p class="text-gray-500 dark:text-[#9db9a6] text-base font-normal leading-normal">View and edit your personal information and account settings.</p>-->
+<!-- <p class="text-gray-500 dark:text-[#9db9a6] text-base font-normal leading-normal">View and edit your personal information and account settings.</p>-->
                     </div>
                 </div>
                 <div  layout:fragment="content">

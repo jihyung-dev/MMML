@@ -1,38 +1,188 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/my_layout}">
+
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>등록한 상품</title>
+
+    <!-- 레이아웃용 CSS 슬롯에만 스타일 정의 -->
+    <style layout:fragment="css">
+        .page-wrap {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 24px 16px;
+        }
+
+        .page-title {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: #6c63ff;
+            margin-bottom: 18px;
+        }
+
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .item-card {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid #e5e7eb;
+            padding: 16px 18px;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+        }
+
+        .item-main {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 10px;
+        }
+
+        .item-main p {
+            margin: 0;
+            font-size: 13px;
+            color: #374151;
+        }
+
+        .item-main p strong {
+            display: inline-block;
+            min-width: 80px;
+            color: #6b7280;
+        }
+
+        .item-name {
+            font-size: 15px;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+
+        .item-price {
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .item-actions {
+            margin-top: 8px;
+        }
+
+        .detail-link {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(108, 99, 255, 0.4);
+            background: rgba(108, 99, 255, 0.06);
+            font-size: 12px;
+            font-weight: 600;
+            color: #6c63ff;
+            text-decoration: none;
+        }
+
+        .detail-link:hover {
+            background: rgba(108, 99, 255, 0.12);
+        }
+
+        .item-options {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #e5e7eb;
+        }
+
+        .item-options h5 {
+            margin: 0 0 6px 0;
+            font-size: 13px;
+            font-weight: 700;
+            color: #374151;
+        }
+
+        .option-row {
+            margin: 0;
+            font-size: 12px;
+            color: #4b5563;
+        }
+
+        .option-row span {
+            white-space: nowrap;
+        }
+    </style>
 </head>
+
 <body>
-    <div>
-        <div>
-        <div th:each="item : ${itemPage.content}">
-            <div style="border-bottom: 1px solid black; padding: 10px;">
-                <p>아이디 : <span th:text="${item.id}"></span></p>
-                <p>이름 : <span th:text="${item.itemName}"></span></p>
-                <p>가격 : <span th:text="${item.originalPrice}"></span></p>
-                <p>카테고리 아이디 : <span th:text="${item.category.categoryName}"></span></p>
-                <p>
-                    <a th:href="@{/seller/item/{id} (id=${item.id}) }">상세</a>
-                </p>
-                <hr>
-                <div>
+<div layout:fragment="content">
+
+    <div class="page-wrap">
+
+        <h1 class="page-title">등록한 상품</h1>
+
+        <!-- 상품이 없을 때 메시지 (선택) -->
+        <div th:if="${#lists.isEmpty(itemPage.content)}"
+             style="margin-top: 12px; padding: 24px 18px; border-radius: 16px;
+                    border: 1px dashed #d1d5db; background: #ffffff; font-size: 13px; color: #6b7280;">
+            아직 등록한 상품이 없습니다.
+        </div>
+
+        <!-- 상품 리스트 -->
+        <div class="item-list" th:if="${!#lists.isEmpty(itemPage.content)}">
+            <div th:each="item : ${itemPage.content}" class="item-card">
+
+                <!-- 🔹 기본 정보 -->
+                <div class="item-main">
+                    <p>
+                        <strong>아이디</strong> :
+                        <span th:text="${item.id}">1</span>
+                    </p>
+                    <p class="item-name">
+                        <strong>이름</strong> :
+                        <span th:text="${item.itemName}">상품명</span>
+                    </p>
+                    <p>
+                        <strong>가격</strong> :
+                        <span class="item-price" th:text="${item.originalPrice}">0</span>
+                        <span>원</span>
+                    </p>
+                    <p>
+                        <strong>카테고리</strong> :
+                        <span th:text="${item.category.categoryName}">카테고리</span>
+                    </p>
+
+                    <div class="item-actions">
+                        <!-- ✅ 기존 기능 그대로 유지 -->
+                        <a th:href="@{/seller/item/{id}(id=${item.id})}"
+                           class="detail-link">
+                            상세 보기
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 🔹 핫딜 옵션 -->
+                <div class="item-options" th:if="${item.hotdealOptions != null and !#lists.isEmpty(item.hotdealOptions)}">
                     <h5>핫딜 옵션</h5>
                     <div>
-                        <div th:each=" opt: ${item.hotdealOptions}">
-                            <p>
-                                옵션타입 : <span th:text="${opt.optionType}"></span> |
-                                옵션값 : <span th:text="${opt.optionValue}"></span> |
-                                옵션가격 : <span th:text="${opt.additionalPrice}"></span>
+                        <div th:each="opt : ${item.hotdealOptions}">
+                            <p class="option-row">
+                                옵션타입 :
+                                <span th:text="${opt.optionType}">TYPE</span> |
+                                옵션값 :
+                                <span th:text="${opt.optionValue}">VALUE</span> |
+                                옵션가격 :
+                                <span th:text="${opt.additionalPrice}">0</span>
                             </p>
                         </div>
                     </div>
                 </div>
+
             </div>
-        </div>
         </div>
 
     </div>
+
+</div>
 </body>
 </html>
