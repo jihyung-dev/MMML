@@ -3,17 +3,15 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layouts/default_layout}">
+    <link rel="stylesheet" href="/css/listee.css">
 
 <head>
     <!-- 프로젝트 CSS -->
-    <link  layout:fragment="css" th:href="@{/css/item-list.css}" rel="stylesheet"/>
+    <th:block layout:fragment="css">
 
-    <style layout:fragment="css">
-        .menu-link:hover {
-            color: black;
-            text-decoration: underline;
-        }
-    </style>
+        <link rel="stylesheet" href="/css/listee.css">
+    </th:block>
+
 
 </head>
 <body>
