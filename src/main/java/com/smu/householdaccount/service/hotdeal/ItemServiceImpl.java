@@ -35,14 +35,6 @@ public class ItemServiceImpl implements ItemService {
     private final ItemWishRepository itemWishRepository; // ★ [필수] 주입
 
 
-    /*@Autowired
-    public ItemServiceImpl(ItemRepository itemRepository, HotdealOptionRepository optionRepository, ItemDetailImageRepository imageRepository, ItemWishRepository wishRepository) {
-        this.itemRepository = itemRepository;
-        this.optionRepository = optionRepository;
-        this.imageRepository = imageRepository;
-        this.wishRepository = wishRepository;
-    }*/
-
     @Override
     public Item findById(Long id) {
         return itemRepository.findById(id)
