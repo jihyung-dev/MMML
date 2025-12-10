@@ -65,6 +65,9 @@ public class ItemResponseDto {
         this.seller = item.getSeller();
     }
 
+    public ItemResponseDto(Item item, long daysLeft) {
+    }
+
     public String getFormattedPrice() {
         if (this.price == null) return "0원";
         DecimalFormat df = new DecimalFormat("#,###");
