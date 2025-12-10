@@ -18,6 +18,10 @@
     font-size: 1.5rem;
 }
 
+@media (min-width: 992px) {
+    .thumb { height: 420px; }
+}
+
 /* 가격 스타일 */
 .original-price {
     font-size: 0.9rem;
@@ -52,4 +56,27 @@
 
 .seller-header:hover {
     background-color: #f0f0f0;
+}
+
+#seller-info {
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+#seller-info.collapsed {
+    max-height: 0;
+    opacity: 0;
+}
+
+#seller-info.expanded {
+    max-height: 200px; /* 펼쳤을 때 높이 넉넉하게 */
+    opacity: 1;
+}
+
+/* 장바구니 수량 버튼 크기 조정 */
+#semiCartList .cart-minus,
+#semiCartList .cart-plus {
+    padding: 0.2rem 0.3rem !important;
+    font-size: 0.6rem !important;
+    line-height: 1 !important;
 }
