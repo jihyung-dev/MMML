@@ -27,7 +27,7 @@ server:
 
 render:
 #  render-host: http://127.0.0.1:8000
-  render-host: https://mmml-deep-learning-server.onrender.com/
+  render-host: https://mmml-deep-learning-server.onrender.com
 
 portone:
   api-host: https://api.iamport.kr

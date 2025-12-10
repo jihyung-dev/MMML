@@ -181,7 +181,7 @@ public class ItemController {    // 명시적 생성자 주입 (Lombok 없이 �
         // 리다이렉트하여 상세 페이지 재조회
         return "redirect:/item/" + id;
     }
-
+/*
     @GetMapping
     public String mainHotdeal(Model model) {
         // 1) 기존 서비스로 핫딜 상품 조회
@@ -212,5 +212,5 @@ public class ItemController {    // 명시적 생성자 주입 (Lombok 없이 �
         model.addAttribute("items", itemsWithDday);
 
         return "item/list";
-    }
+    }*/
 }

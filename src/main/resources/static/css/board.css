@@ -1,0 +1,98 @@
+/* 전체 기본 스타일 (게시판 전용) */
+body {
+    font-family: 'Noto Sans KR', 'Malgun Gothic',
+    -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    background: #f3f4f6;
+    font-size: 13px;   /* ⬅ 기존이 14px이었다면 한 단계 줄인 값 */
+    color: #111827;
+}
+
+/* ===========================
+   게시판 상단 헤더 (로고 + 텍스트)
+   =========================== */
+
+.board-header {
+    padding: 18px 20px;
+    border-radius: 18px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+}
+
+/* 로고 아이콘 박스 */
+.board-header-icon {
+    width: 90px;
+    height: 90px;
+    border-radius: 24px;
+    background: #6c63ff;
+    position: relative;
+}
+
+
+/* 아이콘 안 막대들 */
+.board-header-bar {
+    position: absolute;
+    background: #e5e7eb;
+    border-radius: 999px;
+}
+
+/* 위쪽 가로 막대 */
+.board-header-bar.bar-top {
+    height: 8px;
+    width: 34px;
+    top: 18px;
+    left: 19px;
+}
+
+/* 아래쪽 세로 막대 3개 (그래프 느낌) */
+.board-header-bar.bar1 {
+    width: 8px;
+    height: 18px;
+    bottom: 18px;
+    left: 20px;
+}
+
+.board-header-bar.bar2 {
+    width: 8px;
+    height: 28px;
+    bottom: 18px;
+    left: 32px;
+}
+
+.board-header-bar.bar3 {
+    width: 8px;
+    height: 38px;
+    bottom: 18px;
+    left: 44px;
+}
+
+/* 제목/설명 텍스트 */
+.board-header-title {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #111827;
+}
+
+.board-header-subtitle {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+/* 로그인 상태 글쓰기 버튼 (a.primary-btn) */
+.board-container .btn.primary-btn {
+    background-color: #6c63ff;  /* 내돈내삶 보라색 */
+    border-color: #6c63ff;
+    color: #ffffff;
+}
+
+
+/* 반응형: 화면 좁을 때는 위아래로 쌓이게 */
+@media (max-width: 768px) {
+    .board-header {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 10px;
+    }
+}

@@ -474,7 +474,7 @@ body {
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     padding: 20px;
-    /*height: 600px;             !* ★높이가 있어야 달력이 나옴!★ *!*/
+    height: 600px;             /* ★높이가 있어야 달력이 나옴!★ */
     min-width: 300px;
     box-sizing: border-box;
 }
