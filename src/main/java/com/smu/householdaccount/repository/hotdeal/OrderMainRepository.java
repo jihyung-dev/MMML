@@ -16,7 +16,7 @@ public interface OrderMainRepository extends JpaRepository<OrderMain, Long> {
     Page<OrderMain> findBySellerId(Long sellerId, Pageable pageable);
 
     // merchant_uid로 주문 조회
-    @EntityGraph(attributePaths = "orderItems")
+    @EntityGraph(attributePaths = {"orderItems", "orderItems.item", "orderItems.option"})
     Optional<OrderMain> findByMerchantUid(String merchantUid);
     boolean existsByMerchantUid(String merchantUid); // 중복 방지용
 

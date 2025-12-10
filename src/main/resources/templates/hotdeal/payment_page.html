@@ -13,7 +13,6 @@
         .payment-card { max-width: 900px; margin: 2rem auto; }
         .summary-row { display:flex; justify-content:space-between; align-items:center; padding:0.75rem 0; }
         .muted-small { font-size:0.9rem; color:#6c757d; }
-        .pay-btn { min-width: 240px; }
     </style>
     <script defer src="https://cdn.iamport.kr/js/iamport.payment-1.2.0.js"></script>
     <script defer th:src="@{/js/payment/requestPay.js}"></script>
@@ -66,7 +65,9 @@
                                         <!-- 옵션 표시 (option이 존재하면 보여주기) -->
                                         <small class="muted-small"
                                                th:if="${oi.option != null}"
-                                               th:text="'옵션: ' + oi.option.optionType + ' ' + oi.option.optionValue">옵션명</small>
+                                               th:text="|옵션: ${oi.option.optionType} / ${oi.option.optionValue}|">
+                                            옵션명
+                                        </small>
                                     </div>
 
                                     <div class="text-end">

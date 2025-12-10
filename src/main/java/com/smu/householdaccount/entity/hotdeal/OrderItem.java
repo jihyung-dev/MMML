@@ -60,7 +60,4 @@ public class OrderItem {
             order.getOrderItems().add(this);
         }
     }
-
-
-
 }

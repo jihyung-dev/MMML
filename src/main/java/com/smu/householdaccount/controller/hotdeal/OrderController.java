@@ -5,6 +5,7 @@ import com.smu.householdaccount.entity.common.Member;
 import com.smu.householdaccount.entity.hotdeal.OrderMain;
 import com.smu.householdaccount.repository.hotdeal.OrderMainRepository;
 import com.smu.householdaccount.service.hotdeal.OrderService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,5 +78,14 @@ public class OrderController {
                     .body(Map.of("ok", false, "msg", "서버 오류: " + e.getMessage()));
         }
     }
+
+    @GetMapping("/payment")
+    public String paymentPage(@RequestParam("merchantUid") String merchantUid, Model model, HttpSession session) {
+        OrderMain order = orderService.getOrderWithItems(merchantUid);
+        model.addAttribute("order", order);
+        // 기존에 넣던 다른 속성들도 그대로 유지
+        return "hotdeal/payment_page";
+    }
+
 }
 

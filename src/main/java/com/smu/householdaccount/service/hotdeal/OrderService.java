@@ -36,4 +36,5 @@ public interface OrderService { //핫딜 전용 service(주문 생성, 재고 �
     //주문 수정
     void cancelPendingOrder(String merchantUid);
 
+    OrderMain getOrderWithItems(String merchantUid);
 }
