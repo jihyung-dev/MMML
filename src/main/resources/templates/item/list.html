@@ -3,17 +3,24 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layouts/default_layout}">
+    <link rel="stylesheet" href="/css/listee.css">
 
 <head>
     <!-- 프로젝트 CSS -->
-    <link  layout:fragment="css" th:href="@{/css/item-list.css}" rel="stylesheet"/>
+    <th:block layout:fragment="css">
 
-    <style layout:fragment="css">
-        .menu-link:hover {
-            color: black;
-            text-decoration: underline;
-        }
-    </style>
+        <link rel="stylesheet" href="/css/listee.css">
+    </th:block>
+
+<<<<<<< Updated upstream
+=======
+<!--    <style layout:fragment="css">-->
+<!--        .menu-link:hover {-->
+<!--            color: black;-->
+<!--            text-decoration: underline;-->
+<!--        }-->
+<!--    </style>-->
+>>>>>>> Stashed changes
 
 </head>
 <body>
@@ -148,8 +155,8 @@
     </button>
     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="sortDropdown">
         <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='createdAt,desc')}">최신순</a></li>
-        <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='itemSaleprice,asc')}">낮은 가격</a></li>
-        <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='itemSaleprice,desc')}">높은 가격</a></li>
+        <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='price,asc')}">낮은 가격</a></li>
+        <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='price,desc')}">높은 가격</a></li>
         <!-- 수정필요                <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='createdAt,desc')}">인기도</a></li>-->
 
         <!-- 인기도 추가 -->
@@ -175,13 +182,24 @@
                      style="height: 200px; object-fit: cover;"
                      onerror="this.src='/img/no-image.png'"/>
 
-                <div class="card-body d-flex flex-column"  th:each="item, stat : ${hotdealItems}">
+                <div class="card-body d-flex flex-column">
                     <h5 class="card-title text-truncate" th:text="${item.itemName}">상품명</h5>
-                    <span th:text="${hotdealDDays[stat.index] == 0 ? 'D-DAY' : 'D-' + hotdealDDays[stat.index]}">D-day</span>
+
+                    <span class="badge bg-warning text-dark mb-2 align-self-start"
+                          th:if="${item.saleEndAt != null}"
+                          th:with="days=${T(java.time.temporal.ChronoUnit).DAYS.between(T(java.time.LocalDateTime).now(), item.saleEndAt)}"
+                          th:text="${days == 0 ? 'D-DAY' : (days > 0 ? 'D-' + days : '종료')}">
+        D-Day
+    </span>
+
                     <p class="card-text mt-auto">
                         <strong th:text="${#numbers.formatInteger(item.price, 0, 'COMMA') + '원'}">0원</strong>
                     </p>
 
+                    <div class="text-muted small mt-1">
+                        조회 <span th:text="${item.viewCount}">0</span> ·
+                        인기 <span th:text="${item.popularityScore}">0</span>
+                    </div>
                 </div>
             </a>
 
