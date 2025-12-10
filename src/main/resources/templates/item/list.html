@@ -79,7 +79,7 @@
 
     <!--    병합 - hotdeal 내용으로  -->
     <!--    카테고리 버튼-->
-    <form th:action="@{/hotdeal/search}" method="get" class="d-flex mb-4">
+    <form th:action="@{/hotdeal}" method="get" class="d-flex mb-4">
 
         <!--             숨겨진 필드/⇒ 현재 선택된 카테고리 값 유지 -->
         <input type="hidden" name="categoryId" th:value="${param.categoryId}" />

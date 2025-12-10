@@ -28,9 +28,11 @@ public class OrderController {
     private final OrderMainRepository orderMainRepository;
 
     @PostMapping("/order/create")
-    public String order(@RequestParam Long itemId,
-                        @RequestParam(name = "optionId", required = false) List<String> optionIdsRaw,
-                        @RequestParam(name = "qty", required = false) List<Integer> qtys,
+    public String order(//@RequestParam Long itemId,
+                        //@RequestParam(name = "optionId", required = false) List<String> optionIdsRaw,
+                        //@RequestParam(name = "qty", required = false) List<Integer> qtys,
+                        //└─ HotdealOrderBean이 처리함. 중복제거
+
                         @ModelAttribute HotdealOrderBean hotdealOrderBean,
                         Model model,
                         @SessionAttribute(name = "loginUser", required = false) Member loginUser) {
@@ -40,14 +42,14 @@ public class OrderController {
         if (loginUser == null) {
             return "redirect:/login";
         }
-        String buyerId = loginUser.getMemberId();
+        //String buyerId = loginUser.getMemberId();
+        hotdealOrderBean.setBuyerId(loginUser.getMemberId());
 
         // 2) 옵션/수량 검사
-        if (hotdealOrderBean.getOptionId() == null && hotdealOrderBean.getQuantity() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "선택된 옵션이 없습니다.");
+        if (hotdealOrderBean.getOptionId().isEmpty() || hotdealOrderBean.getQuantity().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "주문 상품 목록이 비어있습니다. 옵션을 선택해주세요.");
         }
 
-        hotdealOrderBean.setBuyerId(loginUser.getMemberId());
         // 4) 실제 주문 생성
         OrderMain order = orderService.createHotdealOrder(hotdealOrderBean);
 
@@ -75,7 +77,5 @@ public class OrderController {
                     .body(Map.of("ok", false, "msg", "서버 오류: " + e.getMessage()));
         }
     }
-
-
 }
 

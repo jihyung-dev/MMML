@@ -56,6 +56,11 @@ public class  OrderMain {
     @Column(name = "ORDER_STATUS", nullable = false, length = 20)
     private String orderStatus;
 
+    // 비즈니스 상태 상수 정의 (일반적)
+    public static final String STATUS_PENDING = "PENDING";
+    public static final String STATUS_COMPLETED = "COMPLETED";
+    public static final String STATUS_CANCELED = "CANCELED";
+
     //@ColumnDefault("SYSTIMESTAMP")
     @CreationTimestamp
     @Column(name = "CREATED_AT")

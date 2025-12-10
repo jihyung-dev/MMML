@@ -88,16 +88,127 @@ body {
     margin: 0 auto 30px auto;
     flex-wrap: wrap;
 }
-
-.chart-wrapper {
+.bar-chart-wrapper{
+    width: 100%;
+    height: 450px;
+    max-width: 1200px;
+    margin: 30px auto;
     flex: 1;
+    position: relative;
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     padding: 20px;
     min-width: 300px;
-    height: 600px;    /* 높이 조금 더 확보 */
     box-sizing: border-box;
+    overflow: hidden;
+}
+/* 차트 영역 공통 */
+.bar-chart-wrapper > div[id$="Chart"] {
+    width: 100%;
+    height: 400px;
+}
+
+/* empty overlay */
+.chart-empty {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    display: none; /* 기본은 숨김 */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: 10px;
+
+    text-align: center;
+    z-index: 10;
+}
+
+.chart-empty img {
+    width: 120px;
+    opacity: 0.85;
+    margin-bottom: 12px;
+}
+
+.chart-empty p {
+    font-size: 15px;
+    color: #666;
+    margin: 0;
+}
+
+.chart-wrapper {
+    flex: 1;
+    position: relative;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    padding: 20px;
+    min-width: 300px;
+    /* 🌟 [추가/수정] 무한 늘어남 방지 🌟 */
+    min-height: 450px; /* 차트(400px) + 소계 영역보다 약간 크게 설정 */
+    height: auto;      /* 내용물 크기만큼 유동적으로 */
+    box-sizing: border-box;
+}
+#categoryChart {
+    width: 100%;
+    height: 100%;
+}
+
+/* chart empty 상태 전체 덮기 */
+.chart-empty {
+    display: none;
+    position: absolute;
+    inset: 0;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    text-align: center;
+    color: #999;
+    z-index: 2;
+}
+
+
+.top3-empty {
+    display: none;
+    position: absolute;
+    inset: 0;
+
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+
+    text-align: center;
+    color: #aaa;
+    font-size: 13px;
+    top: 100px;
+}
+
+/* Top3 기본 상태: content만 보이게 */
+.top3-content {
+    display: block;
+}
+
+/* ✅ 이미지 크기 조정 핵심 */
+.chart-empty img, .top3-empty img{
+    width: 120px;               /* ✅ 여기서 크기 제어 */
+    max-width: 50%;
+    height: auto;
+    opacity: 0.7;
+    margin-bottom: 8px;
+}
+
+.chart-empty p, .top3-empty p{
+    margin: 0;
+}
+
+.top3-chart {
+    height: 120px;        /* ✅ 차트가 차지하던 높이 */
 }
 
 /*병합중 날린곳 */
@@ -218,7 +329,9 @@ body {
     min-width: 280px;
     background: #ffffff;
     border-radius: 12px;
+    height: 350px;
     padding: 20px;
+    position: relative;
     border: 1px solid #eee;
     box-shadow: 0 4px 8px rgba(0,0,0,0.04);
     text-align: center;
@@ -361,7 +474,7 @@ body {
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     padding: 20px;
-    height: 600px;             /* ★높이가 있어야 달력이 나옴!★ */
+    /*height: 600px;             !* ★높이가 있어야 달력이 나옴!★ *!*/
     min-width: 300px;
     box-sizing: border-box;
 }
@@ -410,7 +523,7 @@ body {
 /* 3. 카드 스타일 (이미지의 흰색 박스 느낌)            */
 /* ================================================= */
 /* chart-wrapper(왼쪽), calendar-wrapper(오른쪽) 공통 스타일 */
-.chart-wrapper, .calendar-wrapper, .top3-card, .last-month-box {
+.chart-wrapper, .calendar-wrapper, .top3-card, .last-month-box, .bar-chart-wrapper {
     background: #ffffff;       /* 흰색 배경 */
     border-radius: 16px;       /* 둥근 모서리 */
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); /* 부드러운 그림자 */
@@ -1574,6 +1687,19 @@ div#driver-popover-item {
 
 .sample-table tbody td {
     color: #444;
+}
+
+.calendar-amount {
+    /* 부드러운 애니메이션을 위한 기본 설정 */
+    transition: transform 0.15s ease-in-out;
+    display: inline-block; /* transform 적용을 위해 필수 */
+}
+
+.calendar-amount:hover {
+    /* 마우스 오버 시 10% 확대 */
+    transform: scale(1.1);
+    /* z-index를 높여서 다른 요소 위에 표시되게 함 */
+    z-index: 100;
 }
 
 .primary-import-btn {
