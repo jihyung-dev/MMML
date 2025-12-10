@@ -151,6 +151,14 @@
         <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='itemSaleprice,asc')}">낮은 가격</a></li>
         <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='itemSaleprice,desc')}">높은 가격</a></li>
         <!-- 수정필요                <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='createdAt,desc')}">인기도</a></li>-->
+
+        <!-- 인기도 추가 -->
+        <li>
+            <a class="dropdown-item"
+               th:href="@{/hotdeal(page=0, sort='popularityScore,desc', categoryId=${param.categoryId}, q=${param.q}, minPrice=${param.minPrice}, maxPrice=${param.maxPrice}, status=${param.status})}">
+                인기도순
+            </a>
+        </li>
     </ul>
 </div>
 

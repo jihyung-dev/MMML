@@ -1300,6 +1300,9 @@ async function startDocu() {
     buildCategorySelectList();
     initCharts();
     prepareAgeLabels();
+
+    initMonthPicker();
+
     hideSkeleton();
 
 // ★ 확장된 인터랙티브 투어 시작
@@ -1472,9 +1475,32 @@ function startExtendedTour() {
                 popover: { title: '1. 데이터 연동', description: '먼저 데이터를 가져옵니다.<br><b>이 버튼을 클릭하세요!</b>', side: "bottom", showButtons: [] },
                 onHighlightStarted: (el) => {
                     el.classList.add('neon-active');
-                    el.addEventListener('click', () => {
+
+                    // 🌟 [핵심] 1. 실제 기능 잠시 무력화 (onclick 속성 백업 및 제거)
+                    // 이렇게 하면 버튼을 눌러도 loadLedgerData() 함수가 실행되지 않습니다.
+                    const originalAction = el.getAttribute('onclick');
+                    el.removeAttribute('onclick');
+
+                    // 🌟 2. 가짜 클릭 이벤트 등록
+                    el.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation(); // 이벤트 전파 중단
+
                         el.classList.remove('neon-active');
-                        setTimeout(() => driverObj.moveNext(), 800);
+
+                        // 🌟 3. 가짜 로딩 효과 연출 (기존 스켈레톤 활용)
+                        // 실제 데이터 로딩 없이 0.2초 동안 로딩 화면만 보여줍니다.
+                        showSkeleton();
+
+                        setTimeout(() => {
+                            hideSkeleton(); // 로딩 끝
+
+                            // 🌟 4. 원래 기능 복구 (투어가 끝나면 실제 사용 가능하도록)
+                            if(originalAction) el.setAttribute('onclick', originalAction);
+
+                            driverObj.moveNext(); // 다음 단계로 이동
+                        }, 200); // 0.2초 딜레이로 그럴듯하게 연출
+
                     }, { once: true });
                 }
             },
@@ -2849,4 +2875,27 @@ function hasValidHistory(history) {
         history.length > 0 &&
         history.some(h => Number(h.total) > 0)
     );
+}
+
+// 월 선택기 초기화 함수 (데스크톱 & 모바일 공용)
+function initMonthPicker() {
+    // 🌟 [확인] 여기에 'monthPickerMobile'이 포함되어야 합니다.
+    const pickerIds = ['monthPicker', 'monthPickerMobile'];
+
+    pickerIds.forEach(id => {
+        const picker = document.getElementById(id);
+        if (!picker) return;
+
+        picker.addEventListener('change', function() {
+            if (!this.value) return; // 취소 시 무시
+
+            const [year, month] = this.value.split('-').map(Number);
+
+            if (year && month) {
+                currentYear = year;
+                currentMonth = month;
+                updateChart(); // 화면 갱신
+            }
+        });
+    });
 }

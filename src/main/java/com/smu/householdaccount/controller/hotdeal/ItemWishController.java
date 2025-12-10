@@ -1,6 +1,7 @@
 package com.smu.householdaccount.controller.hotdeal;
 
 import com.smu.householdaccount.entity.common.Member;
+import com.smu.householdaccount.service.hotdeal.ItemService;
 import com.smu.householdaccount.service.hotdeal.ItemWishService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ public class ItemWishController {
 
     @Autowired(required = false)
     private final ItemWishService itemWishService;
+    private final ItemService itemService;
 
     // 페이지 로드 시 현재 상태 조회 (옵션)
     @GetMapping("/{itemId}/status")
@@ -44,7 +46,17 @@ public class ItemWishController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
         }
         String memberId = loginUser.getMemberId();
+
+        // 찜 토글 실행
         boolean nowWished = itemWishService.toggleWish(itemId, memberId);
+
+        // [추가] 인기 점수 반영
+        if (nowWished) {
+            itemService.addPopularityScore(itemId, 10); // 찜 설정: +10점
+        } else {
+            itemService.addPopularityScore(itemId, -10); // 찜 해제: -10점 (선택 사항)
+        }
+
         return ResponseEntity.ok(Map.of("wished", nowWished));
     }
 

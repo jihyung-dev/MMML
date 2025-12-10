@@ -44,7 +44,7 @@ public class ItemController {    // 명시적 생성자 주입 (Lombok 없이 �
             @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(required = false) String status, // 판매 상태 (ON_SALE, ENDED, SOLD_OUT 등)
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime date, // 특정 날짜 기준 검색
-            @PageableDefault(page = 0, size = 8, sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
+            @PageableDefault(page=0, size = 8, sort = "id", direction = Sort.Direction.DESC) Pageable pageable,
             Model model,
 
             // ★ [수정] 로그인 사용자 정보 가져오기 (ItemWishController와 동일한 방식)
@@ -99,23 +99,40 @@ public class ItemController {    // 명시적 생성자 주입 (Lombok 없이 �
             RedirectAttributes redirectAttrs,
 
             @SessionAttribute(name = "loginUser", required = false) Member loginUser
+//        기존 코드
+//        try {
+//            // 1. 로그인 ID 추출
+//            String currentMemberId = null;
+//            if (loginUser != null) {
+//                currentMemberId = loginUser.getMemberId();
+//            }
+//
+//            // 2. ★ [수정] 서비스 호출 (DTO 반환)
+//            // 기존: Item item = itemService.findByIdForResponse(id);
+//            // 변경: getItemDetailDto 사용
+//            ItemResponseDto itemDto = itemService.getItemDetailDto(id, currentMemberId);
+//
+//            // 3. 모델에 담기 (이제 item에는 isLiked가 들어있음)
+//            model.addAttribute("item", itemDto);
+//
+//            return "item/detail";
+
+
+//        변경코드
+// 1. [기존] 조회수 증가 (이미 있다면 유지)
     ) {
         try {
-            // 1. 로그인 ID 추출
-            String currentMemberId = null;
-            if (loginUser != null) {
-                currentMemberId = loginUser.getMemberId();
-            }
+        itemService.incrementViewCount(id);
 
-            // 2. ★ [수정] 서비스 호출 (DTO 반환)
-            // 기존: Item item = itemService.findByIdForResponse(id);
-            // 변경: getItemDetailDto 사용
-            ItemResponseDto itemDto = itemService.getItemDetailDto(id, currentMemberId);
+        // 2. [추가] 인기 점수 +1 증가 (단순 관심)
+        itemService.addPopularityScore(id, 1);
 
-            // 3. 모델에 담기 (이제 item에는 isLiked가 들어있음)
-            model.addAttribute("item", itemDto);
+        // ... (이하 기존 로직: 사용자 ID 추출 및 DTO 조회)
+        String currentMemberId = (loginUser != null) ? loginUser.getMemberId() : null;
+        ItemResponseDto itemDto = itemService.getItemDetailDto(id, currentMemberId);
 
-            return "item/detail";
+        model.addAttribute("item", itemDto);
+        return "item/detail";
 
         } catch (IllegalArgumentException e) {
             // 상품이 없을 경우 처리
@@ -133,6 +150,10 @@ public class ItemController {    // 명시적 생성자 주입 (Lombok 없이 �
             @RequestParam(required = false) Long selectedOption) {
         // 테스트용 로그
         System.out.println("itemId=" + itemId + ", quantity=" + quantity + ", selectedOption=" + selectedOption);
+
+        // [추가] 주문 완료 후 인기 점수 +50점
+        itemService.addPopularityScore(itemId, 50);
+
         return "redirect:/hotdeal"; // 임시로 목록 페이지로 리다이렉트
     }
 
