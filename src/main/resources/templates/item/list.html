@@ -174,19 +174,26 @@
     </div>
 
 
-<!-- 페이지네이션 -->
-<div th:with="page=${itemPage.number}, last=${itemPage.totalPages}, sort=${itemPage.sort}, size=${param.size}" class="my-4 d-flex justify-content-center">
+<div th:if="${itemPage.totalElements == 0}" class="text-center my-4">
+    <p class="mb-1">검색 결과가 없습니다.</p>
+    <small class="text-muted">검색어를 바꿔보거나 필터를 초기화 하세요.</small>
+</div>
+
+<!-- 페이지네이션 (항상 하나 이상의 페이지번호 보이기) -->
+<div th:with="page=${itemPage.number}, last=${itemPage.totalPages > 0 ? itemPage.totalPages : 1}, sort=${itemPage.sort}, size=${param.size}" class="my-4 d-flex justify-content-center">
     <nav>
         <ul class="pagination">
-            <li class="page-item" th:classappend="(${itemPage}==0 ? 'disabled')">
+            <li class="page-item" th:classappend="${page == 0} ? 'disabled'">
                 <a class="page-link" th:href="@{'?'(page=0, size=${size})}">≪</a>
             </li>
+
             <li class="page-item" th:each="i : ${#numbers.sequence(1, last)}"
-                th:classappend="((${i}-1) == ${page}?'active')">
-                <a class="page-link" th:href="@{'?'(page=${i}-1, size=${size})}" th:text="${i}"></a>
+                th:classappend="${(i-1) == page} ? 'active'">
+                <a class="page-link" th:href="@{'?'(page=${i}-1, size=${size})}" th:text="${i}">1</a>
             </li>
-            <li class="page-item" th:classappend="(${page} == (${last}-1) ? 'disabled')">
-                <a class="page-link" th:href="@{'?'(page=${last}-1, size=${size})}">≫</a>
+
+            <li class="page-item" th:classappend="${page == (last - 1)} ? 'disabled'">
+                <a class="page-link" th:href="@{'?'(page=${last-1}, size=${size})}">≫</a>
             </li>
         </ul>
     </nav>
