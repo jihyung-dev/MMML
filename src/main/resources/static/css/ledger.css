@@ -4,8 +4,6 @@
 /* --- 레이아웃 스타일 (ledger.css 내용을 덮어쓰거나 여기에 둡니다) --- */
 body {
     font-family: 'Noto Sans KR', sans-serif;
-    margin: 0;
-    padding: 20px;
     background-color: #f8f9fa;
 }
 
@@ -474,7 +472,7 @@ body {
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     padding: 20px;
-    /*height: 600px;             !* ★높이가 있어야 달력이 나옴!★ *!*/
+    height: 600px;             /* ★높이가 있어야 달력이 나옴!★ */
     min-width: 300px;
     box-sizing: border-box;
 }

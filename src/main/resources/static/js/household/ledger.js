@@ -110,12 +110,14 @@ function updateMonthlyTotals(data) {
 async function loadLedgerChart({ year, month , dataUpdate = false}) {
     const key = `${year}-${month}`;
     // 👉 오늘 기준으로 monthDiff 계산 (0 = 이번달, 1 = 지난달, 2 = 지지난달)
-    const now = new Date();
-    const nowYear = now.getFullYear();
-    const nowMonth = now.getMonth() + 1;
+    const baseYear = currentYear;
+    const baseMonth = currentMonth;
 
-    const monthDiff = (nowYear - year) * 12 + (nowMonth - month);
-    const isWithinLast3Months = monthDiff >= 0 && monthDiff <= 2; // 0~2만 true
+    const monthDiff =
+        (baseYear - year) * 12 + (baseMonth - month);
+
+    const isWithinLast3Months =
+        monthDiff >= 0 && monthDiff <= 2;
 
     // 캐시 확인
     let cached = getCache(key);
@@ -389,14 +391,16 @@ function drawDailyLineChart(currentDaily, prevDaily) {
         .getElementById("dailyChart")
         .closest(".bar-chart-wrapper");
 
-    // ✅ 1. 데이터 없음 처리 (여기가 핵심)
-    if (
-        !Array.isArray(currentDaily) || currentDaily.length === 0 ||
-        !Array.isArray(prevDaily) || prevDaily.length === 0
-    ) {
+    const hasCurrent =
+        Array.isArray(currentDaily) && currentDaily.length > 0;
+
+    const hasPrev =
+        Array.isArray(prevDaily) && prevDaily.length > 0;
+
+    // ✅ 이번달 데이터 없으면 empty
+    if (!hasCurrent) {
         showEmptyChart(wrapper, "dailyChart");
 
-        // 이전 차트 있으면 제거
         if (dailyLineChartInstance) {
             dailyLineChartInstance.destroy();
             dailyLineChartInstance = null;
@@ -404,56 +408,80 @@ function drawDailyLineChart(currentDaily, prevDaily) {
         return;
     }
 
-    // ✅ 2. 데이터 있으면 empty 숨김
+    // ✅ empty 숨김
     hideEmptyChart(wrapper, "dailyChart");
 
-    // prevDaily가 일수 다를 수 있으니 날짜 기준 맞추기
-    const prevExpenseAligned = currentDaily.map(d => {
-        // 안전하게 날짜 문자열 처리 (YYYY-MM-DD 형식 가정)
-        const dateStr = d.date.toString().split('T')[0];
-        const day = dateStr.split("-")[2]; // '일' 부분 추출
-
-        // 지난달 데이터에서 같은 '일(Day)' 찾기
-        const found = prevDaily.find(p => {
-            const pDateStr = p.date.toString().split('T')[0];
-            return pDateStr.endsWith(`-${day}`);
-        });
-        return found ? found.expense : 0;
+    // ✅ xAxis categories
+    const categories = currentDaily.map(d => {
+        const dateStr = d.date.toString().split("T")[0];
+        return dateStr.substring(5); // MM-DD
     });
 
-    Highcharts.chart('dailyChart', {
-        chart: { type: 'line' },
-        title: { text: '일별 지출/수입 추이' },
+    // ✅ series 구성
+    const series = [
+        {
+            name: "지출 (이번 달)",
+            data: currentDaily.map(d => d.expense),
+            color: "#00a8ff"
+        },
+        {
+            name: "수입 (이번 달)",
+            data: currentDaily.map(d => d.income),
+            color: "#8e44ad"
+        }
+    ];
+
+    // ✅ 지난달 비교선 (있을 때만)
+    if (hasPrev) {
+        const prevExpenseAligned = currentDaily.map(d => {
+            const day = d.date.toString().split("T")[0].split("-")[2];
+
+            const found = prevDaily.find(p =>
+                p.date.toString().split("T")[0].endsWith(`-${day}`)
+            );
+
+            return found ? found.expense : 0;
+        });
+
+        series.push({
+            name: "지출 (지난 달)",
+            data: prevExpenseAligned,
+            color: "#9e9e9e",
+            dashStyle: "ShortDash"
+        });
+    }
+
+    // ✅ 기존 차트 제거
+    if (dailyLineChartInstance) {
+        dailyLineChartInstance.destroy();
+    }
+
+    // ✅ 차트 생성
+    dailyLineChartInstance = Highcharts.chart("dailyChart", {
+        chart: {
+            type: "line",
+            animation: false
+        },
+        title: {
+            text: `일별 지출/수입 추이 (${currentYear}년 ${currentMonth}월)`
+        },
         xAxis: {
-            // ★ [수정] 날짜(2025-10-01)에서 앞의 연도 5글자를 잘라내고 '10-01'만 표시
-            categories: currentDaily.map(d => {
-                const dateStr = d.date.toString().split('T')[0];
-                return dateStr.substring(5); // "2025-" 제거 -> "10-01"
-            }),
+            categories,
             crosshair: true
         },
-        yAxis: { title: { text: '금액(원)' } },
-        legend: { enabled: true },
-        series: [
-            {
-                name: '지출(이번 달)',
-                data: currentDaily.map(d => d.expense),
-                color: '#00a8ff'
-            },
-            {
-                name: '지출(지난달)',
-                data: prevExpenseAligned,
-                color: '#9e9e9e',
-                dashStyle: 'ShortDash'
-            },
-            {
-                name: '수입(이번 달)',
-                data: currentDaily.map(d => d.income),
-                color: '#8e44ad'
-            }
-        ]
+        yAxis: {
+            title: { text: "Amount (KRW)" }
+        },
+        tooltip: {
+            shared: true
+        },
+        legend: {
+            enabled: true
+        },
+        series
     });
 }
+
 
 
 // 월 표시 업데이트
