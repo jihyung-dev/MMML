@@ -61,4 +61,5 @@ public interface ItemService {
 
     // ★ [New] 상세 조회용 DTO 변환 메서드 추가
     ItemResponseDto getItemDetailDto(Long id, String memberId);
+
 }

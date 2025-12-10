@@ -376,3 +376,29 @@ ALTER TABLE MMML.MEMBER
     ADD COLUMN email VARCHAR(100) NULL COMMENT '개인 이메일';
 
 COMMIT;
+
+CREATE TABLE GROUP_PROPERTY (
+    -- 1. 관리 번호 (PK): 자동 증가
+                                GROUP_PROPERTY_ID BIGINT NOT NULL AUTO_INCREMENT,
+
+    -- 2. 그룹 ID (FK): BUDGET_GROUP 테이블 참조 (1:1 또는 1:N 관계)
+                                GROUP_ID BIGINT NOT NULL,
+
+    -- 3. 그룹 타입: P(Personal), G(Group) / 기본값 P
+                                GROUP_TYPE CHAR(1) NOT NULL DEFAULT 'P' COMMENT 'P: 개인가계부, G: 모임가계부',
+
+    -- (선택) 생성 일시
+                                CREATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    -- 제약 조건 설정
+                                PRIMARY KEY (GROUP_PROPERTY_ID),
+
+    -- FK 설정: 부모 그룹(BUDGET_GROUP)이 삭제되면 이 속성 정보도 같이 삭제(CASCADE)
+                                CONSTRAINT FK_GROUP_PROPERTY_GROUP
+                                    FOREIGN KEY (GROUP_ID) REFERENCES BUDGET_GROUP (GROUP_ID)
+                                        ON DELETE CASCADE,
+
+    -- (선택) 그룹 하나당 하나의 속성만 존재해야 한다면 추가 (1:1 관계 강제)
+                                CONSTRAINT UQ_GROUP_PROPERTY_GROUP_ID UNIQUE (GROUP_ID)
+
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

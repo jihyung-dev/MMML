@@ -3,6 +3,7 @@ package com.smu.householdaccount.repository.hotdeal;
 import com.smu.householdaccount.entity.hotdeal.ItemWish;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -27,6 +28,12 @@ public interface ItemWishRepository extends JpaRepository<ItemWish, Long> {
     // 아이템에 달린 모든 찜을 가져올 때
     List<ItemWish> findByItem_Id(Long itemId);
 
-    // 🔹 내 찜 목록 조회 (최신순 정렬은 Pageable로 처리)
+    // 기존코드
+    //     🔹 내 찜 목록 조회 (최신순 정렬은 Pageable로 처리)
+    //    Page<ItemWish> findByMemberMemberId(String memberId, Pageable pageable);
+
+    // 🔹 [수정] 내 찜 목록 조회 (EntityGraph 추가)
+    // item 정보를 즉시 로딩(EAGER)하여 N+1 문제를 방지합니다.
+    @EntityGraph(attributePaths = {"item"})
     Page<ItemWish> findByMemberMemberId(String memberId, Pageable pageable);
 }
