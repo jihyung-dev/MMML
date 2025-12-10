@@ -4,8 +4,6 @@
 /* --- 레이아웃 스타일 (ledger.css 내용을 덮어쓰거나 여기에 둡니다) --- */
 body {
     font-family: 'Noto Sans KR', sans-serif;
-    margin: 0;
-    padding: 20px;
     background-color: #f8f9fa;
 }
 

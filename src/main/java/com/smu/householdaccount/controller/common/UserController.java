@@ -88,6 +88,7 @@ public class UserController{
             Member member = memberService.getMember(oauthKey);
             member.setPassword(null);
             session.setAttribute("loginUser", member);
+            session.setAttribute("loginUserId", member.getMemberId());
             return "redirect:/home";
         }
         // 신규 회원의 경우
@@ -106,6 +107,7 @@ public class UserController{
             memberService.registerOAuthUser(member);
             member.setPassword(null);
             session.setAttribute("loginUser", member);
+            session.setAttribute("loginUserId", member.getMemberId());
         }
         // 로그인 성공 후 메인 페이지로
         return "redirect:/home";
@@ -180,7 +182,7 @@ public class UserController{
             Member member = memberService.getMember(oauthKey);
             member.setPassword(null);
             session.setAttribute("loginUser", member);
-
+            session.setAttribute("loginUserId", member.getMemberId());
             return "redirect:/home";
         }
 
@@ -196,7 +198,7 @@ public class UserController{
         memberService.registerOAuthUser(member);
         member.setPassword(null);
         session.setAttribute("loginUser", member);
-
+        session.setAttribute("loginUserId", member.getMemberId());
         return "redirect:/home";
     }
 
