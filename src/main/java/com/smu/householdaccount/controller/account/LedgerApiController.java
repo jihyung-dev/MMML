@@ -29,19 +29,21 @@ public class LedgerApiController {
     public ResponseEntity<LedgerSummaryDto> getDashboardData(
             @RequestParam("year") int year,
             @RequestParam("month") int month,
-            @SessionAttribute(name = "loginUserId", required = false) String memberId
+            @SessionAttribute(name = "loginUserId", required = false) String memberId,
+            @RequestParam(required = false) Long group_Id
     ) {
-        return ResponseEntity.ok(ledgerService.getDashboardDataNew(year, month, memberId));
+        return ResponseEntity.ok(ledgerService.getDashboardDataNew(year, month, memberId, group_Id));
     }
     // [수정] DataTables용 상세 내역 리스트 API
     @GetMapping("/transaction-list")
     public ResponseEntity<List<LedgerDetailDto>> getTransactionList(
             @RequestParam int year,
             @RequestParam int month,
-            @SessionAttribute(name = "loginUserId", required = false) String memberId
+            @SessionAttribute(name = "loginUserId", required = false) String memberId,
+            @RequestParam(required = false) Long group_Id
     ) {
 // 서비스 메서드 호출 (이름 바꿨으니 맞춰주세요)
-        Long groupId = redisService.getGroupIdByMemberId(memberId).orElse(null); // 일단 group_id가 null일 경우 진행 안되게 js에서 처리는 해놨는데, 여기까지 들어오면 에러 100퍼
+        Long groupId = redisService.getGroupIdByMemberId(memberId, group_Id).orElse(null); // 일단 group_id가 null일 경우 진행 안되게 js에서 처리는 해놨는데, 여기까지 들어오면 에러 100퍼
         return ResponseEntity.ok(ledgerService.getTransactionList(groupId, year, month));
     }
     // [New] 단건 등록 API

@@ -16,10 +16,12 @@ import com.smu.householdaccount.dto.python.ClassifyTransactionResponse;
 import com.smu.householdaccount.dto.python.TransactionResult;
 import com.smu.householdaccount.entity.account.BudgetGroup;
 import com.smu.householdaccount.entity.account.Category;
+import com.smu.householdaccount.entity.account.GroupProperty;
 import com.smu.householdaccount.entity.account.LedgerEntry;
 import com.smu.householdaccount.entity.common.Member;
 import com.smu.householdaccount.repository.account.BudgetGroupRepository;
 import com.smu.householdaccount.repository.account.CategoryRepository;
+import com.smu.householdaccount.repository.account.GroupPropertyRepository;
 import com.smu.householdaccount.repository.account.LedgerRepository;
 import com.smu.householdaccount.repository.common.MemberRepository;
 import com.smu.householdaccount.service.common.RedisService;
@@ -69,6 +71,7 @@ public class LedgerService {
     private final CategoryRepository categoryRepository;
     private final MemberRepository memberRepository;
     private final RedisService redisService;
+    private final GroupPropertyRepository groupPropertyRepository;
 
     private final LedgerSaveService ledgerSaveService;
 
@@ -93,8 +96,8 @@ public class LedgerService {
     /**
      * 사용자의 모든 거래 내역
      */
-    public List<LedgerEntry> getLedgerAll(String memberId){
-        Long groupId = redisService.getGroupIdByMemberId(memberId).orElse(null);
+    public List<LedgerEntry> getLedgerAll(String memberId, Long group_id){
+        Long groupId = redisService.getGroupIdByMemberId(memberId, group_id).orElse(null);
         BudgetGroup group = budgetGroupRepository.findById(groupId).orElseThrow();
         LocalDateTime start = LocalDateTime.of(2025, 8, 1,0,0,0);
         LocalDateTime end   = LocalDateTime.of(2025, 8, 31,0,0,0);
@@ -106,8 +109,8 @@ public class LedgerService {
     /**
      * 월별 사용자의 거래 내역
      */
-    public LedgerSummaryDto getMonthLedger(int year, int month, int period, String memberId){
-        Long groupId = redisService.getGroupIdByMemberId(memberId).orElse(null);
+    public LedgerSummaryDto getMonthLedger(int year, int month, int period, String memberId, Long group_id){
+        Long groupId = redisService.getGroupIdByMemberId(memberId, group_id).orElse(null);
         BudgetGroup group = budgetGroupRepository.findById(groupId).orElseThrow(); // 수정 필요.하드코딩
         LocalDateTime date = LocalDateTime.of(year, month, 1,0,0,0);
         // 기준이 되는 달의 1일
@@ -122,8 +125,8 @@ public class LedgerService {
         return getLedgerSummary(entries);
     }
 
-    public List<MonthlyLedgerDto> get6MonthLedger(int year, int month, int period, String memberId){
-        Long groupId = redisService.getGroupIdByMemberId(memberId).orElse(null);
+    public List<MonthlyLedgerDto> get6MonthLedger(int year, int month, int period, String memberId, Long group_id){
+        Long groupId = redisService.getGroupIdByMemberId(memberId, group_id).orElse(null);
         BudgetGroup group = budgetGroupRepository.findById(groupId).orElseThrow(); // 수정 필요.하드코딩
         LocalDateTime date = LocalDateTime.of(year, month, 1,0,0,0);
         // 기준이 되는 달의 1일
@@ -138,8 +141,8 @@ public class LedgerService {
         return getMonthlySummary(entries);
     }
 
-    public LedgerSummaryDto getMonthlyChart(int year, int month, String memberId) {
-        Long groupId = redisService.getGroupIdByMemberId(memberId).orElse(null);
+    public LedgerSummaryDto getMonthlyChart(int year, int month, String memberId, Long group_id) {
+        Long groupId = redisService.getGroupIdByMemberId(memberId, group_id).orElse(null);
         BudgetGroup group = budgetGroupRepository.findById(groupId).orElseThrow(); // 수정 필요.하드코딩
         LocalDateTime date_start = LocalDateTime.of(year, month, 1,0,0,0);
         LocalDateTime date_end = LocalDateTime.of(year, month, Utility.endOfMonth(year, month),0,0,0);
@@ -154,8 +157,8 @@ public class LedgerService {
      * @param month
      * @return
      */
-    public List<LedgerEntry> getYearDataToExcel(int year, int month, String memberId) {
-        Long groupId = redisService.getGroupIdByMemberId(memberId).orElse(null);
+    public List<LedgerEntry> getYearDataToExcel(int year, int month, String memberId, Long group_id) {
+        Long groupId = redisService.getGroupIdByMemberId(memberId, group_id).orElse(null);
         BudgetGroup group = budgetGroupRepository.findById(groupId).orElseThrow(); // 수정 필요.하드코딩
         LocalDateTime date_start = LocalDateTime.of(year, 1, 1, 0, 0, 0);
         LocalDateTime date_end = LocalDateTime.of(year, month, Utility.endOfMonth(year, month), 0, 0, 0);
@@ -249,8 +252,8 @@ public class LedgerService {
     // ========================================================
 // [New] 대시보드 데이터 처리 (기존 로직 영향 없음)
 // ========================================================
-    public LedgerSummaryDto getDashboardDataNew(int year, int month, String memberId) {
-        Long groupId = redisService.getGroupIdByMemberId(memberId).orElse(null);
+    public LedgerSummaryDto getDashboardDataNew(int year, int month, String memberId, Long group_id) {
+        Long groupId = redisService.getGroupIdByMemberId(memberId, group_id).orElse(null);
         // 1. 날짜 및 그룹 설정
         LocalDateTime start = LocalDateTime.of(year, month, 1, 0, 0, 0);
         LocalDateTime end = start.plusMonths(1).minusSeconds(1);
@@ -346,10 +349,10 @@ public class LedgerService {
      */
     public ClassifyTransactionResponse getLedgerTransaction(
             String memberId,
-            List<CategoryUpdateReq> externalTransactions // Excel 결과가 있으면 여기에 전달
+            List<CategoryUpdateReq> externalTransactions, // Excel 결과가 있으면 여기에 전달,
+            Long group_id
     ) {
         String url = renderHost + "/ai/classify-transaction";
-        Log.d("그룹 확인", ledgerRepository.findGroupIdByMemberId(memberId).toString());
 
         try {
             List<CategoryUpdateReq> dtoList;
@@ -383,7 +386,7 @@ public class LedgerService {
             mergePythonResult(dtoList, response.getResults());
             Log.d("[data] :", dtoList.toString());
             // 6) DB 저장
-            ledgerSaveService.saveMergedLedger(dtoList, memberId);
+            ledgerSaveService.saveMergedLedger(dtoList, memberId, group_id);
 
             return response;
 
@@ -744,7 +747,8 @@ public class LedgerService {
 
     public ClassifyTransactionResponse handleExcelClassification(
             String memberId,
-            Map<String, Object> pythonResult
+            Map<String, Object> pythonResult,
+            Long group_id
     ) {
         try {
             // 1) payload 추출
@@ -768,7 +772,7 @@ public class LedgerService {
 
             Log.i(" Excel 전처리 데이터 rows: {}", String.valueOf(transList.size()));
             // 4) 기존 로직 호출
-            return getLedgerTransaction(memberId, transList);
+            return getLedgerTransaction(memberId, transList, group_id);
 
         } catch (Exception e) {
             Log.e(" Excel 분류 처리 실패: {}", e.getMessage());

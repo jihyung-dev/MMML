@@ -41,9 +41,10 @@ public class LedgerController {
      */
     @GetMapping("/request/userLedger/all")
     public ResponseEntity<?> getAllLedger(
-            @SessionAttribute(name="loginUserId") String memberId
+            @SessionAttribute(name="loginUserId") String memberId,
+            @RequestParam(required = false) Long group_Id
     ){
-        ledgerService.getLedgerAll(memberId);
+        ledgerService.getLedgerAll(memberId, group_Id);
         return ResponseEntity.ok("test");
     }
 
@@ -56,9 +57,10 @@ public class LedgerController {
             @RequestParam("year") int start_year,
             @RequestParam("month") int start_month,
             @RequestParam("period") int period,
-            @SessionAttribute(name="loginUserId") String memberId
+            @SessionAttribute(name="loginUserId") String memberId,
+            @RequestParam(required = false) Long group_Id
             ){
-        return ResponseEntity.ok(ledgerService.getMonthLedger(start_year, start_month, period, memberId));
+        return ResponseEntity.ok(ledgerService.getMonthLedger(start_year, start_month, period, memberId, group_Id));
     }
 
     /**
@@ -70,9 +72,10 @@ public class LedgerController {
             @RequestParam("year") int start_year,
             @RequestParam("month") int start_month,
             @RequestParam("period") int period,
-            @SessionAttribute(name="loginUserId") String memberId
+            @SessionAttribute(name="loginUserId") String memberId,
+            @RequestParam(required = false) Long group_Id
     ){
-        return ResponseEntity.ok(ledgerService.get6MonthLedger(start_year, start_month, period, memberId));
+        return ResponseEntity.ok(ledgerService.get6MonthLedger(start_year, start_month, period, memberId, group_Id));
     }
 
     /**
@@ -85,9 +88,10 @@ public class LedgerController {
     public ResponseEntity<?> getMonthlyChart(
             @RequestParam("year") int start_year,
             @RequestParam("month") int start_month,
-            @SessionAttribute(name="loginUserId") String memberId
+            @SessionAttribute(name="loginUserId") String memberId,
+            @RequestParam(required = false) Long group_Id
     ) {
-        LedgerSummaryDto dto = ledgerService.getMonthlyChart(start_year, start_month, memberId);
+        LedgerSummaryDto dto = ledgerService.getMonthlyChart(start_year, start_month, memberId, group_Id);
         return ResponseEntity.ok(
                 dto
         );
@@ -139,13 +143,14 @@ public class LedgerController {
      */
     @PostMapping("/loadData")
     public ResponseEntity<?> getLedgerData(
-            HttpSession session
+            HttpSession session,
+            @RequestParam(required = false) Long groupId
     ){
         String memberId = (String) session.getAttribute("loginUserId");
-        ClassifyTransactionResponse res  = ledgerService.getLedgerTransaction(memberId, null);
+        ClassifyTransactionResponse res  = ledgerService.getLedgerTransaction(memberId, null, groupId);
 
         if(res != null)
-            redisService.setGroupId(memberId);
+            redisService.setGroupId(memberId, groupId);
         return ResponseEntity.ok(res);
     }
 
@@ -166,7 +171,8 @@ public class LedgerController {
     @PostMapping("/import/analyze")
     public ResponseEntity<?> analyzeExcel(
              HttpSession session,
-            @RequestBody Map<String, Object> previewJson
+             @RequestBody Map<String, Object> previewJson,
+             @RequestParam(required = false) Long group_Id
     ) {
         Map<String, Object> result = aiService.analyze(previewJson);
 
@@ -176,10 +182,10 @@ public class LedgerController {
         }
 
         String memberId = (String) session.getAttribute("loginUserId");
-        ClassifyTransactionResponse res  = ledgerService.handleExcelClassification(memberId, result);
+        ClassifyTransactionResponse res  = ledgerService.handleExcelClassification(memberId, result, group_Id);
 
         if(res != null)
-            redisService.setGroupId(memberId);
+            redisService.setGroupId(memberId, group_Id);
 
         // 🔥 정상 응답이면 그대로 전달
         return ResponseEntity.ok(res);
@@ -187,11 +193,13 @@ public class LedgerController {
 
     @GetMapping("/request/group_id")
     @ResponseBody
-    public Map<String, Object> getGroupId(HttpSession session) {
+    public Map<String, Object> getGroupId(
+            HttpSession session,
+            @RequestParam(required = false) Long group_Id) {
         String memberId = (String) session.getAttribute("loginUserId");
 
         Optional<Long> groupIdOpt =
-                redisService.getGroupIdByMemberId(memberId);
+                redisService.getGroupIdByMemberId(memberId, group_Id);
 
         Map<String, Object> res = new HashMap<>();
         res.put("hasGroup", groupIdOpt.isPresent());
