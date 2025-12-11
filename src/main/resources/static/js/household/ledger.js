@@ -618,7 +618,7 @@ async function load3MonthData(key) {
     else // 3개월 비교데이터는 단 한개만 캐싱
         loaded3MonthCache = {};
     // 없으면 fetch 해서 가져오고 저장 후 return
-    const res = await fetch(`/ledger/request/userLedger/month?year=${currentYear}&month=${currentMonth}&period=3`);
+    const res = await fetch(`/ledger/api/request/userLedger/month?year=${currentYear}&month=${currentMonth}&period=3`);
     const data = await res.json();
 
     loaded3MonthCache[key] = data;
@@ -629,7 +629,7 @@ async function load3MonthData(key) {
 // 2025/12/9 수정 - 데이터 변경 발생 시 다시 호출하는 걸로 변경
 async function load6MonthData() {
     // 없으면 fetch 해서 가져오고 저장 후 return
-    const last6 = await fetch(`/ledger/request/userLedger/6month?year=${currentYear}&month=${currentMonth}&period=6`);
+    const last6 = await fetch(`/ledger/api/request/userLedger/6month?year=${currentYear}&month=${currentMonth}&period=6`);
     const data = await last6.json();
     loaded6MonthCache = data;
 
@@ -735,7 +735,7 @@ async function setCache(key, year, month, maxSize = 3) {
     }
 
     // 현재 달 데이터
-    const current = await fetch(`/api/ledger/dashboard-data?year=${year}&month=${month}`)
+    const current = await fetch(`/ledger/api/dashboard-data?year=${year}&month=${month}`)
         .then(res => res.json());
 
     // 지난달 계산
@@ -746,7 +746,7 @@ async function setCache(key, year, month, maxSize = 3) {
         prev1Year--;
     }
 
-    const prev1 = await fetch(`/api/ledger/dashboard-data?year=${prev1Year}&month=${prev1Month}`)
+    const prev1 = await fetch(`/ledger/api/dashboard-data?year=${prev1Year}&month=${prev1Month}`)
         .then(res => res.json());
 
     const bundle = { current, prev1 };
@@ -1296,7 +1296,7 @@ function openExcelUpload() {
 }
 
 async function getGroupId() {
-    const res = await fetch(`/ledger/request/group_id`, { method: "GET" });
+    const res = await fetch(`/ledger/api/request/group_id`, { method: "GET" });
 
     const data = await res.json(); // await 필수
     console.log("데이터 확인 :", data);
@@ -1788,13 +1788,13 @@ function startExtendedTour() {
 
 function initDataTable() {
     if (ledgerTable) {
-        ledgerTable.ajax.url(`/api/ledger/transaction-list?year=${currentYear}&month=${currentMonth}`).load();
+        ledgerTable.ajax.url(`/ledger/api/transaction-list?year=${currentYear}&month=${currentMonth}`).load();
         return;
     }
 
     ledgerTable = $('#ledgerTable').DataTable({
         ajax: {
-            url: `/api/ledger/transaction-list?year=${currentYear}&month=${currentMonth}`,
+            url: `/ledger/api/transaction-list?year=${currentYear}&month=${currentMonth}`,
             dataSrc: ''
         },
         // [수정] columns 설정: 너비(%) 고정 및 말줄임표(...) 적용
@@ -2011,7 +2011,7 @@ function createEventsFromDailyData(dailyData) {
 async function loadLedgerData() {
     showSkeleton();
     try{
-        const url = "/ledger/loadData";
+        const url = "/ledger/api/loadData";
         const res = await fetch(url, {
             method: "POST",
             headers: {"Accept": "application/json", "Content-Type": "application/json"},
@@ -2267,7 +2267,7 @@ async function deleteEntry() {
     if(!confirm("정말 이 내역을 삭제하시겠습니까?")) return;
 
     try {
-        const res = await fetch(`/api/ledger/entry/${id}`, {
+        const res = await fetch(`/ledger/api/entry/${id}`, {
             method: 'DELETE'
         });
 
@@ -2308,7 +2308,7 @@ async function updateChartNoTop3(){
 // 4. 저장/삭제 로직 수정 (ID 유무에 따라 POST/PUT/DELETE 분기)
 async function submitNewEntry() {
     const id = document.getElementById("entryId").value;
-    const url = id ? `/api/ledger/entry/${id}` : '/api/ledger/entry';
+    const url = id ? `/ledger/api/entry/${id}` : '/ledger/api/entry';
     const method = id ? 'PUT' : 'POST';
 
     // ... 값 가져오기 (기존 코드 동일) ...
@@ -2339,12 +2339,12 @@ async function submitNewEntry() {
     };
 
     try {
-        let url = '/api/ledger/entry';
+        let url = '/ledger/api/entry';
         let method = 'POST';
 
         // ★ ID가 있으면 수정 모드!
         if (id) {
-            url = `/api/ledger/entry/${id}`;
+            url = `/ledger/api/entry/${id}`;
             method = 'PUT';
         }
 
@@ -2433,7 +2433,7 @@ async function openDayListModal(dateStr) {
 
     try {
         // API 호출
-        const res = await fetch(`/api/ledger/daily-list?date=${dateStr}`);
+        const res = await fetch(`/ledger/api/daily-list?date=${dateStr}`);
 
         if (!res.ok) throw new Error("네트워크 응답 실패");
 
@@ -2671,7 +2671,7 @@ function handleFileUpload(file) {
     const formData = new FormData();
     formData.append("file", file);
 
-    fetch("/ledger/import/excel", {
+    fetch("/ledger/api/import/excel", {
         method: "POST",
         body: formData
     })
@@ -2771,7 +2771,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            fetch("/ledger/import/analyze", {
+            fetch("/ledger/api/import/analyze", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"

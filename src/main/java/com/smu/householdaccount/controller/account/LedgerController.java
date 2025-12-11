@@ -10,7 +10,6 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -102,15 +101,6 @@ public class LedgerController {
     //  - /ledger/calendar URL을 사용하여 캘린더 데이터만 반환합니다.
     // ===================================================================
 
-    /**
-     * 캘린더 UI에 표시할 월별 일자별 수입/지출 소계 데이터를 JSON으로 반환합니다.
-     * (FullCalendar의 events source로 사용됩니다.)
-     */
-
-    /**
-     * 가계부 메인 화면 (HTML 반환)
-     * - 사이드바(책갈피)를 위한 가짜 데이터(mockGroups)를 모델에 담아 보냅니다.
-     */
     @GetMapping("")
     public String home(@RequestParam(required = false) Long groupId, Model model) {
         // ... (데이터 담는 로직) ...
@@ -171,11 +161,9 @@ public class LedgerController {
         return ResponseEntity.ok(res);
     }
 
-    @GetMapping("/request/group_id")
+    @GetMapping("/api/request/group_id")
     @ResponseBody
     public Map<String, Object> getGroupId(
-
-
             HttpSession session,
             @RequestParam(required = false) Long group_Id
     ) {
