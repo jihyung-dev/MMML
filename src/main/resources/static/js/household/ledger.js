@@ -827,11 +827,12 @@ async function renderFullCategoryChart() {
 function buildCategoryComparisonList(currentCategories, threeMonthCategories) {
     const result = [];
 
-    // ★ [핵심] 배열인지 확인! (데이터가 없거나 에러나면 빈 배열로 처리)
-    if (!Array.isArray(currentCategories)) {
-        currentCategories = [];
+    // [추가] 데이터가 없으면 빈 배열 반환 (에러 방지)
+    if (!currentCategories || !Array.isArray(currentCategories)) {
+        return [];
     }
-    if (!Array.isArray(threeMonthCategories)) {
+    // threeMonthCategories도 체크
+    if (!threeMonthCategories || !Array.isArray(threeMonthCategories)) {
         threeMonthCategories = [];
     }
 
@@ -1411,7 +1412,10 @@ window.finishTour = function() {
 }
 
 function startExtendedTour() {
-    // if (localStorage.getItem('tour_complete_final_v16')) return;
+    // [수정] 이미 투어를 완료했으면 실행하지 않음 (return)
+    if (localStorage.getItem('tour_complete_final_v16') === 'true') {
+        return;
+    }
 
     // [추가] 현재 년/월을 기반으로 '현재 달 1일' 날짜 문자열 생성
     const dynamicDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
@@ -3098,6 +3102,146 @@ document.addEventListener("click", (e) => {
         const content = memberModal.querySelector(".modal-content");
         if (content && !content.contains(e.target) && !modalJustOpened) {
             closeMemberManageModal();
+        }
+    }
+});
+
+// =========================================
+// [New] 그룹 생성 로직
+// =========================================
+
+function openCreateGroupModal() {
+    const modal = document.getElementById("createGroupModal");
+    modal.classList.add("show");
+    modal.style.display = "flex";
+
+    // 초기화
+    document.getElementById("newGroupName").value = "";
+
+    modalJustOpened = true;
+    setTimeout(() => { modalJustOpened = false; }, 100);
+}
+
+function closeCreateGroupModal() {
+    const modal = document.getElementById("createGroupModal");
+    modal.style.display = "none";
+    modal.classList.remove("show");
+}
+
+async function submitCreateGroup() {
+    const name = document.getElementById("newGroupName").value;
+    if (!name.trim()) {
+        alert("그룹 이름을 입력해주세요.");
+        return;
+    }
+
+    try {
+        const res = await fetch("/api/group", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ groupName: name })
+        });
+
+        if (res.ok) {
+            const newGroupId = await res.json();
+            alert("그룹이 생성되었습니다!");
+            // 생성된 그룹 페이지로 이동
+            window.location.href = `/ledger?groupId=${newGroupId}`;
+        } else {
+            alert("그룹 생성 실패");
+        }
+    } catch (e) {
+        console.error(e);
+        alert("오류가 발생했습니다.");
+    }
+}
+
+// [추가] 모달 외부 클릭 닫기 (기존 리스너에 추가)
+document.addEventListener("click", (e) => {
+    // ... (기존 차트, 추가, 리스트, 멤버 모달 닫기 로직들) ...
+
+    // 5. 그룹 생성 모달 닫기
+    const createModal = document.getElementById("createGroupModal");
+    if (createModal && createModal.style.display === "flex") {
+        const content = createModal.querySelector(".modal-content");
+        if (content && !content.contains(e.target) && !modalJustOpened) {
+            closeCreateGroupModal();
+        }
+    }
+});
+
+// =========================================
+// [New] 그룹 이름 변경 로직
+// =========================================
+
+function openRenameGroupModal() {
+    const groupId = document.getElementById("currentGroupId").value;
+    if (!groupId) {
+        alert("개인 가계부 이름은 변경할 수 없습니다.");
+        return;
+    }
+
+    // 현재 이름 가져오기 (사이드바에서 텍스트 추출)
+    // 좀 더 정확히 하려면 API 호출하거나 DOM 탐색 필요하지만, 편의상 빈칸으로 시작하거나
+    // 간단히 placeholder로 둡니다.
+
+    const modal = document.getElementById("renameGroupModal");
+    modal.classList.add("show");
+    modal.style.display = "flex";
+
+    document.getElementById("renameInput").value = ""; // 초기화
+
+    modalJustOpened = true;
+    setTimeout(() => { modalJustOpened = false; }, 100);
+}
+
+function closeRenameGroupModal() {
+    const modal = document.getElementById("renameGroupModal");
+    modal.style.display = "none";
+    modal.classList.remove("show");
+}
+
+async function submitRenameGroup() {
+    const groupId = document.getElementById("currentGroupId").value;
+    const newName = document.getElementById("renameInput").value.trim();
+
+    if (!newName) {
+        alert("새로운 이름을 입력해주세요.");
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/group/${groupId}/name`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ newGroupName: newName })
+        });
+
+        const msg = await res.text();
+
+        if (res.ok) {
+            alert("이름이 변경되었습니다.");
+            // 페이지 새로고침하여 사이드바 갱신
+            location.reload();
+        } else {
+            alert("변경 실패: " + msg);
+        }
+    } catch (e) {
+        console.error(e);
+        alert("오류가 발생했습니다.");
+    }
+}
+
+// [추가] 모달 외부 클릭 닫기 (기존 리스너에 추가)
+document.addEventListener("click", (e) => {
+    // ... 기존 코드 ...
+
+    // 6. 이름 변경 모달 닫기
+    const renameModal = document.getElementById("renameGroupModal");
+    if (renameModal && renameModal.style.display === "flex") {
+        const content = renameModal.querySelector(".modal-content");
+        if (content && !content.contains(e.target) && !modalJustOpened) {
+            closeRenameGroupModal();
         }
     }
 });

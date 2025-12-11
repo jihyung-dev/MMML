@@ -2,6 +2,8 @@ package com.smu.householdaccount.controller.account;
 
 import com.smu.householdaccount.dto.ledger.LedgerSummaryDto;
 import com.smu.householdaccount.dto.python.ClassifyTransactionResponse;
+import com.smu.householdaccount.entity.account.GroupMember;
+import com.smu.householdaccount.repository.account.GroupMemberRepository;
 import com.smu.householdaccount.service.ai.AIService;
 import com.smu.householdaccount.service.account.LedgerService;
 import com.smu.householdaccount.service.common.RedisService;
@@ -12,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.ui.Model;
 
 import java.util.*;
 
@@ -23,6 +26,8 @@ public class LedgerController {
     private final LedgerService ledgerService;
     private final AIService aiService;
     private final RedisService redisService;
+
+    private final GroupMemberRepository groupMemberRepository;
 
     /**
      * 환율 받아오는 API
@@ -100,16 +105,35 @@ public class LedgerController {
     //  [NEW API] 캘린더 UI 전용 JSON 데이터 반환 엔드포인트
     //  - /ledger/calendar URL을 사용하여 캘린더 데이터만 반환합니다.
     // ===================================================================
+    @GetMapping("") // ✅ 반드시 추가해야 합니다!
+    public String home(
+            @RequestParam(required = false) Long groupId,
+            Model model,
+            @SessionAttribute(name = "loginUserId", required = false) String memberId // 세션에서 ID 가져오기
+    ) {
+        // [수정] 가짜 데이터(mockGroups) 삭제하고 진짜 DB 조회
+        List<Map<String, Object>> myGroups = new ArrayList<>();
 
-    @GetMapping("")
-    public String home(@RequestParam(required = false) Long groupId, Model model) {
-        // ... (데이터 담는 로직) ...
+        if (memberId != null) {
+            // 내가 속한 그룹 리스트 조회
+            List<GroupMember> groupMembers = groupMemberRepository.findByMember_MemberId(memberId);
 
-        // [수정 전]
-        // return "ledger_home";
+            for (GroupMember gm : groupMembers) {
+                // 개인 가계부(P)는 제외하고 모임(G)만 사이드바에 표시 (선택 사항)
+                // 만약 모두 표시하려면 if문 제거
+                if (gm.getGroup().getGroupMembers().size() > 0) {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("groupId", gm.getGroup().getId());
+                    map.put("groupName", gm.getGroup().getGroupName());
+                    myGroups.add(map);
+                }
+            }
+        }
 
-        // [수정 후] 파일이 있는 정확한 경로 입력
-        return "household/ledger_home";
+        model.addAttribute("myGroups", myGroups);
+        model.addAttribute("currentGroupId", groupId);
+
+        return "household/ledger_home"; // 파일 위치에 맞게 수정 (예: "household/ledger_home")
     }
 
     /**

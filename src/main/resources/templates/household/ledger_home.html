@@ -67,12 +67,18 @@
                         <span class="text" th:text="${group.groupName}">그룹명</span>
                     </a>
 
-                    <button th:if="${currentGroupId == group.groupId}"
-                            class="btn btn-sm btn-link text-secondary p-0"
-                            onclick="openMemberManageModal()"
-                            style="z-index: 10; width: 30px;">
-                        ⚙️
-                    </button>
+                    <div th:if="${currentGroupId == group.groupId}" class="d-flex gap-1" style="z-index: 10;">
+                        <button class="btn btn-sm btn-link text-secondary p-0"
+                                onclick="openRenameGroupModal()"
+                                title="이름 변경">
+                            ✏️
+                        </button>
+                        <button class="btn btn-sm btn-link text-secondary p-0"
+                                onclick="openMemberManageModal()"
+                                title="멤버 관리">
+                            ⚙️
+                        </button>
+                    </div>
                 </li>
 
                 <li class="bookmark-item add-group-btn mt-3">
@@ -309,6 +315,22 @@
                 <input type="text" id="newGroupName" class="form-control" placeholder="예: 우리집 생활비, 커플 통장">
             </div>
             <button class="btn btn-primary w-100 py-2" onclick="submitCreateGroup()">만들기</button>
+        </div>
+    </div>
+
+    <div id="renameGroupModal" class="modal-overlay">
+        <div class="modal-content" style="width: 400px;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold m-0">✏️ 그룹 이름 변경</h4>
+                <span class="close-btn" onclick="closeRenameGroupModal()">&times;</span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small-text">새로운 이름</label>
+                <input type="text" id="renameInput" class="form-control" placeholder="변경할 이름을 입력하세요">
+            </div>
+
+            <button class="btn btn-primary w-100" onclick="submitRenameGroup()">변경하기</button>
         </div>
     </div>
 

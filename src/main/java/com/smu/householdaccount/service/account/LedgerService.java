@@ -275,6 +275,9 @@ public class LedgerService {
         // 2. 카테고리별 합계
         List<CategorySumDto> catSums = ledgerRepository.findCategorySumNew(myGroup, start, end);
 
+        // [안전 장치] null이면 빈 리스트로
+        if (catSums == null) catSums = new ArrayList<>();
+
         List<LedgerSummaryDto.CategorySummary> categories = catSums.stream()
                 .map(dto -> LedgerSummaryDto.CategorySummary.builder()
                         .categoryName(dto.getCategoryName())
@@ -284,6 +287,7 @@ public class LedgerService {
 
         // 3. 일별 합계 (Repository에서 COUNT도 같이 가져왔다고 가정)
         List<DailySumDto> daySums = ledgerRepository.findDailySumNew(myGroup, start, end);
+        if (daySums == null) daySums = new ArrayList<>(); // [안전 장치]
 
         // 4. 일별 데이터 정리 (Map 사용)
         Map<LocalDate, LedgerSummaryDto.DailySummary> dailyMap = new HashMap<>();

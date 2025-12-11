@@ -4,6 +4,7 @@ package com.smu.householdaccount.controller.account;
 import com.smu.householdaccount.dto.ledger.GroupCreateReq;
 import com.smu.householdaccount.dto.ledger.GroupInviteReq;
 import com.smu.householdaccount.dto.ledger.GroupMemberDto;
+import com.smu.householdaccount.dto.ledger.GroupRenameReq;
 import com.smu.householdaccount.service.account.GroupService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -55,7 +56,7 @@ public class GroupController {
     public ResponseEntity<String> removeMember(
             @PathVariable Long groupId,
             @PathVariable Long groupMemberId,
-            @SessionAttribute(name = "loginuserId") String requesterId //로그인한 사용자 ID (요청자)
+            @SessionAttribute(name = "loginUserId") String requesterId //로그인한 사용자 ID (요청자)
     ) {
         try {
             groupService.removeMember(groupId, groupMemberId, requesterId);
@@ -69,12 +70,30 @@ public class GroupController {
      * 4. 그룹 생성
      * POST /api/group
      */
-    /*@PostMapping
+    @PostMapping
     public ResponseEntity<Long> createGroup(
             @RequestBody GroupCreateReq req,
             @SessionAttribute(name = "loginUserId") String ownerId
     ) {
         Long newGroupId = groupService.createGroup(req.getGroupName(), ownerId);
         return ResponseEntity.ok(newGroupId);
-    }*/
+    }
+
+    /**
+     * 5. 그룹 이름 변경
+     * PATCH /api/group/{groupId}/name
+     */
+    @PatchMapping("/{groupId}/name")
+    public ResponseEntity<String> updateGroupName(
+            @PathVariable Long groupId,
+            @RequestBody GroupRenameReq req,
+            @SessionAttribute(name = "loginUserId") String requesterId
+    ) {
+        try {
+            groupService.updateGroupName(groupId, req.getNewGroupName(), requesterId);
+            return ResponseEntity.ok("그룹 이름이 변경되었습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

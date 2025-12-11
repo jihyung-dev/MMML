@@ -4,9 +4,11 @@ package com.smu.householdaccount.service.account;
 import com.smu.householdaccount.dto.ledger.GroupMemberDto;
 import com.smu.householdaccount.entity.account.BudgetGroup;
 import com.smu.householdaccount.entity.account.GroupMember;
+import com.smu.householdaccount.entity.account.GroupProperty;
 import com.smu.householdaccount.entity.common.Member;
 import com.smu.householdaccount.repository.account.BudgetGroupRepository;
 import com.smu.householdaccount.repository.account.GroupMemberRepository;
+import com.smu.householdaccount.repository.account.GroupPropertyRepository;
 import com.smu.householdaccount.repository.common.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,8 @@ public class GroupService {
     private final GroupMemberRepository groupMemberRepository;
     private final MemberRepository memberRepository;
     private final BudgetGroupRepository budgetGroupRepository;
+
+    private final GroupPropertyRepository groupPropertyRepository; // [추가] 필드 주입 필요
 
     /**
      * 1. 그룹 멤버 목록 조회
@@ -108,5 +112,63 @@ public class GroupService {
 
         // 삭제 실행
         groupMemberRepository.delete(target);
+    }
+
+    /**
+     * 4. 그룹 생성 (새 그룹 만들기)
+     */
+    @Transactional
+    public Long createGroup(String groupName, String ownerId) {
+        Member owner = memberRepository.findById(ownerId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 정보 없음"));
+
+        // 1. 그룹 생성 & 저장
+        BudgetGroup group = new BudgetGroup();
+        group.setGroupName(groupName);
+        group.setOwner(owner);
+        group.setCreatedAt(LocalDateTime.now());
+        budgetGroupRepository.save(group);
+
+        // 2. 그룹 속성 저장 (타입 'G': 모임 통장)
+        GroupProperty property = new GroupProperty();
+        property.setGroup(group);
+        property.setGroupType('G');
+        // property.setCreatedAt(Instant.now()); // 필요시
+        groupPropertyRepository.save(property);
+
+        // 3. 나를 멤버(OWNER)로 추가
+        GroupMember member = new GroupMember();
+        member.setGroup(group);
+        member.setMember(owner);
+        member.setRole("OWNER");
+        member.setCreatedAt(LocalDateTime.now());
+        groupMemberRepository.save(member);
+
+        return group.getId(); // 생성된 그룹 ID 반환
+    }
+
+    /**
+     * 5. 그룹 이름 변경
+     */
+    @Transactional
+    public void updateGroupName(Long groupId, String newName, String requesterId) {
+        // 그룹 조회
+        BudgetGroup group = budgetGroupRepository.findById(groupId)
+                .orElseThrow(() -> new IllegalArgumentException("그룹이 존재하지 않습니다."));
+
+        // 요청자가 방장인지 확인
+        // 1) 멤버인지 확인
+        Member requester = memberRepository.findById(requesterId).orElseThrow();
+        GroupMember memberInfo = groupMemberRepository.findByGroupAndMember(group, requester)
+                .orElseThrow(() -> new IllegalArgumentException("그룹 멤버가 아닙니다."));
+
+        // 2) 권한 확인 (OWNER만 가능)
+        if (!"OWNER".equals(memberInfo.getRole())) {
+            throw new IllegalStateException("그룹장만 이름을 변경할 수 있습니다.");
+        }
+
+        // 이름 변경
+        group.setGroupName(newName);
+        // (JPA 변경 감지에 의해 자동 저장됨)
     }
 }
