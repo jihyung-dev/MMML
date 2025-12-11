@@ -7,6 +7,7 @@ import com.smu.householdaccount.entity.account.LedgerEntry;
 import com.smu.householdaccount.entity.common.Member;
 import com.smu.householdaccount.repository.account.BudgetGroupRepository;
 import com.smu.householdaccount.repository.account.CategoryRepository;
+import com.smu.householdaccount.repository.account.GroupPropertyRepository;
 import com.smu.householdaccount.repository.account.LedgerRepository;
 import com.smu.householdaccount.repository.common.MemberRepository;
 import com.smu.householdaccount.util.Log;
@@ -30,27 +31,39 @@ public class LedgerSaveService {
     private final BudgetGroupRepository budgetGroupRepository;
     private final CategoryRepository categoryRepository;
     private final MemberRepository memberRepository;
+    private final GroupPropertyRepository groupPropertyRepository;
 
     // DB에 저장
     @Transactional
-    public void saveMergedLedger(List<CategoryUpdateReq> dtoList, String memberId) {
+    public void saveMergedLedger(List<CategoryUpdateReq> dtoList, String memberId, Long groupId) {
 
         Member member = getMember(memberId);
         if (member == null) {
             throw new IllegalArgumentException("Invalid memberId: " + memberId);
         }
-
+        BudgetGroup group = null;
         // 1) 기존 그룹이 있는지 확인
-        BudgetGroup group = budgetGroupRepository.findByOwner(member)
-                .orElseGet(() -> {
-                    // 신규 그룹 생성
-                    BudgetGroup newGroup = new BudgetGroup();
-                    newGroup.setOwner(member);
-                    newGroup.setGroupName("기본 가계부");  // 필수
-                    newGroup.setCreatedAt(LocalDateTime.now());
-                    return budgetGroupRepository.save(newGroup);
-                });
+        if(groupId != null){
+            // 그룹 아이디가 넘겨져 온 경우 그룹 가게부.
+            // 그룹 가게부는 기본적으로 생성 시에 그룹 생성.
+            // null 처리 안해서.. 에러는 아니지만 DB에 안들어가는 경우 발생
+            group = budgetGroupRepository.findById(groupId).orElse(null);
+        } else {
+            group = budgetGroupRepository.findByOwner(member)
+                    .orElseGet(() -> {
+                        // 신규 그룹 생성
+                        BudgetGroup newGroup = new BudgetGroup();
+                        newGroup.setOwner(member);
+                        newGroup.setGroupName("기본 가계부");  // 필수
+                        newGroup.setCreatedAt(LocalDateTime.now());
+                        return budgetGroupRepository.save(newGroup);
+                    });
+        }
 
+        if(group == null){
+            Log.e("[Group]","Group is Null. DB connect fail");
+            return;
+        }
         // 2) 카테고리 일괄 로딩
         List<Category> categories = categoryRepository.findByCategoryIdStartingWith("C");
         Map<String, Category> categoryMap = categories.stream()

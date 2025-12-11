@@ -77,8 +77,13 @@ public class RedisService {
         return String.valueOf(code);
     }
 
-    // group_id 캐싱
-    public Optional<Long> getGroupIdByMemberId(String memberId) {
+    /**
+     * group_id가 들어오지 않은 경우 개인 가게부 group_id 리턴
+     * @param memberId
+     * @param groupId
+     * @return
+     */
+    public Optional<Long> getGroupIdByMemberId(String memberId, Long groupId) {
         String key = "member:" + memberId + ":group";
 
         // ✅ 1️⃣ Redis 조회
@@ -91,6 +96,18 @@ public class RedisService {
             return Optional.of(Long.valueOf(cached));
         }
 
+        // 그룹 가게부 조회
+        if(groupId != null){
+            String valueToCache = groupId.toString();
+            stringRedisTemplate.opsForValue().set(
+                    key,
+                    valueToCache,
+                    Duration.ofMinutes(10)
+            );
+            return Optional.of(groupId);
+        }
+
+        // 아래는 개인 가게부 번호 조회
         // ✅ 2️⃣ DB 조회
         Optional<Long> groupIdOpt =
                 ledgerRepository.findGroupIdByMemberId(memberId);
@@ -109,11 +126,26 @@ public class RedisService {
         return groupIdOpt;
     }
 
-    public void setGroupId(String memberId){
+    /**
+     * group_id가 들어오지 않은 경우 개인 가게부 group_id 저장, group_id가 들어올 경우 해당 id로 저장
+     * @param memberId
+     * @param groupId
+     */
+    public void setGroupId(String memberId, Long groupId){
         String key = "member:" + memberId + ":group";
-
+        if(groupId != null){
+            String valueToCache = groupId.toString();
+            stringRedisTemplate.opsForValue().set(
+                    key,
+                    valueToCache,
+                    Duration.ofMinutes(10)
+            );
+            return;
+        }
         Optional<Long> groupIdOpt =
                 ledgerRepository.findGroupIdByMemberId(memberId);
+        // 중복 가능함. 한번더 쿼리를 조회하던지
+
         String valueToCache = groupIdOpt
                 .map(String::valueOf)
                 .orElse("NONE");
@@ -122,6 +154,5 @@ public class RedisService {
                 valueToCache,
                 Duration.ofMinutes(10)
         );
-
     }
 }
