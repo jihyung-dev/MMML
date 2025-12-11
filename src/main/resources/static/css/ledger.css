@@ -1871,3 +1871,9 @@ div#driver-popover-item {
         margin-top: 0 !important;
     }
 }
+
+/* 사이드바 내 버튼 스타일 보정 */
+.bookmark-item button:hover {
+    background-color: #e2e6ea;
+    border-radius: 50%;
+}

@@ -69,12 +69,12 @@ public class GroupController {
      * 4. 그룹 생성
      * POST /api/group
      */
-    @PostMapping
+    /*@PostMapping
     public ResponseEntity<Long> createGroup(
             @RequestBody GroupCreateReq req,
             @SessionAttribute(name = "loginUserId") String ownerId
     ) {
         Long newGroupId = groupService.createGroup(req.getGroupName(), ownerId);
         return ResponseEntity.ok(newGroupId);
-    }
+    }*/
 }

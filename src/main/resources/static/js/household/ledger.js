@@ -827,6 +827,14 @@ async function renderFullCategoryChart() {
 function buildCategoryComparisonList(currentCategories, threeMonthCategories) {
     const result = [];
 
+    // ★ [핵심] 배열인지 확인! (데이터가 없거나 에러나면 빈 배열로 처리)
+    if (!Array.isArray(currentCategories)) {
+        currentCategories = [];
+    }
+    if (!Array.isArray(threeMonthCategories)) {
+        threeMonthCategories = [];
+    }
+
     currentCategories.forEach(cur => {
         const avgData = threeMonthCategories.find(t => t.categoryName === cur.categoryName);
         const avg = avgData ? Number(avgData.amount) / 3 : 0;
@@ -1293,23 +1301,37 @@ async function getGroupId() {
     const data = await res.json(); // await 필수
     console.log("데이터 확인 :", data);
 
-    if (!data.hasGroup) {
-        showEmptyState();
-        return false;
-    } else {
-        showLedgerContent();
-        return true;
-    }
+    // [수정] 화면 제어 로직 제거 또는 주석 처리
+    // if (!data.hasGroup) {
+    //     showEmptyState();
+    //     return false;
+    // } else {
+    //     showLedgerContent();
+    //     return true;
+    // }
+
+    return data.hasGroup;
 }
 
 async function startDocu() {
-    // 로그인 유저의 Group_id 조회(group_id가 존재하지 않을 경우 등록한 가게부 내역이 하나도 없다는 의미)
-    const hasGroup = await getGroupId(); // await
-    dragElement();
-    if (!hasGroup) {
-        return;
-    }
+    //수정 전
+    // // 로그인 유저의 Group_id 조회(group_id가 존재하지 않을 경우 등록한 가게부 내역이 하나도 없다는 의미)
+    // const hasGroup = await getGroupId(); // await
 
+    //수정 후
+    // 1. 그룹 ID 체크 (없어도 진행하도록 수정)
+    // getGroupId 함수는 내부적으로 showEmptyState()를 호출하지만,
+    // 여기서는 화면 제어를 startDocu에서 하도록 변경하는 게 좋습니다.
+
+    // 우선 dragElement는 무조건 실행 (파일 업로드는 가능해야 하므로)
+
+    dragElement();
+
+    // 2. 현재 URL 파라미터 확인 (groupId가 있는지)
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentGroupId = urlParams.get('groupId');
+
+    showLedgerContent();
     showSkeleton();
     updateMonthLabel();
 
@@ -2926,4 +2948,156 @@ function initMonthPicker() {
             }
         });
     });
+
 }
+
+// =========================================
+// [New] 그룹 멤버 관리 로직
+// =========================================
+
+// 1. 모달 열기 & 목록 로드
+async function openMemberManageModal() {
+    const groupId = document.getElementById("currentGroupId").value;
+    if (!groupId) {
+        alert("개인 가계부에서는 멤버를 관리할 수 없습니다.");
+        return;
+    }
+
+    const modal = document.getElementById("memberManageModal");
+    modal.classList.add("show");
+    modal.style.display = "flex";
+
+    // 모달 열릴 때 외부 클릭 방지 플래그 (기존 로직 호환)
+    modalJustOpened = true;
+    setTimeout(() => { modalJustOpened = false; }, 100);
+
+    // 멤버 목록 불러오기
+    await loadGroupMembers(groupId);
+}
+
+// 2. 모달 닫기
+function closeMemberManageModal() {
+    const modal = document.getElementById("memberManageModal");
+    modal.style.display = "none";
+    modal.classList.remove("show");
+
+    // 입력창 초기화
+    document.getElementById("inviteUserId").value = "";
+}
+
+// 3. 멤버 목록 API 호출 및 렌더링
+async function loadGroupMembers(groupId) {
+    const listGroup = document.getElementById("memberListGroup");
+
+    try {
+        const res = await fetch(`/api/group/${groupId}/members`);
+        if (!res.ok) throw new Error("멤버 목록 로드 실패");
+
+        const members = await res.json();
+
+        listGroup.innerHTML = ""; // 초기화
+
+        if (members.length === 0) {
+            listGroup.innerHTML = '<li class="list-group-item text-center">멤버가 없습니다.</li>';
+            return;
+        }
+
+        members.forEach(m => {
+            const isOwner = m.role === 'OWNER';
+            // 본인이거나 방장인 경우에 따라 버튼 노출 로직이 필요하지만,
+            // 일단 UI에서는 '삭제' 버튼을 다 보여주고 서버에서 막는 방식 or
+            // 로그인한 유저 ID를 JS 전역변수로 가지고 있어야 정확한 UI 제어 가능.
+            // 여기서는 단순하게 "방장 아님 -> 삭제 버튼 표시"로 예시를 듭니다.
+
+            const li = document.createElement("li");
+            li.className = "list-group-item d-flex justify-content-between align-items-center py-3";
+
+            li.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <div class="fw-bold me-2">${m.nickname} <span class="text-muted small">(${m.memberId})</span></div>
+                    ${isOwner ? '<span class="badge bg-warning text-dark">방장</span>' : '<span class="badge bg-secondary">멤버</span>'}
+                </div>
+                ${!isOwner ? `
+                    <button class="btn btn-sm btn-outline-danger" 
+                            onclick="removeMember(${m.groupMemberId})">내보내기</button>
+                ` : ''}
+            `;
+            listGroup.appendChild(li);
+        });
+
+    } catch (e) {
+        console.error(e);
+        listGroup.innerHTML = '<li class="list-group-item text-danger">목록을 불러오지 못했습니다.</li>';
+    }
+}
+
+// 4. 멤버 초대하기
+async function inviteMember() {
+    const groupId = document.getElementById("currentGroupId").value;
+    const targetId = document.getElementById("inviteUserId").value;
+
+    if (!targetId) {
+        alert("초대할 아이디를 입력해주세요.");
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/group/${groupId}/invite`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ targetMemberId: targetId })
+        });
+
+        const msg = await res.text(); // 서버에서 String 메시지를 줄 경우
+
+        if (res.ok) {
+            alert("초대되었습니다!");
+            document.getElementById("inviteUserId").value = ""; // 입력창 비우기
+            await loadGroupMembers(groupId); // 목록 갱신
+        } else {
+            alert("실패: " + msg); // "이미 멤버입니다" 등의 메시지 출력
+        }
+    } catch (e) {
+        console.error(e);
+        alert("초대 중 오류가 발생했습니다.");
+    }
+}
+
+// 5. 멤버 내보내기 (강퇴)
+async function removeMember(groupMemberId) {
+    const groupId = document.getElementById("currentGroupId").value;
+
+    if (!confirm("정말 이 멤버를 내보내시겠습니까?")) return;
+
+    try {
+        const res = await fetch(`/api/group/${groupId}/members/${groupMemberId}`, {
+            method: "DELETE"
+        });
+
+        const msg = await res.text();
+
+        if (res.ok) {
+            alert("삭제되었습니다.");
+            await loadGroupMembers(groupId); // 목록 갱신
+        } else {
+            alert("실패: " + msg); // 권한 없음 등의 메시지
+        }
+    } catch (e) {
+        console.error(e);
+        alert("삭제 중 오류가 발생했습니다.");
+    }
+}
+
+// [추가] 모달 외부 클릭 닫기 로직에 memberManageModal 추가
+document.addEventListener("click", (e) => {
+    // ... 기존 코드 ...
+
+    // 4. 멤버 관리 모달 닫기
+    const memberModal = document.getElementById("memberManageModal");
+    if (memberModal && memberModal.style.display === "flex") {
+        const content = memberModal.querySelector(".modal-content");
+        if (content && !content.contains(e.target) && !modalJustOpened) {
+            closeMemberManageModal();
+        }
+    }
+});

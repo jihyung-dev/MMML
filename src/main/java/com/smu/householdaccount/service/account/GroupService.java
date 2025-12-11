@@ -4,11 +4,9 @@ package com.smu.householdaccount.service.account;
 import com.smu.householdaccount.dto.ledger.GroupMemberDto;
 import com.smu.householdaccount.entity.account.BudgetGroup;
 import com.smu.householdaccount.entity.account.GroupMember;
-import com.smu.householdaccount.entity.account.GroupProperty;
 import com.smu.householdaccount.entity.common.Member;
 import com.smu.householdaccount.repository.account.BudgetGroupRepository;
 import com.smu.householdaccount.repository.account.GroupMemberRepository;
-import com.smu.householdaccount.repository.account.GroupPropertyRepository;
 import com.smu.householdaccount.repository.common.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -110,41 +108,5 @@ public class GroupService {
 
         // 삭제 실행
         groupMemberRepository.delete(target);
-    }
-
-
-    private final GroupPropertyRepository groupPropertyRepository; // [추가] 필드 주입 필요
-
-    /**
-     * 4. 그룹 생성 (새 그룹 만들기)
-     */
-    @Transactional
-    public Long createGroup(String groupName, String ownerId) {
-        Member owner = memberRepository.findById(ownerId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자 정보 없음"));
-
-        // 1. 그룹 생성 & 저장
-        BudgetGroup group = new BudgetGroup();
-        group.setGroupName(groupName);
-        group.setOwner(owner);
-        group.setCreatedAt(LocalDateTime.now());
-        budgetGroupRepository.save(group);
-
-        // 2. 그룹 속성 저장 (타입 'G': 모임 통장)
-        GroupProperty property = new GroupProperty();
-        property.setGroup(group);
-        property.setGroupType('G');
-        // property.setCreatedAt(Instant.now()); // 필요시
-        groupPropertyRepository.save(property);
-
-        // 3. 나를 멤버(OWNER)로 추가
-        GroupMember member = new GroupMember();
-        member.setGroup(group);
-        member.setMember(owner);
-        member.setRole("OWNER");
-        member.setCreatedAt(LocalDateTime.now());
-        groupMemberRepository.save(member);
-
-        return group.getId(); // 생성된 그룹 ID 반환
     }
 }

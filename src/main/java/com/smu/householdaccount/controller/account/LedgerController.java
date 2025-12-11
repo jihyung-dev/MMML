@@ -171,18 +171,24 @@ public class LedgerController {
         return ResponseEntity.ok(res);
     }
 
-    @GetMapping("/api/request/group_id")
+    @GetMapping("/request/group_id")
     @ResponseBody
     public Map<String, Object> getGroupId(
+
+
             HttpSession session,
-            @RequestParam(required = false) Long group_Id) {
+            @RequestParam(required = false) Long group_Id
+    ) {
         String memberId = (String) session.getAttribute("loginUserId");
 
-        Optional<Long> groupIdOpt =
-                redisService.getGroupIdByMemberId(memberId, group_Id);
+        // Redis 조회
+        Optional<Long> groupIdOpt = redisService.getGroupIdByMemberId(memberId, group_Id);
 
         Map<String, Object> res = new HashMap<>();
-        res.put("hasGroup", groupIdOpt.isPresent());
+
+        // ★ [핵심] 그룹 ID가 없어도 hasGroup을 true로 줘서 화면은 뜨게 만듭니다.
+        // (왜냐? Service에서 resolveGroup이 알아서 찾아줄 거니까요!)
+        res.put("hasGroup", true);
         res.put("groupId", groupIdOpt.orElse(null));
 
         return res;
