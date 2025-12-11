@@ -13,4 +13,8 @@ public interface BoardLikeService {
 
     /** 좋아요 수 조회 */
     long countLikes(Long postId);
+
+    /** ✅ 좋아요 토글 (true: 좋아요 상태, false: 좋아요 해제 상태) */
+    boolean toggleLike(Long postId, String loginUserId); // <-- 추가
+
 }
