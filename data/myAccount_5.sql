@@ -403,7 +403,7 @@ CREATE TABLE GROUP_PROPERTY (
 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-DROP TABLE MMML.MEMBER_ADDRESS;
+# DROP TABLE MMML.MEMBER_ADDRESS;
 CREATE TABLE MMML.MEMBER_ADDRESS (
                                      address_id      BIGINT AUTO_INCREMENT,
                                      member_id       VARCHAR(50) NOT NULL,
@@ -411,6 +411,7 @@ CREATE TABLE MMML.MEMBER_ADDRESS (
                                      recipient_name  VARCHAR(100) NOT NULL,
                                      address_line1   VARCHAR(255) NOT NULL,
                                      address_line2   VARCHAR(255),
+                                     request_message   VARCHAR(255),
                                      zipcode         VARCHAR(10) NOT NULL,
                                      phone           VARCHAR(20),
                                      is_default      BIT(1) DEFAULT 0,

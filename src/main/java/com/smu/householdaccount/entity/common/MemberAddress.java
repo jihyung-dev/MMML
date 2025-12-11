@@ -1,13 +1,14 @@
 package com.smu.householdaccount.entity.common;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
+import lombok.ToString;
+import org.hibernate.annotations.*;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -16,16 +17,20 @@ import java.time.LocalDateTime;
 @Setter
 @Entity
 @Table(name = "MEMBER_ADDRESS")
+@ToString(exclude = {"member"})
+@JsonIgnoreProperties({"member"})
 public class MemberAddress {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "address_id", nullable = false)
     private Long id;
 
-    @NotNull
+    @Column(name = "MEMBER_ID", nullable = false, length = 50)
+    private String memberId;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "member_id", nullable = false)
+    @JoinColumn(name = "member_id", insertable = false, updatable = false)
     private Member member;
 
     @Size(max = 50)
@@ -60,12 +65,16 @@ public class MemberAddress {
     @Column(name = "is_default")
     private Boolean isDefault;
 
+    @Size(max = 255)
+    @Column(name = "request_message")
+    private String requestMessage;
+
+    @CreationTimestamp
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-
+    @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
 
 }
