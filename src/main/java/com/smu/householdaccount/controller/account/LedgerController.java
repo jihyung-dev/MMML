@@ -5,18 +5,15 @@ import com.smu.householdaccount.dto.python.ClassifyTransactionResponse;
 import com.smu.householdaccount.service.ai.AIService;
 import com.smu.householdaccount.service.account.LedgerService;
 import com.smu.householdaccount.service.common.RedisService;
-import com.smu.householdaccount.util.Log;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Controller
 @RequiredArgsConstructor
@@ -105,9 +102,34 @@ public class LedgerController {
      * (FullCalendar의 events source로 사용됩니다.)
      */
 
+    /**
+     * 가계부 메인 화면 (HTML 반환)
+     * - 사이드바(책갈피)를 위한 가짜 데이터(mockGroups)를 모델에 담아 보냅니다.
+     */
     @GetMapping("")
-    public String home(){
-        return "household/blank";
+    public String home(@RequestParam(required = false) Long groupId, Model model) {
+
+        // 1. [임시] 사이드바에 표시할 가짜 그룹 데이터 생성
+        // (나중에 DB에서 조회하는 로직으로 교체해야 함)
+        List<Map<String, Object>> mockGroups = new ArrayList<>();
+
+        Map<String, Object> group1 = new HashMap<>();
+        group1.put("groupId", 100L);
+        group1.put("groupName", "커플 통장");
+        mockGroups.add(group1);
+
+        Map<String, Object> group2 = new HashMap<>();
+        group2.put("groupId", 200L);
+        group2.put("groupName", "여행 모임");
+        mockGroups.add(group2);
+
+        // 2. 모델에 데이터 담기 (HTML에서 ${myGroups}, ${currentGroupId}로 사용)
+        model.addAttribute("myGroups", mockGroups);
+        model.addAttribute("currentGroupId", groupId);
+
+        // 3. 뷰 이름 반환
+        // ⚠️ 중요: 실제 파일이 templates/ledger_home.html 에 있어야 함
+        return "household/ledger_home";
     }
 
     /**
@@ -177,4 +199,7 @@ public class LedgerController {
 
         return res;
     }
+
+
 }
+

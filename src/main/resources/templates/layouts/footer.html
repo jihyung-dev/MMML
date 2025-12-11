@@ -1,10 +1,7 @@
 <!DOCTYPE html>
-<html lang="ko"
-      xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
-<!-- [공통] 헤더 -->
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 
-<footer layout:fragment="footer" class="bg-light border-top py-4">
+<footer th:fragment="footer" class="bg-light border-top py-4">
     <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
         <div class="d-flex align-items-center gap-2">
             <svg fill="currentColor" viewBox="0 0 24 24" width="24" height="24">
@@ -20,5 +17,4 @@
         </div>
     </div>
 </footer>
-
 </html>

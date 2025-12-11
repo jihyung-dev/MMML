@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/default_layout}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>가계부 대시보드</title>
+
+    <th:block layout:fragment="css">
+        <link rel="stylesheet" href="/css/ledger.css">
+        <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+        <!-- Driver.js CSS -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
+        <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
+    </th:block>
+</head>
+<body>
+
+<th:block layout:fragment="script">
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/export-data.js"></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+
+    <script defer src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/index.global.min.js'></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+    <script src="/js/household/ledger.js"></script>
+</th:block>
+
+<div layout:fragment="content" style="position: relative;">
+    <!-- Empty State -->
+    <div id="emptyState" class="empty-state d-none text-center mt-5 d-none">
+
+        <h4 class="mb-3">📂 아직 가계부 데이터가 없습니다</h4>
+
+        <p class="text-muted mb-4">
+            엑셀 파일을 업로드하거나<br>
+            직접 거래 내역을 입력해서 가계부를 시작해 보세요.
+        </p>
+    </div>
+
+    <!-- 스켈레톤 오버레이 시작 -->
+    <div id="globalSkeleton">
+        <div class="singleSkeletonCard "></div>
+    </div>
+    <!-- 🔵 메인 데이터 불러오기 영역 -->
+    <div class="import-main-section">
+        <button
+                type="button"
+                class="primary-import-btn"
+                onclick="loadLedgerData()"
+        >
+            <span class="icon">💳</span>
+            <span class="text">
+                <strong>내 카드 사용 내역 불러오기</strong>
+                <small>최근 거래내역을 자동으로 정리해드려요</small>
+            </span>
+        </button>
+        <!-- 업로드 헤더 -->
+        <div class="d-flex justify-content-between align-items-center mb-2" style="margin-top: 10px;">
+            <div class="text-muted small">
+                📄 엑셀 파일 업로드
+            </div>
+
+            <a href="/file/ledger_upload_template.xlsx"
+               class="btn btn-sm btn-outline-secondary"
+               download>
+                📥 업로드용 템플릿 다운로드
+            </a>
+        </div>
+        <!-- 드래그 앤 드랍 & 파일 업로드 -->
+        <div class="file-drop-zone" id="fileDropZone">
+            <p class="drop-text">여기에 엑셀 파일을 드래그하거나<br>클릭해서 업로드하세요</p>
+            <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" hidden/>
+        </div>
+        <div class="required-columns mt-2 text-muted small">
+            <strong>📌 필수 컬럼:</strong>
+            <span class="text-primary">거래일자, 금액, 지출/수입, 사용처, 카드타입</span>
+        </div>
+        <div class="required-columns mt-2 text-muted small">
+            <strong>📌 자유 컬럼:</strong>
+            <span class="text-primary">결제수단, 메모</span>
+        </div>
+        <div class="required-columns mt-2 text-muted small">
+            <strong>📌 카테고리 : 자동 분류</strong>
+        </div>
+        <!-- 파일 미리보기 -->
+        <div class="upload-preview-container mt-4" id="previewSection" style="display:none;">
+
+            <div class="preview-title d-flex justify-content-between align-items-center">
+                <!-- left -->
+                <div>
+                    <span class="preview-icon">📄</span>
+                    <span class="preview-title-text">업로드한 파일 정보</span>
+                </div>
+
+                <!-- right -->
+                <button id="previewCloseBtn"
+                        type="button"
+                        class="btn-close"
+                        aria-label="Close"></button>
+            </div>
+
+            <div class="preview-info">
+                <div>
+                    <span class="info-label">파일명:</span>
+                    <span id="fileName"></span>
+                </div>
+                <div>
+                    <span class="info-label">용량:</span>
+                    <span id="fileSize"></span>
+                </div>
+            </div>
+
+            <h5 class="sample-title">샘플 데이터 (최대 3줄)</h5>
+
+            <div class="table-wrap">
+                <table class="table table-bordered sample-table" id="sampleTable">
+                    <thead></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="mt-3 text-end">
+                <button id="sendDataBtn"
+                        type="button"
+                        class="btn btn-primary"
+                        style="display: none;">
+                    데이터 입력
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- ✅ 실제 가계부 UI 전체 -->
+    <div id="ledgerContent" class="d-flex w-100" style="min-height: 100vh; background-color: #f5f7fa;">
+        <aside class="group-sidebar">
+            <div class="sidebar-header p-3">
+                <h5 class="fw-bold mb-0">내 가계부</h5>
+            </div>
+            <ul class="bookmark-list">
+                <li class="bookmark-item"
+                    th:classappend="${currentGroupId == null} ? 'active'">
+                    <a th:href="@{/ledger}">
+                        <span class="icon">👤</span>
+                        <span class="text">나의 가계부</span>
+                    </a>
+                </li>
+
+                <li class="bookmark-item"
+                    th:each="group : ${myGroups}"
+                    th:classappend="${currentGroupId == group.groupId} ? 'active'">
+                    <a th:href="@{/ledger(groupId=${group.groupId})}">
+                        <span class="icon">👨‍👩‍👧‍👦</span>
+                        <span class="text" th:text="${group.groupName}">그룹명</span>
+                    </a>
+                </li>
+
+                <li class="bookmark-item add-group-btn mt-3">
+                    <a href="javascript:void(0)" onclick="alert('그룹 생성 모달 준비중')">
+                        <span class="icon">➕</span>
+                        <span class="text">새 그룹 만들기</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <main class="ledger-main-panel p-4 flex-grow-1">
+            <div class="header-container mt-4 mobile-nav-only">
+                <div class="month-nav">
+                    <button class="neo-btn" onclick="moveYear(-1)" title="이전 연도"
+                            style="transform: scale(0.9); margin-right: -10px;">
+                        <i class="fa-solid fa-angles-left"></i> &laquo;
+                    </button>
+                    <button class="neo-btn" onclick="prevMonth()">&#9664;</button>
+
+                    <span id="mobileLabelWrapper" class="neo-label"
+                          style="position: relative; cursor: pointer; display: inline-block; padding: 5px 15px;">
+                        <span id="mobileLabel"></span>
+                        <input type="month" id="monthPickerMobile" style="position: absolute;
+                         inset: 0; opacity: 0; cursor: pointer; z-index: 20; width: 100%; height: 100%;"/>
+                    </span>
+                    <button class="neo-btn" onclick="nextMonth()">&#9654;</button>
+                    <button class="neo-btn" onclick="moveYear(1)" title="다음 연도"
+                            style="transform: scale(0.9); margin-left: -10px;">
+                        &raquo; <i class="fa-solid fa-angles-right"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="dashboard-container">
+                <!-- 왼쪽: 카테고리 차트 -->
+                <div class="chart-wrapper">
+                    <div id="categoryChart"></div>
+                    <div class="chart-empty">
+                        <img src="https://dh6zmabop3a6j.cloudfront.net/img/ledger/empty_chart.png">
+                        <p>표시할 데이터가 없습니다</p>
+                    </div>
+                    <div id="categorySummary" style="padding: 10px 2px;"></div>
+                </div>
+                <!-- 오른쪽: 캘린더 -->
+                <div class="calendar-wrapper">
+                    <div class="desktop-nav-only mb-3"
+                         style="display:flex; justify-content:center; align-items:center;">
+                        <button class="neo-btn" onclick="moveYear(-1)" title="이전 연도"
+                                style="transform: scale(0.9); margin-right: -10px;">
+                            <i class="fa-solid fa-angles-left"></i> &laquo;
+                        </button>
+                        <button class="neo-btn" onclick="prevMonth()">&#9664;</button>
+                        <span id="desktopLabelWrapper" class="neo-label"
+                              style="position: relative; cursor: pointer; display: inline-block;">
+                            <span id="desktopLabel">2025년 10월</span>
+                            <input type="month"
+                                   id="monthPicker"
+                                   style="position: absolute; inset: 0; opacity: 0; cursor: pointer; z-index: 20; width: 100%; height: 100%;"/>
+                        </span>
+                        <button class="neo-btn" onclick="nextMonth()">&#9654;</button>
+                        <button class="neo-btn" onclick="moveYear(1)" title="다음 연도"
+                                style="transform: scale(0.9); margin-left: -10px;">
+                            &raquo; <i class="fa-solid fa-angles-right"></i>
+                        </button>
+                    </div>
+                    <div id="calendar"></div>
+                </div>
+            </div>
+            <div class="container my-4">
+
+                <h4 class="mb-3 fw-bold">이번 달 소비 요약</h4>
+                <div id="top3Container" class="top3-wrapper">
+                    <div class="top3-card">
+                        <h6 class="card-label">Top 1</h6>
+
+                        <div class="top3-content">
+                            <h4 class="card-category" id="top1-category"></h4>
+
+                            <p class="small-text">내 지출</p>
+                            <div class="card-money" id="top1-my"></div>
+
+                            <p class="small-text mt-3">전체 평균 대비</p>
+                            <div class="card-diff" id="top1-diff"></div>
+
+                            <!-- 차트 전용 슬롯 -->
+                            <div class="top3-chart-slot">
+                                <div id="top1-chart" class="top3-chart"></div>
+                            </div>
+                        </div>
+                        <div class="top3-empty">
+                            <img src="https://dh6zmabop3a6j.cloudfront.net/img/ledger/empty_chart.png">
+                            <p>데이터가 부족합니다</p>
+                        </div>
+                    </div>
+                    <div class="top3-card">
+                        <h6 class="card-label">Top 2</h6>
+
+                        <div class="top3-content">
+                            <h4 class="card-category" id="top2-category"></h4>
+
+                            <p class="small-text">내 지출</p>
+                            <div class="card-money" id="top2-my"></div>
+
+                            <p class="small-text mt-3">전체 평균 대비</p>
+                            <div class="card-diff" id="top2-diff"></div>
+
+                            <!-- 차트 전용 슬롯 -->
+                            <div class="top3-chart-slot">
+                                <div id="top2-chart" class="top3-chart"></div>
+                            </div>
+                        </div>
+                        <div class="top3-empty">
+                            <img src="https://dh6zmabop3a6j.cloudfront.net/img/ledger/empty_chart.png">
+                            <p>데이터가 부족합니다</p>
+                        </div>
+                    </div>
+                    <div class="top3-card">
+                        <h6 class="card-label">Top 3</h6>
+
+                        <div class="top3-content">
+                            <h4 class="card-category" id="top3-category"></h4>
+
+                            <p class="small-text">내 지출</p>
+                            <div class="card-money" id="top3-my"></div>
+
+                            <p class="small-text mt-3">전체 평균 대비</p>
+                            <div class="card-diff" id="top3-diff"></div>
+
+                            <!-- 차트 전용 슬롯 -->
+                            <div class="top3-chart-slot">
+                                <div id="top3-chart" class="top3-chart"></div>
+                            </div>
+                        </div>
+                        <div class="top3-empty">
+                            <img src="https://dh6zmabop3a6j.cloudfront.net/img/ledger/empty_chart.png">
+                            <p>데이터가 부족합니다</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="lastMonthUserAvgContainer" class="last-month-box mt-4">
+                    <h4 class="section-title">📊 지난 달 사용자들의 카테고리 평균</h4>
+                    <div id="lastMonthAvgList" class="avg-list"></div>
+                    <p class="hint-text">※ 항목을 클릭하면 성별/연령대별 차트가 아래에 표시됩니다.</p>
+                    <div id="categorySelectList"></div>
+                </div>
+                <div id="categoryStatsCharts" class="last-month-box mt-3">
+                    <h4 id="statsChartTitle" class="section-title"></h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div id="genderChartContainer" style="height:300px;"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <div id="ageChartContainer" style="height:300px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bar-chart-wrapper">
+                    <div id="dailyChart"></div>
+                    <div class="chart-empty">
+                        <img src="https://dh6zmabop3a6j.cloudfront.net/img/ledger/empty_chart.png">
+                        <p>표시할 데이터가 없습니다</p>
+                    </div>
+                </div>
+                <div class="bar-chart-wrapper">
+                    <div id="threeMonthBarChart"></div>
+                    <div class="chart-empty">
+                        <img src="https://dh6zmabop3a6j.cloudfront.net/img/ledger/empty_chart.png">
+                        <p>표시할 데이터가 없습니다</p>
+                    </div>
+                </div>
+
+                <div class="table-wrapper mt-5"
+                     style="background:#fff; padding:25px; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.05);">
+                    <div class="d-flex justify-content-between align-items-center mb-3"
+                         style="cursor: pointer;"
+                         data-bs-toggle="collapse"
+                         data-bs-target="#transactionCollapse"
+                         aria-expanded="true"
+                         aria-controls="transactionCollapse">
+                        <h5 class="fw-bold m-0">📋 거래 내역 상세</h5>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+
+                    <div id="transactionCollapse" class="collapse">
+
+                        <div id="tableMonthNav" class="d-flex justify-content-center align-items-center gap-2"
+                             style="display:none;">
+
+                            <button class="btn btn-sm btn-outline-secondary border-0" onclick="moveYear(-1)"
+                                    title="이전 연도">
+                                <i class="fa-solid fa-angles-left"></i> &laquo;
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary border-0" onclick="prevMonth()"
+                                    title="이전 달">
+                                <i class="fa-solid fa-angle-left"></i> &#60;
+                            </button>
+
+                            <span id="bottomMonthLabel" class="fw-bold fs-5 mx-3"
+                                  style="min-width: 120px; text-align: center;">
+                </span>
+
+                            <button class="btn btn-sm btn-outline-secondary border-0" onclick="nextMonth()"
+                                    title="다음 달">
+                                &#62; <i class="fa-solid fa-angle-right"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary border-0" onclick="moveYear(1)"
+                                    title="다음 연도">
+                                &raquo; <i class="fa-solid fa-angles-right"></i>
+                            </button>
+
+                        </div>
+                        <table id="ledgerTable" class="display" style="width:100%">
+                            <thead>
+                            <tr>
+                                <th>날짜</th>
+                                <th>구분</th>
+                                <th>카테고리</th>
+                                <th>내용 (메모)</th>
+                                <th>사용처</th>
+                                <th>결제수단</th>
+                                <th>금액</th>
+                            </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    <button id="btnExcelExport"
+                            class="btn btn-sm btn-outline-success"
+                            onclick="exportExcel('you12zin345@gmail.com')"
+                            style="display:none;">
+                        📥 엑셀로 내보내기
+                    </button>
+                </div>
+            </div>
+        </main>
+        <div id="chartModal" class="modal-overlay">
+            <div class="modal-content">
+                <span class="close-btn" onclick="closeModal()">&times;</span>
+                <h2 id="modalTitle"></h2>
+                <div id="modalBody">
+                    <div id="modalCategoryChart" class="chart-container"></div>
+                    <div id="modalCompareSection" class="compare-section">
+                        <div class="compare-values">
+                            <div class="value-box">
+                                <span class="label">이번 달</span>
+                                <span id="modalCurrentValue" class="value">0</span>
+                            </div>
+                            <div class="value-box">
+                                <span class="label">최근 3개월 평균</span>
+                                <span id="modalAverageValue" class="value">0</span>
+                            </div>
+                        </div>
+                        <div id="modalCompareChart" class="chart-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="addEntryModal" class="modal-overlay">
+            <div class="modal-content" style="width: 400px;">
+                <span class="close-btn" onclick="closeAddEntryModal()">&times;</span>
+                <h3 class="mb-4 fw-bold">새 내역 추가</h3>
+                <form id="addEntryForm">
+                    <input type="hidden" id="entryId">
+                    <div class="mb-3">
+                        <label class="form-label small-text">날짜</label>
+                        <input type="date" id="inputDate" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small-text">시간</label>
+                        <input type="time" id="inputTime" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small-text">구분</label>
+                        <select id="inputType" class="form-select">
+                            <option value="EXPENSE" selected>지출 (-)</option>
+                            <option value="INCOME">수입 (+)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small-text">카테고리</label>
+                        <select id="inputCategory" class="form-select">
+                            <option value="식비">식비</option>
+                            <option value="카페">카페</option>
+                            <option value="쇼핑">쇼핑</option>
+                            <option value="생활">생활</option>
+                            <option value="교통">교통</option>
+                            <option value="의료">의료</option>
+                            <option value="교육">교육</option>
+                            <option value="여가/취미">여가/취미</option>
+                            <option value="반려동물">반려동물</option>
+                            <option value="고정비/구독">고정비/구독</option>
+                            <option value="금융/이체">금융/이체</option>
+                            <option value="세금/공공요금">세금/공공요금</option>
+                            <option value="기타">기타</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small-text">금액</label>
+                        <input type="number" id="inputAmount" class="form-control" placeholder="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small-text">결제수단</label>
+                        <div class="d-flex gap-2">
+                            <input type="radio" class="btn-check" name="payType" id="payCard" value="CARD" checked>
+                            <label class="btn btn-outline-primary btn-sm flex-fill" for="payCard">카드</label>
+                            <input type="radio" class="btn-check" name="payType" id="payCash" value="CASH">
+                            <label class="btn btn-outline-success btn-sm flex-fill" for="payCash">현금</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small-text">사용처</label>
+                        <input type="text" id="inputPlace" class="form-control" placeholder="예: 스타벅스">
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label small-text">메모</label>
+                        <input type="text" id="inputMemo" class="form-control" placeholder="내용 입력">
+                    </div>
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="button" id="btnDelete" class="btn btn-outline-danger flex-fill"
+                                style="display:none;" onclick="deleteEntry()">삭제
+                        </button>
+                        <button type="button" class="btn btn-primary flex-fill" onclick="submitNewEntry()">수정하기</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="dayListModal" class="modal-overlay">
+            <div class="modal-content" style="width: 500px; max-height: 80vh;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 id="dayListDate" class="fw-bold m-0"></h4>
+                    <span class="close-btn" onclick="closeDayListModal()">&times;</span>
+                </div>
+                <div style="overflow-y: auto; max-height: 60vh;">
+                    <ul id="dayListGroup" class="list-group list-group-flush"></ul>
+                </div>
+                <div class="mt-3 text-end">
+                    <button class="btn btn-sm btn-primary"
+                            onclick="openAddEntryModal(document.getElementById('dayListDate').innerText)">+ 추가하기
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="welcomeModal" class="modal-overlay" style="display:none; z-index: 10001;">
+            <div class="modal-content" style="width: 700px; max-width: 90%; text-align: center;">
+                <h2 class="fw-bold mb-3">👋 가계부에 오신 것을 환영합니다!</h2>
+                <p class="text-muted mb-4">효율적인 자산 관리를 위해 아래 기능을 확인해보세요.</p>
+                <div class="tutorial-box">
+                    <div class="fake-header">
+                        <div class="fake-btn" id="tutorialTargetBtn">데이터 불러오기</div>
+                    </div>
+                    <div class="fake-calendar">
+                        <div class="fake-day">1</div>
+                        <div class="fake-day target-day">2</div>
+                        <div class="fake-day">3</div>
+                    </div>
+                    <div class="hand-cursor">👆</div>
+                </div>
+                <div class="mt-4">
+                    <p class="small text-secondary">
+                        1. <b>데이터 불러오기</b>로 내역을 연동하세요.<br>
+                        2. <b>캘린더 날짜</b>를 클릭해 내역을 수정하세요.
+                    </p>
+                    <button class="btn btn-primary px-5 py-2" onclick="closeWelcomeModal()">시작하기</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>
