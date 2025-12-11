@@ -34,16 +34,16 @@ public class AddressServiceImp implements AddressService{
     }
 
     @Override
-    public void addAddress(MemberAddress address) {
-        memberAddressRepository.save(address);
+    public MemberAddress addAddress(MemberAddress address) {
+        return memberAddressRepository.save(address);
     }
 
     @Override
-    public void modifyAddress(MemberAddress address) throws IllegalArgumentException {
+    public MemberAddress modifyAddress(MemberAddress address) throws IllegalArgumentException {
         MemberAddress oldAddress=memberAddressRepository.findById(address.getId()).orElseThrow(
                 ()->new IllegalArgumentException("does not exist address")
         );
-        memberAddressRepository.save(address);
+        return memberAddressRepository.save(address);
     }
 
 }

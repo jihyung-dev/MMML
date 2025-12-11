@@ -11,6 +11,6 @@ public interface AddressService {
     MemberAddress getDefaultAddress(String memberId);
     boolean modifyDefaultAddress(String memberId, Long addressId);
     void deleteAddress(Long addressId);
-    void addAddress(MemberAddress address);
-    void modifyAddress(MemberAddress address) throws IllegalArgumentException;
+    MemberAddress addAddress(MemberAddress address);
+    MemberAddress modifyAddress(MemberAddress address) throws IllegalArgumentException;
 }
