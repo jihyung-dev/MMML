@@ -1,5 +1,6 @@
 package com.smu.householdaccount.controller.common;
 
+import com.smu.householdaccount.dto.CustomUserDetails;
 import com.smu.householdaccount.entity.common.Member;
 import com.smu.householdaccount.service.common.KakaoApiService;
 import com.smu.householdaccount.service.common.MemberService;
@@ -9,7 +10,11 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.json.simple.JSONObject;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -82,14 +87,13 @@ public class UserController{
         String provider = "kakao"; // 카카오니까!
         String oauthKey = memberService.buildSimpleOauthKey(provider, oauthId);
         boolean isMember = memberService.isMember(oauthKey);
-
+        Member member = null;
         // 기존 회원의 경우
         if(isMember){
-            Member member = memberService.getMember(oauthKey);
+            member = memberService.getMember(oauthKey);
             member.setPassword(null);
             session.setAttribute("loginUser", member);
             session.setAttribute("loginUserId", member.getMemberId());
-            return "redirect:/home";
         }
         // 신규 회원의 경우
         else {
@@ -97,7 +101,7 @@ public class UserController{
             JSONObject properties = (JSONObject) userInfo.get("properties");
             String nickname = (String) properties.get("nickname");
 
-            Member member = new Member();
+            member = new Member();
             String encodedPw = passwordEncoder.encode(UUID.randomUUID().toString());
             member.setPassword(encodedPw);
             member.setMemberName("OAuthUser"); // 임시 이름
@@ -109,6 +113,19 @@ public class UserController{
             session.setAttribute("loginUser", member);
             session.setAttribute("loginUserId", member.getMemberId());
         }
+        // CSRF 인증용 세션 저장
+        CustomUserDetails userDetails = new CustomUserDetails(member);
+        Authentication authentication =
+                new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities()
+                );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        session.setAttribute(
+                HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+                SecurityContextHolder.getContext()
+        );
         // 로그인 성공 후 메인 페이지로
         return "redirect:/home";
     }
@@ -176,29 +193,43 @@ public class UserController{
 
         String oauthKey = memberService.buildSimpleOauthKey(provider, oauthId);
         boolean isMember = memberService.isMember(oauthKey);
-
+        Member member = null;
         // 기존 회원의 경우
         if(isMember){
-            Member member = memberService.getMember(oauthKey);
+            member = memberService.getMember(oauthKey);
             member.setPassword(null);
             session.setAttribute("loginUser", member);
             session.setAttribute("loginUserId", member.getMemberId());
-            return "redirect:/home";
+        } else {
+            member = new Member();
+
+            String encodedPw = passwordEncoder.encode(UUID.randomUUID().toString());
+            member.setPassword(encodedPw);
+
+            member.setRole("GENERAL");
+            member.setMemberName("OAuthUser");
+            member.setMemberId(oauthKey);
+            member.setMemberNickname(response.get("name").toString());
+            memberService.registerOAuthUser(member);
+            member.setPassword(null);
+            session.setAttribute("loginUser", member);
+            session.setAttribute("loginUserId", member.getMemberId());
         }
 
-        Member member = new Member();
+        // CSRF 인증용 세션 저장
+        CustomUserDetails userDetails = new CustomUserDetails(member);
+        Authentication authentication =
+                new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities()
+                );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        session.setAttribute(
+                HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+                SecurityContextHolder.getContext()
+        );
 
-        String encodedPw = passwordEncoder.encode(UUID.randomUUID().toString());
-        member.setPassword(encodedPw);
-
-        member.setRole("GENERAL");
-        member.setMemberName("OAuthUser");
-        member.setMemberId(oauthKey);
-        member.setMemberNickname(response.get("name").toString());
-        memberService.registerOAuthUser(member);
-        member.setPassword(null);
-        session.setAttribute("loginUser", member);
-        session.setAttribute("loginUserId", member.getMemberId());
         return "redirect:/home";
     }
 

@@ -5,13 +5,13 @@ import java.util.Arrays;
 // CSRF 허용 사이트 ENUM
 // favicon - Thymeleaf 페이지 요청하면 브라우저가 자동으로 GET / favicon.ico 요청을 하기에 예외 처리해야됨
 public enum PathList {
-    ALL("/**"),
+    DEFAULT_LOGIN("/login"),
     LOGIN("/user/login"),
     ERROR("/error"),
     ERROR_ALL("/error/**"),
     FAVICON("/favicon.ico"),
     SIGNUP("/signup"),
-    AI("/ai/**"),
+
     KAKAO("/user/kakao/**"),
     NAVER("/user/naver/**"),
     OAUTH2_1("/oauth2/**"),
@@ -20,7 +20,12 @@ public enum PathList {
     STATIC_IMG("/img/**"),
     STATIC_JS("/js/**"),
     STATIC_CSS("/css/**"),
-    STATIC_ASSETS("/assets/**"),;
+    STATIC_ASSETS("/assets/**"),
+    LEDGER("/ledger/**"),
+    AI("/ai/**"),
+    EXCEL("/excel/**"),
+    API_LEDGER("/ledger/api/**"),
+    ;
 
 
     private final String path;

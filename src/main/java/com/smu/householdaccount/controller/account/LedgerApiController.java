@@ -18,7 +18,7 @@ import java.util.List;
  * @RestController를 사용하여 모든 메서드가 JSON을 반환하도록 보장합니다.
  */
 @RestController
-@RequestMapping("/api/ledger")
+@RequestMapping("/ledger/api")
 @RequiredArgsConstructor
 public class LedgerApiController {
 

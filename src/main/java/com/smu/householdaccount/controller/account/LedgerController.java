@@ -32,7 +32,7 @@ public class LedgerController {
      * 현재 원화만 받아오게 설정됨
      * @return
      */
-    @GetMapping("/exchangeRate")
+    @GetMapping("/api/exchangeRate")
     public ResponseEntity<?> getExchangeRate(){
         Double res = ledgerService.getExchangeRate();
         return ResponseEntity.ok(res);
@@ -42,7 +42,7 @@ public class LedgerController {
      * 사용자의 계좌 내역을 받아오는 API(전체 내역)
      * @return
      */
-    @GetMapping("/request/userLedger/all")
+    @GetMapping("/api/request/userLedger/all")
     public ResponseEntity<?> getAllLedger(
             @SessionAttribute(name="loginUserId") String memberId,
             @RequestParam(required = false) Long group_Id
@@ -55,7 +55,7 @@ public class LedgerController {
      * 사용자의 계좌 내역을 받아오는 API(일부 내역)
      * @return
      */
-    @GetMapping("/request/userLedger/month")
+    @GetMapping("/api/request/userLedger/month")
     public ResponseEntity<?> getMonthlyGroupLedger(
             @RequestParam("year") int start_year,
             @RequestParam("month") int start_month,
@@ -70,7 +70,7 @@ public class LedgerController {
      * 사용자의 계좌 내역을 받아오는 API(6개월)
      * @return
      */
-    @GetMapping("/request/userLedger/6month")
+    @GetMapping("/api/request/userLedger/6month")
     public ResponseEntity<?> getMonthlyLedgerList(
             @RequestParam("year") int start_year,
             @RequestParam("month") int start_month,
@@ -87,7 +87,7 @@ public class LedgerController {
      * @param start_month
      * @return
      */
-    @GetMapping("/chart")
+    @GetMapping("/api/chart")
     public ResponseEntity<?> getMonthlyChart(
             @RequestParam("year") int start_year,
             @RequestParam("month") int start_month,
@@ -104,11 +104,6 @@ public class LedgerController {
     //  - /ledger/calendar URL을 사용하여 캘린더 데이터만 반환합니다.
     // ===================================================================
 
-    /**
-     * 캘린더 UI에 표시할 월별 일자별 수입/지출 소계 데이터를 JSON으로 반환합니다.
-     * (FullCalendar의 events source로 사용됩니다.)
-     */
-
     @GetMapping("")
     public String home(){
         return "household/blank";
@@ -119,7 +114,7 @@ public class LedgerController {
      * 호출 후 python 서버에 전송
      * @return
      */
-    @PostMapping("/loadData")
+    @PostMapping("/api/loadData")
     public ResponseEntity<?> getLedgerData(
             HttpSession session,
             @RequestParam(required = false) Long groupId
@@ -132,13 +127,7 @@ public class LedgerController {
         return ResponseEntity.ok(res);
     }
 
-    @GetMapping("/test")
-    public ResponseEntity<?> test(@SessionAttribute(name="loginUserId") String user) {
-        System.out.println(user);
-        return ResponseEntity.ok(user);
-    }
-
-    @PostMapping("/import/excel")
+    @PostMapping("/api/import/excel")
     @ResponseBody
     public Map<String, Object> previewExcel(
             @RequestParam("file") MultipartFile file
@@ -146,7 +135,7 @@ public class LedgerController {
         return ledgerService.previewExcel(file);// 화면에 노출되는 샘플은 3행만 노출
     }
 
-    @PostMapping("/import/analyze")
+    @PostMapping("/api/import/analyze")
     public ResponseEntity<?> analyzeExcel(
              HttpSession session,
              @RequestBody Map<String, Object> previewJson,
@@ -169,7 +158,7 @@ public class LedgerController {
         return ResponseEntity.ok(res);
     }
 
-    @GetMapping("/request/group_id")
+    @GetMapping("/api/request/group_id")
     @ResponseBody
     public Map<String, Object> getGroupId(
             HttpSession session,

@@ -1,5 +1,6 @@
 package com.smu.householdaccount.controller.common;
 
+import com.smu.householdaccount.dto.CustomUserDetails;
 import com.smu.householdaccount.entity.common.Member;
 import com.smu.householdaccount.service.common.MemberService;
 import com.smu.householdaccount.service.common.RedisService;
@@ -8,6 +9,10 @@ import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -64,6 +69,20 @@ public class LoginController {
         // 🔥 로그인 성공 시 세션 저장
         session.setAttribute("loginUser", loginUser);
         session.setAttribute("loginUserId", loginUser.getMemberId());
+
+        // CSRF 인증용 세션 저장
+        CustomUserDetails userDetails = new CustomUserDetails(loginUser);
+        Authentication authentication =
+                new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities()
+                );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        session.setAttribute(
+                HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+                SecurityContextHolder.getContext()
+        );
 
         // 이 회원이 판매자인지 여부 세션에 저장
         boolean isSeller = sellerService.getSellerByMemberId(loginUser.getMemberId()) != null;
