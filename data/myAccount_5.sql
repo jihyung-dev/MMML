@@ -402,3 +402,25 @@ CREATE TABLE GROUP_PROPERTY (
                                 CONSTRAINT UQ_GROUP_PROPERTY_GROUP_ID UNIQUE (GROUP_ID)
 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+DROP TABLE MMML.MEMBER_ADDRESS;
+CREATE TABLE MMML.MEMBER_ADDRESS (
+                                     address_id      BIGINT AUTO_INCREMENT,
+                                     member_id       VARCHAR(50) NOT NULL,
+                                     address_name    VARCHAR(50) NOT NULL,        -- 배송지 가명(집, 회사, 부모님댁 등)
+                                     recipient_name  VARCHAR(100) NOT NULL,
+                                     address_line1   VARCHAR(255) NOT NULL,
+                                     address_line2   VARCHAR(255),
+                                     zipcode         VARCHAR(10) NOT NULL,
+                                     phone           VARCHAR(20),
+                                     is_default      BIT(1) DEFAULT 0,
+                                     created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                     updated_at      DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+
+                                     PRIMARY KEY (address_id),
+
+                                     CONSTRAINT FK_MEMBER_ADDRESS_MEMBER
+                                         FOREIGN KEY (member_id)
+                                             REFERENCES MMML.MEMBER(member_id)
+                                             ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
