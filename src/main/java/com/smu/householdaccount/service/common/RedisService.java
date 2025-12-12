@@ -1,5 +1,7 @@
 package com.smu.householdaccount.service.common;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.smu.householdaccount.entity.common.Member;
 import com.smu.householdaccount.repository.account.LedgerRepository;
 import com.smu.householdaccount.util.Log;
 import jakarta.mail.MessagingException;
@@ -9,6 +11,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
@@ -20,10 +24,12 @@ public class RedisService {
     private final EmailService emailService;
 
     private static final long EMAIL_VERIFY_TTL = 600; // 10분 (초단위)
+    private static final long EMAIL_GROUP_VERIFY_TTL = 1; // 1일 (일 단위)
     private static final String EMAIL_SUB = "MMML 본인 확인 인증 번호";
     private static final String KEY_PREFIX = "auth:email:";
     private final RedisTemplate<String, Object> redisTemplate;
     private final LedgerRepository ledgerRepository;
+    private final ObjectMapper mapper;
 
     /**
      * 이메일 기준 key 생성
@@ -49,6 +55,43 @@ public class RedisService {
         );
 
         emailService.sendAuthCode(email, EMAIL_SUB, authCode);
+    }
+
+    /**
+     * 그룹 가게부 초대 토큰 저장
+     */
+    public void saveGroupInviteToken(String email, String token, Long groupId,String targetMemberId, Member inviter){
+        Map<String, Object> inviteData = new HashMap<>();
+        inviteData.put("groupId", groupId);
+        inviteData.put("targetMemberId", targetMemberId);
+        inviteData.put("email", email);
+        inviteData.put("inviterId", inviter.getMemberId());
+
+        String key = "invite:token:" + token;
+
+        try{
+            String json = mapper.writeValueAsString(inviteData);
+            redisTemplate.opsForValue().set(
+                    key,
+                    json,
+                    1,
+                    TimeUnit.DAYS);
+        } catch (Exception e){
+            throw new RuntimeException("초대 데이터를 Redis에 저장 중 오류");
+        }
+
+    }
+
+    /**
+     * 그룹 가게부 초대 토큰 확인
+     */
+    public String getGroupInviteToken(String token){
+        String key = "invite:token:" + token;
+        try{
+            return redisTemplate.opsForValue().get(key).toString();
+        }catch (Exception e){
+            return null;
+        }
     }
 
     /**
@@ -154,5 +197,9 @@ public class RedisService {
                 valueToCache,
                 Duration.ofMinutes(10)
         );
+    }
+
+    public void deleteKey(String key){
+        redisTemplate.delete(key);
     }
 }

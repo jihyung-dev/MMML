@@ -29,11 +29,16 @@ public class SecurityConfig {
     @Bean
     @Order(1)
     public SecurityFilterChain apiChain(HttpSecurity http) throws Exception {
+
         http
-                .securityMatcher(PathList.values(API_LEDGER, EXCEL, AI))
-                .csrf(csrf -> csrf.ignoringRequestMatchers(PathList.values(API_LEDGER, EXCEL, AI)))
+                .securityMatcher(PathList.values(API_LEDGER, EXCEL, AI, API_GROUP))
+                .csrf(csrf -> csrf.ignoringRequestMatchers(PathList.values(API_LEDGER, EXCEL, AI, API_GROUP)))
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().authenticated()   // 세션 인증 필요
+                        // ⭐ 초대 수락 URL은 로그인 없이도 가능해야 함
+                        .requestMatchers("/api/group/accept").permitAll()
+
+                        // 나머지 API는 인증 필요
+                        .anyRequest().authenticated()
                 );
 
         return http.build();

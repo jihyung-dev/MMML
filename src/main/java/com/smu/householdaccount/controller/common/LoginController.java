@@ -84,6 +84,12 @@ public class LoginController {
                 SecurityContextHolder.getContext()
         );
 
+        String inviteToken = (String) session.getAttribute("inviteToken");
+        // 그룹 가게부 초대 토큰이 있을 경우
+        if(inviteToken != null){
+            return "redirect:/api/group/accept?token=" + inviteToken;
+        }
+
         // 이 회원이 판매자인지 여부 세션에 저장
         boolean isSeller = sellerService.getSellerByMemberId(loginUser.getMemberId()) != null;
         session.setAttribute("isSeller", isSeller);

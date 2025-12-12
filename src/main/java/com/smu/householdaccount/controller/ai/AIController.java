@@ -20,14 +20,6 @@ public class AIController {
     public AIController(AIService aiService) {
         this.aiService = aiService;
     }
-
-    @GetMapping("/") 
-    @ResponseBody
-    public String aiTest() throws Exception{
-        aiService.getAuthUrl();
-        return "success";
-    }
-
     /**
      *
      * @param transActions
