@@ -13,7 +13,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import javax.swing.text.html.Option;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/address")
@@ -46,6 +48,20 @@ public class AddressController {
         if(memberAddress==null) return ResponseEntity.notFound().build();
 
         return ResponseEntity.ok(memberAddress);
+    }
+    @GetMapping("/{id}")
+    public ResponseEntity<MemberAddress> getAddress(
+            @PathVariable Long id,
+            @SessionAttribute(value = "loginUser",required = false) Member loginUser
+    ){
+
+        if(loginUser==null) return ResponseEntity.badRequest().build();
+
+        Optional<MemberAddress> memberAddress=addressService.getAddressById(id);
+
+        if(memberAddress.isEmpty()) return ResponseEntity.notFound().build();
+
+        return ResponseEntity.ok(memberAddress.get());
     }
 
     @PostMapping

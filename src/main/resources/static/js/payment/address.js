@@ -7,8 +7,10 @@ const selectedAddress=document.getElementById("selectedAddress");
 function openPostcode() {
     new daum.Postcode({
         oncomplete: function(data) {
-            document.querySelector("input[name='addressLine1']").value = data.roadAddress;
-            document.querySelector("input[name='zipcode']").value = data.zonecode;
+            console.log(data)
+            console.log(document.querySelector("input[name='addressLine1']"))
+            addAddressForm.addressLine1.value = data.roadAddress;
+            addAddressForm.zipcode.value = data.zonecode;
         }
     }).open();
 };
@@ -58,14 +60,18 @@ const renderAddressSelected=(address)=>{
                 </p>`;
 }
 //화면에 최초로 출력될 기본 배송지 조회
-const loadSelectedAddress=async()=>{
-    let url="/api/address/default";
+const loadSelectedAddress=async(id)=>{
+    let url;
+    if(!id){
+        url="/api/address/default";
+    }else{
+        url=`/api/address/${id}`;
+    }
     const response=await fetch(url);
     if(response.ok){
         const address= await response.json();
         if(address){
             selectedAddress.innerHTML=renderAddressSelected(address);
-
         }
     }else if(response.status===404){
         selectedAddress.innerHTML=`<div>"배송지 변경"을 누르고 배송지를 등록하거나 선택하세요.</div>`;
@@ -81,9 +87,9 @@ const loadSelectedAddress=async()=>{
 loadSelectedAddress();
 const renderAddress = (item) => {
     return`
- <div class="card mb-2 ${item.isDefault ? 'border-primary' : ''}">
-    <div class="card-body">
-
+ <div   onclick="selectAddress(${item.id})"
+        class="list-group-item list-group-item-action ${item.isDefault ? 'border-primary' : ''}">
+    <div class="py-3 px-2">
         <div class="d-flex justify-content-between">
             <h5 class="card-title">${item.addressName}</h5>
             <div>
@@ -108,6 +114,8 @@ const renderAddress = (item) => {
     </div>
 </div>        `;
 };
+
+
 const renderAddressList=(addressList)=>{
     if(addressList && addressList.length>0){
         let html="";
@@ -167,3 +175,6 @@ const addAddressFormSubmitHandler= async (e)=>{
         addressMsg.innerText = "서버 오류가 발생했습니다. 다시 시도해주세요.";
     }
 };
+const selectAddress=(id)=>{
+    loadSelectedAddress(id);
+}
