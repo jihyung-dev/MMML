@@ -3399,3 +3399,39 @@ function restartTour() {
         startExtendedTour();
     }, 100);
 }
+
+// =========================================
+// [New] 그룹 삭제 로직
+// =========================================
+
+async function deleteCurrentGroup() {
+    const groupId = document.getElementById("currentGroupId").value;
+
+    if (!groupId) {
+        alert("개인 가계부는 삭제할 수 없습니다.");
+        return;
+    }
+
+    if (!confirm("정말 이 그룹을 삭제하시겠습니까?\n모든 내역과 멤버 정보가 사라지며 복구할 수 없습니다.")) {
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/group/${groupId}`, {
+            method: "DELETE"
+        });
+
+        const msg = await res.text();
+
+        if (res.ok) {
+            alert("그룹이 삭제되었습니다.");
+            // 삭제 후 '나의 가계부(기본)'로 이동
+            window.location.href = "/ledger";
+        } else {
+            alert("삭제 실패: " + msg);
+        }
+    } catch (e) {
+        console.error(e);
+        alert("오류가 발생했습니다.");
+    }
+}
