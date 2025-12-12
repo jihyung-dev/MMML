@@ -10,6 +10,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.io.UnsupportedEncodingException;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,7 +42,7 @@ public class RedisService {
     /**
      * 인증 코드 저장(TTL 10분 적용)
      */
-    public void saveEmailAuthCode(String email) throws MessagingException {
+    public void saveEmailAuthCode(String email) throws MessagingException, UnsupportedEncodingException {
         String key = buildKey(email);
 
         String authCode = generateAuthCode();
