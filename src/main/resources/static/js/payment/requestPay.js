@@ -49,7 +49,7 @@
 const IMP = window.IMP;
 IMP.init("imp87001801");
 
-function startPayment(orderId, merchantUid, amount, buyerId){
+function startPayment(formData){
 
     console.log("startPayment 함수 내부 진입. IMP.request_pay 실행 예정.");
 
@@ -61,24 +61,23 @@ function startPayment(orderId, merchantUid, amount, buyerId){
         {
             pg: "html5_inicis.INIpayTest",
             pay_method: "card",
-            merchant_uid: merchantUid, //💡 주문 고유 번호
+            merchant_uid: formData.merchantUid, //💡 주문 고유 번호
             name: "핫딜 상품 결제", // 상품명
-            amount: numericAmount, // 💡 실제 결제 금액 사용
-            // buyer_email: "gildong@gmail.com", // 필요 시 실제 buyer 정보 사용
-            buyer_name: buyerId, // 회원 ID 또는 이름
-            // ... (배송지 정보 등)
-            buyer_email: "gildong@gmail.com",
-//         buyer_name: "홍길동",
-            buyer_tel: "010-4242-4242",
-            buyer_addr: "서울특별시 강남구 신사동",
-            buyer_postcode: "01181",
+            amount: formData.amount, // 💡 실제 결제 금액 사용
+            buyer_name: formData.buyerId, // 회원 ID 또는 이름
+            buyer_email: formData.buyerEmail, // 필요 시 실제 buyer 정보 사용
+            // 배송지 정보
+            buyer_tel: formData.phone,
+            buyer_addr: formData.addressLine1 + " " + formData.addressLine2,
+            buyer_postcode: formData.zipcode,
 
         }, function(rsp){
+            console.log(rsp)
             // 1) portOne 결제창 내부 성공 여부
             if(rsp.success){
                 console.log("결제 요청 성공", rsp);
 
-                // 2) 💡 [핵심] 서버의 결제 검증 및 재고 차감 API 호출
+                // 2) 💡 [핵심] 서버의 결제 검증 및 재고 차감 API 호출,
                 fetch("/payment/verify", { // 💡 API 경로 확인 (PaymentApi Controller의 경로)
                     method: "POST",
                     headers: {
@@ -88,7 +87,14 @@ function startPayment(orderId, merchantUid, amount, buyerId){
                         merchant_uid: rsp.merchant_uid,
                         imp_uid: rsp.imp_uid,
                         pg_tid: rsp.pg_tid,
-                        amount: rsp.paid_amount // 실제 결제된 금액
+                        amount: rsp.paid_amount, // 실제 결제된 금액
+                        phone: formData.phone,
+                        addressLine1: formData.addressLine1,
+                        addressLine2: formData.addressLine2,
+                        zipcode: formData.zipcode,
+                        requestMessage: formData.requestMessage,
+                        recipientName: formData.recipientName,
+
                     })
                 })
                     .then(response => {

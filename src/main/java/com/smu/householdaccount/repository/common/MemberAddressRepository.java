@@ -14,6 +14,8 @@ public interface MemberAddressRepository extends CrudRepository<MemberAddress,Lo
     <S extends MemberAddress> S save(S entity);
 
     List<MemberAddress> findAllByMemberId(String memberId);
+
+
     // TOP1 -> 서비스단에서 유저가 기본배송지를 1개만 가지도록 할 예정이지만 db가 유저가 기본배송지를 무조건 1개 가진단 보장이 없음
     MemberAddress findTop1ByMemberIdAndIsDefaultIsTrue(String memberId);
 

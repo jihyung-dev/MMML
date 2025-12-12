@@ -19,29 +19,41 @@ import java.util.List;
 @RequestMapping("/api/address")
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class AddressController {
+
     private final AddressService addressService;
+
     @GetMapping
     public ResponseEntity<List<MemberAddress>> getAddress(
             @SessionAttribute(value = "loginUser",required = false) Member loginUser
     ){
         if(loginUser==null) return ResponseEntity.badRequest().build();
+
         List<MemberAddress> memberAddressList=addressService.getAddressesByMemberId(loginUser.getMemberId());
+
         return ResponseEntity.ok(memberAddressList);
     }
+
+
     @GetMapping("/default")
     public ResponseEntity<MemberAddress> getDefaultAddress(
             @SessionAttribute(value = "loginUser",required = false) Member loginUser
     ){
+
         if(loginUser==null) return ResponseEntity.badRequest().build();
+
         MemberAddress memberAddress=addressService.getDefaultAddress(loginUser.getMemberId());
+
         if(memberAddress==null) return ResponseEntity.notFound().build();
+
         return ResponseEntity.ok(memberAddress);
     }
 
     @PostMapping
     public ResponseEntity<?> addAddress(
+
             @Valid @RequestBody MemberAddressValid dto,
             BindingResult bindingResult,
+
             @SessionAttribute(value = "loginUser", required = false) Member loginUser
     ){
         if (loginUser == null) {
@@ -55,7 +67,7 @@ public class AddressController {
                     .map(DefaultMessageSourceResolvable::getDefaultMessage)
                     .findFirst()
                     .orElse("입력값이 올바르지 않습니다.");
-            System.out.println(errorMessage);
+
             return ResponseEntity.badRequest().body(errorMessage);
         }
 

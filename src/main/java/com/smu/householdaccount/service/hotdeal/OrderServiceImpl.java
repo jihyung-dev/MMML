@@ -49,7 +49,7 @@ public class OrderServiceImpl implements OrderService{
 
 
         //2. OrderMain 생성
-        String merchantUid = "order-" + UUID.randomUUID();
+        String merchantUid = UUID.randomUUID()+"";
         OrderMain order = new OrderMain();
         order.setMerchantUid(merchantUid);
 
@@ -140,7 +140,7 @@ public class OrderServiceImpl implements OrderService{
         orderMain.setTotalAmount(totalAmount);
         orderMain.setSellerId(hotdealOrderBean.getSellerId());
         orderMain.setOrderStatus("PENDING");
-        orderMain.setMerchantUid("order-" + UUID.randomUUID());
+        orderMain.setMerchantUid(UUID.randomUUID()+"");
         orderMain = orderMainRepository.save(orderMain);
 
         // OrderItem에 주문 설정 (양방향 설정)

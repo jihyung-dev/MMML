@@ -28,6 +28,22 @@ public class OrderController {
     private final OrderService orderService;
     private final OrderMainRepository orderMainRepository;
 
+    @GetMapping("/order/{id}")
+    public String orderDetail(@PathVariable Long id, Model model) {
+        OrderMain order = orderMainRepository.findById(id).orElseThrow();
+
+
+        // 5) 모델에 값 넣고 결제 페이지로 이동
+        model.addAttribute("order", order);
+        model.addAttribute("orderId", order.getId());
+        model.addAttribute("merchantUid", order.getMerchantUid());
+        model.addAttribute("amount", order.getTotalAmount());
+
+        return "hotdeal/payment_page";
+    }
+
+
+
     @PostMapping("/order/create")
     public String order(//@RequestParam Long itemId,
                         //@RequestParam(name = "optionId", required = false) List<String> optionIdsRaw,
@@ -65,6 +81,11 @@ public class OrderController {
 
         return "hotdeal/payment_page";
     }
+
+
+
+
+
 
     @GetMapping("/order/cancel_pending")
     @ResponseBody //JSON 응답 받으려고

@@ -1,12 +1,14 @@
 package com.smu.householdaccount.service.hotdeal;
 
+import com.smu.householdaccount.dto.payment.VerifyPaymentBean;
 import com.smu.householdaccount.entity.hotdeal.OrderMain;
 import com.smu.householdaccount.entity.hotdeal.PaymentTransaction;
+import org.springframework.stereotype.Service;
 
 import java.util.Map;
-
+@Service
 public interface PaymentService {
-    boolean verifyAndRecord(String merchantUid, String impUid, Long amount);
+    boolean verifyAndRecord(VerifyPaymentBean body);
 
     /**
      * 결제 요청을 처리하고 결과를 반영합니다.
@@ -24,4 +26,5 @@ public interface PaymentService {
     void cancelOrderAfterFailure(Long orderId, String reason);
 
     OrderMain findOrderByMerchantUid(String merchantUid);
+
 }
