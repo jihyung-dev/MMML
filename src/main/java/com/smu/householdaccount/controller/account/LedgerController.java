@@ -32,7 +32,7 @@ public class LedgerController {
      * 현재 원화만 받아오게 설정됨
      * @return
      */
-    @GetMapping("/exchangeRate")
+    @GetMapping("/api/exchangeRate")
     public ResponseEntity<?> getExchangeRate(){
         Double res = ledgerService.getExchangeRate();
         return ResponseEntity.ok(res);
@@ -42,11 +42,12 @@ public class LedgerController {
      * 사용자의 계좌 내역을 받아오는 API(전체 내역)
      * @return
      */
-    @GetMapping("/request/userLedger/all")
+    @GetMapping("/api/request/userLedger/all")
     public ResponseEntity<?> getAllLedger(
-            @SessionAttribute(name="loginUserId") String memberId
+            @SessionAttribute(name="loginUserId") String memberId,
+            @RequestParam(required = false) Long group_Id
     ){
-        ledgerService.getLedgerAll(memberId);
+        ledgerService.getLedgerAll(memberId, group_Id);
         return ResponseEntity.ok("test");
     }
 
@@ -54,28 +55,30 @@ public class LedgerController {
      * 사용자의 계좌 내역을 받아오는 API(일부 내역)
      * @return
      */
-    @GetMapping("/request/userLedger/month")
+    @GetMapping("/api/request/userLedger/month")
     public ResponseEntity<?> getMonthlyGroupLedger(
             @RequestParam("year") int start_year,
             @RequestParam("month") int start_month,
             @RequestParam("period") int period,
-            @SessionAttribute(name="loginUserId") String memberId
+            @SessionAttribute(name="loginUserId") String memberId,
+            @RequestParam(required = false) Long group_Id
             ){
-        return ResponseEntity.ok(ledgerService.getMonthLedger(start_year, start_month, period, memberId));
+        return ResponseEntity.ok(ledgerService.getMonthLedger(start_year, start_month, period, memberId, group_Id));
     }
 
     /**
      * 사용자의 계좌 내역을 받아오는 API(6개월)
      * @return
      */
-    @GetMapping("/request/userLedger/6month")
+    @GetMapping("/api/request/userLedger/6month")
     public ResponseEntity<?> getMonthlyLedgerList(
             @RequestParam("year") int start_year,
             @RequestParam("month") int start_month,
             @RequestParam("period") int period,
-            @SessionAttribute(name="loginUserId") String memberId
+            @SessionAttribute(name="loginUserId") String memberId,
+            @RequestParam(required = false) Long group_Id
     ){
-        return ResponseEntity.ok(ledgerService.get6MonthLedger(start_year, start_month, period, memberId));
+        return ResponseEntity.ok(ledgerService.get6MonthLedger(start_year, start_month, period, memberId, group_Id));
     }
 
     /**
@@ -84,13 +87,14 @@ public class LedgerController {
      * @param start_month
      * @return
      */
-    @GetMapping("/chart")
+    @GetMapping("/api/chart")
     public ResponseEntity<?> getMonthlyChart(
             @RequestParam("year") int start_year,
             @RequestParam("month") int start_month,
-            @SessionAttribute(name="loginUserId") String memberId
+            @SessionAttribute(name="loginUserId") String memberId,
+            @RequestParam(required = false) Long group_Id
     ) {
-        LedgerSummaryDto dto = ledgerService.getMonthlyChart(start_year, start_month, memberId);
+        LedgerSummaryDto dto = ledgerService.getMonthlyChart(start_year, start_month, memberId, group_Id);
         return ResponseEntity.ok(
                 dto
         );
@@ -99,11 +103,6 @@ public class LedgerController {
     //  [NEW API] 캘린더 UI 전용 JSON 데이터 반환 엔드포인트
     //  - /ledger/calendar URL을 사용하여 캘린더 데이터만 반환합니다.
     // ===================================================================
-
-    /**
-     * 캘린더 UI에 표시할 월별 일자별 수입/지출 소계 데이터를 JSON으로 반환합니다.
-     * (FullCalendar의 events source로 사용됩니다.)
-     */
 
     @GetMapping("")
     public String home(){
@@ -115,25 +114,20 @@ public class LedgerController {
      * 호출 후 python 서버에 전송
      * @return
      */
-    @PostMapping("/loadData")
+    @PostMapping("/api/loadData")
     public ResponseEntity<?> getLedgerData(
-            HttpSession session
+            HttpSession session,
+            @RequestParam(required = false) Long groupId
     ){
         String memberId = (String) session.getAttribute("loginUserId");
-        ClassifyTransactionResponse res  = ledgerService.getLedgerTransaction(memberId, null);
+        ClassifyTransactionResponse res  = ledgerService.getLedgerTransaction(memberId, null, groupId);
 
         if(res != null)
-            redisService.setGroupId(memberId);
+            redisService.setGroupId(memberId, groupId);
         return ResponseEntity.ok(res);
     }
 
-    @GetMapping("/test")
-    public ResponseEntity<?> test(@SessionAttribute(name="loginUserId") String user) {
-        System.out.println(user);
-        return ResponseEntity.ok(user);
-    }
-
-    @PostMapping("/import/excel")
+    @PostMapping("/api/import/excel")
     @ResponseBody
     public Map<String, Object> previewExcel(
             @RequestParam("file") MultipartFile file
@@ -141,10 +135,11 @@ public class LedgerController {
         return ledgerService.previewExcel(file);// 화면에 노출되는 샘플은 3행만 노출
     }
 
-    @PostMapping("/import/analyze")
+    @PostMapping("/api/import/analyze")
     public ResponseEntity<?> analyzeExcel(
              HttpSession session,
-            @RequestBody Map<String, Object> previewJson
+             @RequestBody Map<String, Object> previewJson,
+             @RequestParam(required = false) Long group_Id
     ) {
         Map<String, Object> result = aiService.analyze(previewJson);
 
@@ -154,22 +149,24 @@ public class LedgerController {
         }
 
         String memberId = (String) session.getAttribute("loginUserId");
-        ClassifyTransactionResponse res  = ledgerService.handleExcelClassification(memberId, result);
+        ClassifyTransactionResponse res  = ledgerService.handleExcelClassification(memberId, result, group_Id);
 
         if(res != null)
-            redisService.setGroupId(memberId);
+            redisService.setGroupId(memberId, group_Id);
 
         // 🔥 정상 응답이면 그대로 전달
         return ResponseEntity.ok(res);
     }
 
-    @GetMapping("/request/group_id")
+    @GetMapping("/api/request/group_id")
     @ResponseBody
-    public Map<String, Object> getGroupId(HttpSession session) {
+    public Map<String, Object> getGroupId(
+            HttpSession session,
+            @RequestParam(required = false) Long group_Id) {
         String memberId = (String) session.getAttribute("loginUserId");
 
         Optional<Long> groupIdOpt =
-                redisService.getGroupIdByMemberId(memberId);
+                redisService.getGroupIdByMemberId(memberId, group_Id);
 
         Map<String, Object> res = new HashMap<>();
         res.put("hasGroup", groupIdOpt.isPresent());
