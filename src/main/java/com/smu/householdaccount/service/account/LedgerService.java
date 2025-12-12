@@ -484,42 +484,30 @@ public class LedgerService {
     }
 
     /**
-     * [New] 캘린더에서 단건 등록 (시간 포함)
+     * [New] 캘린더에서 단건 등록 (시간 포함) * [수정] 단건 등록 (그룹 ID 지원)
      */
     @Transactional
-    public void addSingleEntry(LedgerSaveRequest req, String memberId) {
+    public void addSingleEntry(LedgerSaveRequest req, String memberId, Long groupId) {        System.out.println("=== [새 내역 저장 요청] ===");
         System.out.println("=== [새 내역 저장 요청] ===");
-        System.out.println("Member ID: " + memberId);
+        System.out.println("Member ID: " + memberId + ", Target Group ID: " + groupId);
 
         // 1. 멤버 조회
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("❌ 오류: DB에 '" + memberId + "' 사용자가 없습니다."));
 
-        // 2. [수정] 그룹 조회 -> 없으면 '자동 생성' (에러 방지)
-        BudgetGroup group = budgetGroupRepository.findByOwner(member)
-                .orElseGet(() -> {
-                    System.out.println("⚠️ 그룹이 없어 '기본 가계부' 그룹을 새로 생성합니다.");
-                    BudgetGroup newGroup = new BudgetGroup();
-                    newGroup.setOwner(member);
-                    newGroup.setGroupName("기본 가계부"); // 기본 이름 설정
-                    newGroup.setCreatedAt(LocalDateTime.now());
-                    return budgetGroupRepository.save(newGroup); // 저장 후 반환
-                });
+        // 2. [핵심 수정] 무조건 본인 그룹을 찾는 게 아니라, 요청된 groupId로 그룹을 찾음
+        // resolveGroup 메서드를 활용하면 (ID가 있으면 그 그룹, 없으면 개인 가계부) 로직이 자동 적용됨
+        BudgetGroup group = resolveGroup(memberId, groupId);
 
-        // 3. 카테고리 매칭 (기존 동일)
+        // 3. 카테고리 매칭 (기존 로직 유지)
         Category category = categoryRepository.findByCategoryIdStartingWith("C").stream()
                 .filter(c -> c.getCategoryName().trim().equals(req.getCategoryName()))
                 .findFirst()
-                .orElseGet(() -> {
-                    // 없으면 'C0010'(기타) 조회, 그것도 없으면 아무거나 첫 번째 것 조회
-                    return categoryRepository.findById("C0010")
-                            .orElseGet(() -> categoryRepository.findAll().stream().findFirst()
-                                    .orElseThrow(() -> new IllegalArgumentException("❌ 오류: 카테고리 데이터가 없습니다.")));
-                });
+                .orElseGet(() -> categoryRepository.findById("C0010").orElseThrow());
 
         // 4. 엔티티 생성 및 저장
         LedgerEntry entry = new LedgerEntry();
-        entry.setGroupId(group);
+        entry.setGroupId(group); // [확인] 찾아낸 그룹(개인 or 모임) 설정
         entry.setMember(member);
         entry.setEntryType(req.getEntryType());
         entry.setEntryAmount(req.getAmount());
@@ -532,7 +520,7 @@ public class LedgerService {
         entry.setCreatedAt(LocalDateTime.now());
 
         ledgerRepository.save(entry);
-        System.out.println("=== 저장 완료 ===");
+        System.out.println("=== 저장 완료 (Group: " + group.getGroupName() + ") ===");
     }
 
     // [수정] 1. 일별 상세 내역 조회 (안전장치 추가)

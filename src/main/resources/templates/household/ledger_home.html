@@ -31,6 +31,7 @@
 <div layout:fragment="content" style="position: relative;">
 
     <input type="hidden" id="currentGroupId" th:value="${currentGroupId}">
+    <input type="hidden" id="loginUserId" th:value="${session.loginUser.memberId}">
 
     <div id="emptyState" class="empty-state d-none text-center mt-5 d-none">
         <h4 class="mb-3">📂 아직 가계부 데이터가 없습니다</h4>
@@ -141,10 +142,12 @@
             <div class="dashboard-container">
                 <div class="chart-wrapper">
                     <div id="categoryChart"></div>
-                    <div class="chart-empty">
-                        <img src="https://dh6zmabop3a6j.cloudfront.net/img/ledger/empty_chart.png">
-                        <p>표시할 데이터가 없습니다</p>
-                    </div>
+
+<!--                    <div class="chart-empty">-->
+<!--                        <img src="https://dh6zmabop3a6j.cloudfront.net/img/ledger/empty_chart.png">-->
+<!--                        <p>표시할 데이터가 없습니다</p>-->
+<!--                    </div>-->
+
                     <div id="categorySummary" style="padding: 10px 2px;"></div>
                 </div>
                 <div class="calendar-wrapper">
@@ -334,5 +337,24 @@
         </div>
     </div>
 
-</div> </body>
+    <div id="tourWidget" class="tour-widget">
+        <div class="widget-header" onclick="toggleTourWidget()">
+            <span class="icon">💸</span>
+            <span class="text">사용 가이드</span>
+            <span id="widgetToggleIcon" class="toggle-btn">▲</span>
+        </div>
+
+        <div class="widget-body">
+            <p class="mb-2 text-muted small">
+                잘 모르시겠다구요?<br>
+                가이드를 다시 실행해보세요!
+            </p>
+            <button class="btn btn-primary w-100 btn-sm" onclick="restartTour()">
+                가이드 시작하기 🚩
+            </button>
+        </div>
+    </div>
+</div>
+
+</body>
 </html>
