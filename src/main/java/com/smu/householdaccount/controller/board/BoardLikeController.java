@@ -40,4 +40,23 @@ public class BoardLikeController {
         boardLikeService.unlike(postId, loginUser.getMemberId());
         return "redirect:/board/" + postId;
     }
+
+    /** ✅ 새로 추가: 좋아요 토글 */
+    @PostMapping("/toggle/{postId}")
+    public String toggle(@PathVariable Long postId, HttpSession session) {
+
+        Member loginUser = (Member) session.getAttribute("loginUser");
+        if (loginUser == null) {
+            return "redirect:/login";
+        }
+
+        boardLikeService.toggleLike(postId, loginUser.getMemberId());
+
+        return "redirect:/board/" + postId;
+    }
+
+
+
+
+
 }

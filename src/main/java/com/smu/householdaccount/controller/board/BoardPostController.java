@@ -4,6 +4,7 @@ import com.smu.householdaccount.entity.board.BoardPost;
 import com.smu.householdaccount.entity.board.BoardComment;
 import com.smu.householdaccount.service.board.BoardPostService;
 import com.smu.householdaccount.service.board.BoardCommentService;
+import com.smu.householdaccount.service.board.BoardLikeService; // ✅ 추가: 좋아요 서비스 import
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,6 +22,7 @@ public class BoardPostController {
 
     private final BoardPostService boardPostService;
     private final BoardCommentService boardCommentService; // ✅ 댓글 서비스 주입
+    private final BoardLikeService boardLikeService;       // ✅ 추가: 좋아요 서비스 주입
 
     /** 게시글 목록 */
     @GetMapping
@@ -89,6 +91,7 @@ public class BoardPostController {
     @GetMapping("/{id}")
     public String detail(@PathVariable Long id,
                          @RequestParam(name = "cPage", defaultValue = "0") int cPage,
+                         HttpSession session, // ✅ 수정: 좋아요 상태 확인을 위해 세션 주입
                          Model model) {
 
         // 게시글 조회
@@ -107,6 +110,16 @@ public class BoardPostController {
         model.addAttribute("post", post);
         model.addAttribute("parentCommentsPage", parentCommentsPage);
         model.addAttribute("parentComments", parentComments);
+
+        // ✅ 추가: 로그인한 사용자가 이 글에 좋아요 눌렀는지 여부
+        String loginUserId = (String) session.getAttribute("loginUserId");
+        boolean likedByMe = false;
+
+        if (loginUserId != null) {
+            likedByMe = boardLikeService.isLiked(id, loginUserId);
+        }
+
+        model.addAttribute("likedByMe", likedByMe); // ✅ detail.html에서 버튼 텍스트 분기용
 
         return "board/detail";
     }

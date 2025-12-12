@@ -111,6 +111,61 @@
             border: 1px solid #e5e7eb;
             background: #f3f4f6;
         }
+
+        /* ⭐ [추가] 버튼 / 알림 공통 스타일 */
+        .action-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .btn-outline {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(108, 99, 255, 0.6);
+            background: #ffffff;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6c63ff;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .btn-outline:hover {
+            background: rgba(108, 99, 255, 0.06);
+        }
+
+        .btn-danger {
+            border-color: #f97373;
+            color: #b91c1c;
+        }
+
+        .btn-danger:hover {
+            background: #fef2f2;
+        }
+
+        .alert {
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .alert-success {
+            background: #ecfdf5;
+            border: 1px solid #6ee7b7;
+            color: #047857;
+        }
+
+        .alert-error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+        }
     </style>
 </head>
 
@@ -124,6 +179,32 @@
         <p class="page-subtitle">
             판매자로 등록된 핫딜 상품의 기본 정보, 옵션, 이미지를 확인할 수 있습니다.
         </p>
+
+        <!-- ⭐ [추가] 수정/삭제 결과 메시지 -->
+        <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+        <!-- ⭐ [추가] 수정 / 삭제 / 목록 버튼 영역 -->
+        <div class="action-bar">
+            <!-- 수정 버튼: GET /seller/item/{id}/edit -->
+            <a th:href="@{/seller/item/{id}/edit(id=${item.id})}" class="btn-outline">
+                수정
+            </a>
+
+            <!-- 삭제 버튼: POST /seller/item/{id}/delete -->
+            <form th:action="@{/seller/item/{id}/delete(id=${item.id})}"
+                  method="post"
+                  onsubmit="return confirm('정말 이 상품을 삭제하시겠습니까? 삭제 후에는 복구할 수 없습니다.');">
+                <button type="submit" class="btn-outline btn-danger">
+                    삭제
+                </button>
+            </form>
+
+            <!-- (선택) 목록으로 돌아가기 -->
+            <a href="/seller/item" class="btn-outline" style="margin-left:auto;">
+                목록으로
+            </a>
+        </div>
 
         <!-- 🔹 ITEM 정보 -->
         <div class="section-card">

@@ -11,4 +11,9 @@ public interface ItemDetailImageRepository extends JpaRepository<ItemDetailImage
     List<ItemDetailImage> findByItemId(Long itemId);
 
     List<ItemDetailImage> findByItemIdOrderByDisplayOrderAsc(Long itemId);
+
+    // ✅ [추가] 특정 상품의 상세 이미지 전체 삭제
+    //    - 수정 시 기존 이미지를 모두 지우고 새로 저장할 때 사용
+    void deleteByItemId(Long itemId);
+
 }

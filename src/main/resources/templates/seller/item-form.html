@@ -5,65 +5,295 @@
       layout:decorate="~{layouts/default_layout}">
 
 <head>
-    <title layout:fragment="title">상품 판매 등록</title>
+    <!-- ⭐ 제목: 등록/수정 모드에 따라 텍스트 변경 -->
+    <title layout:fragment="title"
+           th:text="${mode}=='edit' ? '상품 판매 수정' : '상품 판매 등록'">
+        상품 판매 등록
+    </title>
 
     <style layout:fragment="css">
+        /* 전체 배경 톤 */
+        body {
+            background: #f3f4f6;
+        }
+
         .form-container {
             max-width: 900px;
-            margin: 30px auto;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: #fff;
+            margin: 40px auto;
+            padding: 28px 26px;
+            border-radius: 18px;
+            background-color: #ffffff;
+            box-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
+            border: 1px solid rgba(148, 163, 184, 0.35);
         }
-        .form-field { margin-bottom: 15px; }
+
+        .form-header {
+            margin-bottom: 22px;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 14px;
+        }
+
+        .form-title {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: #111827;
+            margin: 0;
+        }
+
+        .form-title span {
+            color: #6c63ff;
+        }
+
+        .form-subtitle {
+            margin-top: 6px;
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .badge-mode {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+            background: #eef2ff;
+            color: #4f46e5;
+        }
+
+        .badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 999px;
+            background: #4f46e5;
+        }
+
+        .form-section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .form-section-title::before {
+            content: "";
+            display: inline-block;
+            width: 3px;
+            height: 14px;
+            border-radius: 999px;
+            background: #6c63ff;
+        }
+
+        .form-field {
+            margin-bottom: 16px;
+        }
+
         .form-field label {
             display: block;
-            font-weight: bold;
+            font-weight: 600;
             margin-bottom: 5px;
+            font-size: 13px;
+            color: #374151;
         }
+
+        .label-required::after {
+            content: " *";
+            color: #ef4444;
+            font-weight: 700;
+            margin-left: 2px;
+        }
+
         .form-field input,
         .form-field select,
         .form-field textarea {
             width: 100%;
-            padding: 6px 8px;
+            padding: 8px 10px;
             box-sizing: border-box;
+            border-radius: 10px;
+            border: 1px solid #d1d5db;
+            font-size: 13px;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
         }
+
+        .form-field input:focus,
+        .form-field select:focus,
+        .form-field textarea:focus {
+            outline: none;
+            border-color: #6c63ff;
+            box-shadow: 0 0 0 1px rgba(108, 99, 255, 0.45);
+            background-color: #f9fafb;
+        }
+
+        .form-field input[type="file"] {
+            padding: 6px 8px;
+            border-radius: 999px;
+            background: #f9fafb;
+        }
+
         .error-msg {
-            color: red;
-            font-size: 0.85rem;
+            color: #ef4444;
+            font-size: 0.8rem;
+            margin-top: 4px;
         }
+
         .btn-area {
             text-align: right;
-            margin-top: 15px;
+            margin-top: 18px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
         }
-        #preview img { margin-right:8px; margin-bottom:8px; }
-        .text-center { display:inline-block; text-align:center; margin-right:6px; }
-        .table { width:100%; border-collapse:collapse; }
-        .table th, .table td { padding:6px; border:1px solid #eee; vertical-align:middle; }
+
+        /* Bootstrap 버튼 살리면서 색만 보라 계열로 보정 */
+        .btn.btn-secondary.btn-sm {
+            border-radius: 999px;
+            font-size: 12px;
+            padding: 6px 14px;
+            border: 1px solid #d1d5db;
+            color: #374151;
+            background-color: #f9fafb;
+        }
+
+        .btn.btn-secondary.btn-sm:hover {
+            background-color: #e5e7eb;
+        }
+
+        .btn.btn-primary.btn-sm {
+            border-radius: 999px;
+            font-size: 12px;
+            padding: 6px 18px;
+            background-color: #6c63ff;
+            border-color: #6c63ff;
+            font-weight: 600;
+        }
+
+        .btn.btn-primary.btn-sm:hover {
+            background-color: #5548ff;
+            border-color: #4c3cff;
+        }
+
+        #preview img {
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .text-center {
+            display: inline-block;
+            text-align: center;
+            margin-right: 6px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            border-radius: 14px;
+            overflow: hidden;
+            background: #ffffff;
+        }
+
+        .table thead {
+            background: #f9fafb;
+        }
+
+        .table th,
+        .table td {
+            padding: 7px 8px;
+            border: 1px solid #e5e7eb;
+            vertical-align: middle;
+            font-size: 12px;
+        }
+
+        .table th {
+            font-weight: 600;
+            color: #4b5563;
+        }
+
+        .table tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        #addOptionRow {
+            border-radius: 999px;
+            font-size: 12px;
+            padding: 4px 12px;
+        }
+
+        .btn-outline-danger.remove-row {
+            border-radius: 999px;
+            font-size: 11px;
+            padding: 2px 8px;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px dashed #e5e7eb;
+            margin: 18px 0;
+        }
+
+        /* 에러 메시지 박스 */
+        .global-error-box {
+            border-radius: 12px;
+            border: 1px solid #fecaca;
+            background: #fef2f2;
+            padding: 8px 10px;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
 <div layout:fragment="content">
     <div class="form-container">
-        <h3>상품 판매 등록</h3>
+
+        <!-- 상단 헤더 -->
+        <div class="form-header">
+            <div class="flex items-center justify-between" style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                <div>
+                    <h3 class="form-title">
+                        <span th:text="${mode}=='edit' ? '상품 판매 수정' : '상품 판매 등록'">상품 판매 등록</span>
+                    </h3>
+                    <p class="form-subtitle">
+                        내돈내삶 마켓에 등록할 상품의 기본 정보, 이미지, 옵션을 입력해 주세요.
+                    </p>
+                </div>
+                <div class="badge-mode">
+                    <span class="badge-dot"></span>
+                    <span th:text="${mode}=='edit' ? '수정 모드' : '등록 모드'">등록 모드</span>
+                </div>
+            </div>
+        </div>
 
         <!-- 에러 메시지 -->
-        <div th:if="${errorMessage != null}" class="error-msg mb-2"
+        <div th:if="${errorMessage != null}" class="global-error-box"
              th:text="${errorMessage}">에러 메시지</div>
 
-        <form th:action="@{/seller/item/new}" th:object="${sellerItemNewBean}" method="post" enctype="multipart/form-data">
+        <!--
+            form action 동적 처리
+             - 기본(신규등록): POST /seller/item/new
+             - 수정 모드:    POST /seller/item/{itemId}/edit
+        -->
+        <form th:action="${mode}=='edit' ?
+                          @{/seller/item/{itemId}/edit(itemId=${itemId})} :
+                          @{/seller/item/new}"
+              th:object="${sellerItemNewBean}"
+              method="post"
+              enctype="multipart/form-data">
 
+            <!-- 섹션: 기본 정보 -->
+            <div class="form-section-title">기본 정보</div>
 
-            <!-- 기본 정보 -->
             <div class="form-field">
-                <label for="itemName">상품명</label>
+                <label for="itemName" class="label-required">상품명</label>
                 <input type="text" id="itemName" th:field="*{itemName}">
                 <div class="error-msg" th:if="${#fields.hasErrors('itemName')}" th:errors="*{itemName}"></div>
             </div>
 
             <div class="form-field">
-                <label for="categoryId">카테고리</label>
+                <label for="categoryId" class="label-required">카테고리</label>
                 <select id="categoryId" th:field="*{categoryId}">
                     <option value="">-- 카테고리 선택 --</option>
                     <option th:each="c : ${categories}"
@@ -75,13 +305,13 @@
             </div>
 
             <div class="form-field">
-                <label for="originalPrice">정상가</label>
+                <label for="originalPrice" class="label-required">정상가</label>
                 <input type="number" id="originalPrice" th:field="*{originalPrice}" step="100" />
                 <div class="error-msg" th:if="${#fields.hasErrors('originalPrice')}" th:errors="*{originalPrice}"></div>
             </div>
 
             <div class="form-field">
-                <label for="itemSaleprice">할인가</label>
+                <label for="itemSaleprice" class="label-required">할인가</label>
                 <input type="number" id="itemSaleprice" th:field="*{itemSaleprice}" step="100" />
                 <div class="error-msg" th:if="${#fields.hasErrors('itemSaleprice')}" th:errors="*{itemSaleprice}"></div>
             </div>
@@ -92,32 +322,37 @@
             </div>
 
             <div class="form-field">
-                <label for="saleEndDate">판매 종료일</label>
+                <label for="saleEndDate" class="label-required">판매 종료일</label>
                 <input type="date" id="saleEndDate" th:field="*{saleEndDate}" />
                 <div class="error-msg" th:if="${#fields.hasErrors('saleEndDate')}" th:errors="*{saleEndDate}"></div>
-<!--                <div class="error-msg" th:if="${#fields.hasErrors('saleDateValid')}" th:errors="*{saleDateValid}"></div>-->
             </div>
-
-            <div class="form-field">
-                <label for="itemImageFile">대표 이미지 파일</label>
-                <input type="file" class="form-control" id="itemImageFile" th:field="*{itemImageFile}" />
-            </div>
-<!--            <div class="form-field">-->
-<!--                <label for="itemImageUrl">또는 대표 이미지 URL</label>-->
-<!--                <input type="text" id="itemImageUrl" th:field="*{itemImageUrl}" placeholder="https://..." />-->
-<!--            </div>-->
 
             <hr/>
 
-            <!-- 상세 이미지 여러 장 -->
+            <!-- 섹션: 이미지 -->
+            <div class="form-section-title">상품 이미지</div>
+
+            <div class="form-field">
+                <label for="itemImageFile">
+                    대표 이미지 파일
+                    <!-- 수정 모드:
+                         - 비우면 기존 이미지 유지
+                         - 새 파일 업로드 시 기존 대표 이미지 교체 -->
+                </label>
+                <input type="file" class="form-control" id="itemImageFile" th:field="*{itemImageFile}" />
+            </div>
+
             <div class="form-field">
                 <label>상세 이미지 (여러장)</label>
                 <input type="file" multiple id="detailImageFiles" th:field="*{detailImageFiles}" />
             </div>
             <div id="preview"></div>
+
             <hr/>
 
-            <!-- 옵션 여러 개 등록 -->
+            <!-- 섹션: 옵션 -->
+            <div class="form-section-title">옵션 정보</div>
+
             <div class="form-field">
                 <label>옵션선택</label>
 
@@ -134,16 +369,36 @@
                     <tbody id="optionTbody">
                     <!-- 기존 입력값(리스트)이 있으면 해당 인덱스로 바인딩하여 렌더 -->
                     <tr th:each="opt, iterStat : *{optionType}">
-                        <td><input type="text" th:field="*{optionType[__${iterStat.index}__]}" class="form-control" placeholder="예: 색상" /></td>
-                        <td><input type="text" th:field="*{optionValue[__${iterStat.index}__]}" class="form-control" placeholder="예: RED" /></td>
-                        <td><input type="number" th:field="*{additionalPrice[__${iterStat.index}__]}" class="form-control" value="0" /></td>
-                        <td><input type="number" th:field="*{stock[__${iterStat.index}__]}" class="form-control" value="0" /></td>
+                        <td>
+                            <input type="text"
+                                   th:field="*{optionType[__${iterStat.index}__]}"
+                                   class="form-control"
+                                   placeholder="예: 색상" />
+                        </td>
+                        <td>
+                            <input type="text"
+                                   th:field="*{optionValue[__${iterStat.index}__]}"
+                                   class="form-control"
+                                   placeholder="예: RED" />
+                        </td>
+                        <td>
+                            <input type="number"
+                                   th:field="*{additionalPrice[__${iterStat.index}__]}"
+                                   class="form-control"
+                                   value="0" />
+                        </td>
+                        <td>
+                            <input type="number"
+                                   th:field="*{stock[__${iterStat.index}__]}"
+                                   class="form-control"
+                                   value="0" />
+                        </td>
                         <td>
                             <button type="button" class="btn btn-sm btn-outline-danger remove-row">X</button>
                         </td>
                     </tr>
 
-                    <!-- 만약 서버에서 옵션 리스트가 없으면 빈 한 줄을 보여줌 -->
+                    <!-- 서버에서 옵션 리스트가 없으면 빈 한 줄 -->
                     <tr th:if="${#lists.isEmpty(sellerItemNewBean.optionType)}">
                         <td><input type="text" name="optionType" class="form-control" placeholder="예: 색상"></td>
                         <td><input type="text" name="optionValue" class="form-control" placeholder="예: RED"></td>
@@ -161,12 +416,16 @@
             <!-- 옵션 관련 전체 에러(AssertTrue 등) -->
             <div class="error-msg" th:if="${#fields.hasGlobalErrors()}">
                 <p th:each="err: ${#fields.globalErrors()}" th:text="${err}"></p>
-             </div>
+            </div>
 
-
+            <!-- 버튼 영역 -->
             <div class="btn-area">
                 <a th:href="@{/seller/item}" class="btn btn-secondary btn-sm">목록</a>
-                <button type="submit" class="btn btn-primary btn-sm">등록</button>
+                <button type="submit"
+                        class="btn btn-primary btn-sm"
+                        th:text="${mode}=='edit' ? '수정' : '등록'">
+                    등록
+                </button>
             </div>
         </form>
     </div>
@@ -174,31 +433,19 @@
 
 <script layout:fragment="script">
     document.addEventListener('DOMContentLoaded', () => {
-        // 상세 이미지 행 추가/삭제
-        const imageTbody = document.getElementById('imageTbody');
-        const addImageBtn = document.getElementById('addImageRow');
-
-
-
-        // 옵션 행 추가/삭제
-        const optionTbody = document.getElementById('optionTbody');
-        const addOptionBtn = document.getElementById('addOptionRow');
-
-
+        // 상세 이미지 미리보기
         const detailImageFiles = document.getElementById("detailImageFiles");
         const preview = document.getElementById("preview");
-        if(detailImageFiles) {
+        if (detailImageFiles) {
             detailImageFiles.addEventListener("change", function () {
                 preview.innerHTML = ""; // 기존 미리보기 삭제
 
                 Array.from(this.files).forEach((file, index) => {
-
                     if (!file.type.startsWith("image/")) return;
 
                     const wrapper = document.createElement("label");
                     wrapper.className = "text-center";
 
-                    // 이미지 태그
                     const img = document.createElement("img");
                     img.src = URL.createObjectURL(file);
                     img.className = "rounded border";
@@ -212,6 +459,9 @@
             });
         }
 
+        // 옵션 행 추가/삭제
+        const optionTbody = document.getElementById('optionTbody');
+        const addOptionBtn = document.getElementById('addOptionRow');
 
         if (addOptionBtn) {
             addOptionBtn.addEventListener('click', () => {

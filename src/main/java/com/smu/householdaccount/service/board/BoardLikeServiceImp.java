@@ -83,4 +83,21 @@ public class BoardLikeServiceImp implements BoardLikeService {
     public long countLikes(Long postId) {
         return boardLikeRepository.countByPost_Id(postId);
     }
+
+    /** ✅ 새로 추가: 좋아요 토글 */
+    @Override
+    public boolean toggleLike(Long postId, String loginUserId) {
+        // 이미 좋아요 눌렀으면 → 취소
+        if (isLiked(postId, loginUserId)) {
+            unlike(postId, loginUserId);
+            return false;   // 현재 상태: 좋아요 해제
+        }
+
+        // 아직 안 눌렀으면 → 추가
+        like(postId, loginUserId);
+        return true;        // 현재 상태: 좋아요 상태
+    }
+
+
+
 }
