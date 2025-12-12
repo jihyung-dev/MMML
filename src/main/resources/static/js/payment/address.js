@@ -91,7 +91,7 @@ const renderAddress = (item) => {
                         onclick="setDefault(${item.id})" ${item.isDefault ? "hidden" : ""}>
                     기본 배송지 변경
                 </button>
-                <span>기본 배송지</span>
+                <span>${item.isDefault ? "기본배송지" : ""}</span>
             </div>
         </div>
         <div class="card-text my-2">

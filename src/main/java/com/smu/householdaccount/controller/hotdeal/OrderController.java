@@ -2,8 +2,10 @@ package com.smu.householdaccount.controller.hotdeal;
 
 import com.smu.householdaccount.dto.HotdealOrderBean;
 import com.smu.householdaccount.entity.common.Member;
+import com.smu.householdaccount.entity.hotdeal.Item;
 import com.smu.householdaccount.entity.hotdeal.OrderMain;
 import com.smu.householdaccount.repository.hotdeal.OrderMainRepository;
+import com.smu.householdaccount.service.hotdeal.ItemService;
 import com.smu.householdaccount.service.hotdeal.OrderService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,7 @@ public class OrderController {
 
     private final OrderService orderService;
     private final OrderMainRepository orderMainRepository;
+    private final ItemService itemService;
 
     @GetMapping("/order/{id}")
     public String orderDetail(@PathVariable Long id, Model model) {
@@ -61,7 +64,8 @@ public class OrderController {
         }
         //String buyerId = loginUser.getMemberId();
         hotdealOrderBean.setBuyerId(loginUser.getMemberId());
-
+        Item item=itemService.findById(hotdealOrderBean.getItemId());
+        hotdealOrderBean.setSellerId(item.getSellerId());
         // 2) 옵션/수량 검사
         if (hotdealOrderBean.getOptionId().isEmpty() || hotdealOrderBean.getQuantity().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "주문 상품 목록이 비어있습니다. 옵션을 선택해주세요.");
@@ -70,16 +74,17 @@ public class OrderController {
         // 4) 실제 주문 생성
         OrderMain order = orderService.createHotdealOrder(hotdealOrderBean);
 
-        OrderMain orderWithItems = orderMainRepository.findWithItemsById(order.getId())
-                .orElse(order);
+        return "redirect:/hotdeal/order/"+order.getId();
+//        OrderMain orderWithItems = orderMainRepository.findWithItemsById(order.getId())
+//                .orElse(order);
 
-        // 5) 모델에 값 넣고 결제 페이지로 이동
-        model.addAttribute("order", order);
-        model.addAttribute("orderId", order.getId());
-        model.addAttribute("merchantUid", order.getMerchantUid());
-        model.addAttribute("amount", order.getTotalAmount());
-
-        return "hotdeal/payment_page";
+//        // 5) 모델에 값 넣고 결제 페이지로 이동
+//        model.addAttribute("order", order);
+//        model.addAttribute("orderId", order.getId());
+//        model.addAttribute("merchantUid", order.getMerchantUid());
+//        model.addAttribute("amount", order.getTotalAmount());
+//
+//        return "hotdeal/payment_page";
     }
 
 
