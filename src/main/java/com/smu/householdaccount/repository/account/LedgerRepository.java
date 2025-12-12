@@ -118,9 +118,12 @@ public interface LedgerRepository extends JpaRepository<LedgerEntry, Long> {
     );
 
     @Query(value = """
-    SELECT DISTINCT group_id
-    FROM LEDGER_ENTRY
-    WHERE member_id = :memberId
+        SELECT DISTINCT le.group_id
+        FROM LEDGER_ENTRY le
+        JOIN GROUP_PROPERTY gp
+          ON le.group_id = gp.group_id
+        WHERE le.member_id = :memberId
+          AND gp.group_type = 'P';
 """, nativeQuery = true)
     Optional<Long> findGroupIdByMemberId(@Param("memberId") String memberId);
 
