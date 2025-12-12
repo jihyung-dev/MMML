@@ -35,7 +35,7 @@
                 </span>
 
                 <a class="rounded-full text-sm py-1 px-3 bg-blue-100"
-                   th:if="${order.orderStatus == 'PENDDING'}"
+                   th:if="${order.orderStatus == 'PENDING'}"
                    th:href="@{/hotdeal/order/{id}(id=${order.id})}">결제하러가기 -></a>
             </div>
             <div class="mb-2">

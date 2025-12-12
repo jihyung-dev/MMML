@@ -111,4 +111,23 @@ public class AddressController {
         MemberAddress address=addressService.modifyAddress(memberAddress);
         return ResponseEntity.ok(address);
     }
+
+
+    //새로 추가한 기본배송지 변경 엔드포인트(PUT /api/address/default/{id})
+    @PutMapping("/default/{id}")
+    public ResponseEntity<?> setDefaultAddress(
+            @PathVariable("id") Long addressId,
+            @SessionAttribute(value = "loginUser", required = false) Member loginUser
+    ) {
+        if (loginUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+        }
+
+        boolean success = addressService.modifyDefaultAddress(loginUser.getMemberId(), addressId);
+        if (success) {
+            return ResponseEntity.ok().body("기본배송지로 변경되었습니다.");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("기본배송지 변경에 실패했습니다.");
+        }
+    }
 }

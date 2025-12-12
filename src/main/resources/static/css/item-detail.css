@@ -80,3 +80,37 @@
     font-size: 0.6rem !important;
     line-height: 1 !important;
 }
+
+
+/* ✅ 기본 배송지 스타일 (항상 진한 검정색 글씨) */
+.address-default {
+    border: 2px solid #0d6efd !important; /* 파란 테두리 */
+    background-color: #e8f0ff;            /* 연한 파랑 */
+    font-weight: 600;
+    color: #000 !important;               /* 글씨 항상 검정 */
+}
+
+/* hover 시에도 변화 없음 */
+.address-default:hover {
+    background-color: #e8f0ff;
+    color: #000;
+}
+
+/* ✅ 일반 배송지 스타일 (느낌 약하게) */
+.address-normal {
+    background-color: #f7f7f7;
+    color: #6c757d;                       /* 흐린 글씨 */
+    border: 1px solid #ddd;
+}
+
+/* 일반 배송지는 hover 시만 강조 */
+.address-normal:hover {
+    background-color: #efefef;
+    color: #495057;                       /* hover 시 조금 진하게 */
+}
+
+/* 🟡 선택한 배송지 (노란 테두리 + 밝은 배경) */
+.address-selected {
+    border: 2px solid #ffc107 !important;  /* 노란 테두리 */
+    background-color: #fff7d6 !important;  /* 연한 노랑 */
+}

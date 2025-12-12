@@ -87,15 +87,18 @@ const loadSelectedAddress=async(id)=>{
 loadSelectedAddress();
 const renderAddress = (item) => {
     return`
- <div   onclick="selectAddress(${item.id})"
-        class="list-group-item list-group-item-action ${item.isDefault ? 'border-primary' : ''}">
+ <div onclick="selectAddress(${item.id})"
+     class="list-group-item list-group-item-action 
+            ${item.isDefault ? 'address-default' : 'address-normal'} 
+            address-card-${item.id}">
+
     <div class="py-3 px-2">
         <div class="d-flex justify-content-between">
             <h5 class="card-title">${item.addressName}</h5>
             <div>
                 <button class="btn btn-sm btn-outline-success"
-                        onclick="setDefault(${item.id})" ${item.isDefault ? "hidden" : ""}>
-                    기본 배송지 변경
+                        onclick="setDefault(event, ${item.id})" ${item.isDefault ? "hidden" : ""}>
+                    기본 배송지로 변경
                 </button>
                 <span>${item.isDefault ? "기본배송지" : ""}</span>
             </div>
@@ -115,6 +118,38 @@ const renderAddress = (item) => {
 </div>        `;
 };
 
+// 기본배송지 변경 함수
+async function setDefault(e, id) {
+    // 버튼 클릭이 부모의 selectAddress 이벤트로 전파되는 것을 막음
+    if (e && e.stopPropagation) e.stopPropagation();
+
+    if (!confirm('이 주소를 기본 배송지로 설정하시겠습니까?')) return;
+
+    try {
+        const response = await fetch(`/api/address/default/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            // 성공 메시지 (원하면 toast로 바꾸세요)
+            addressMsg.innerText = "기본배송지로 설정되었습니다.";
+            // 주소 목록과 선택된 기본주소 다시 로드
+            await loadAddressList();         // 아래에 구현한 함수
+            await loadSelectedAddress();     // 기존에 있던 함수 (기본주소 불러오기)
+        } else if (response.status === 401) {
+            if (confirm("로그인 후 이용하세요")) location.href = "/login";
+        } else {
+            const text = await response.text();
+            addressMsg.innerText = text || "기본배송지 변경 실패";
+        }
+    } catch (err) {
+        console.error(err);
+        addressMsg.innerText = "네트워크 오류. 다시 시도하세요.";
+    }
+}
 
 const renderAddressList=(addressList)=>{
     if(addressList && addressList.length>0){
@@ -175,6 +210,17 @@ const addAddressFormSubmitHandler= async (e)=>{
         addressMsg.innerText = "서버 오류가 발생했습니다. 다시 시도해주세요.";
     }
 };
-const selectAddress=(id)=>{
+const selectAddress = (id) => {
     loadSelectedAddress(id);
-}
+
+    // 모든 카드에서 선택 클래스 제거
+    document.querySelectorAll(".list-group-item").forEach(item => {
+        item.classList.remove("address-selected");
+    });
+
+    // 클릭한 카드에 선택 효과 추가
+    const selectedCard = document.querySelector(`.address-card-${id}`);
+    if (selectedCard) {
+        selectedCard.classList.add("address-selected");
+    }
+};
