@@ -3,7 +3,7 @@
        xmlns:th="http://www.thymeleaf.org"
        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
        layout:decorate="~{layouts/default_layout}"
-       th:with="IS_LOGIN=false,CONTENT_TITLE='로그인 | 내돈내삶'">
+       th:with="CONTENT_TITLE='로그인 | 내돈내삶'">
 <!-- 위에 내용 중 IS_LOGIN=false 는 로그인 없는 메인화면 상단 , IS_LOGIN=false, 문구 전체삭제 로그인 있는 메인화면 상단 -->
 
 <head>
@@ -60,15 +60,16 @@
         </div>
 
         <!-- 좋아요 / 취소 (로그인 상태에서만) -->
+        <!-- ✅ 좋아요 토글 (로그인 상태에서만) -->
         <div class="like-actions" th:if="${session.loginUser != null}">
-            <form th:action="@{'/like/add/' + ${post.id}}" method="post" style="display:inline;">
-                <button type="submit">좋아요 👍</button>
-            </form>
-
-            <form th:action="@{'/like/remove/' + ${post.id}}" method="post" style="display:inline;">
-                <button type="submit">취소 💔</button>
+            <form th:action="@{'/like/toggle/' + ${post.id}}" method="post" style="display:inline;">
+                <button type="submit"
+                        th:text="${likedByMe} ? '취소 💔' : '좋아요 👍'">
+                    좋아요 👍
+                </button>
             </form>
         </div>
+
 
         <!-- 비로그인 안내 -->
         <div th:if="${session.loginUser == null}">

@@ -111,6 +111,26 @@
         .option-row span {
             white-space: nowrap;
         }
+
+        /* ⭐ [추가] 알림 메시지 스타일 */
+        .alert {
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .alert-success {
+            background: #ecfdf5;
+            border: 1px solid #6ee7b7;
+            color: #047857;
+        }
+
+        .alert-error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+        }
     </style>
 </head>
 
@@ -120,6 +140,10 @@
     <div class="page-wrap">
 
         <h1 class="page-title">등록한 상품</h1>
+
+        <!-- ⭐ [추가] 수정/삭제 결과 메시지 표시 -->
+        <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
 
         <!-- 상품이 없을 때 메시지 (선택) -->
         <div th:if="${#lists.isEmpty(itemPage.content)}"

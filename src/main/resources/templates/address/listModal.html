@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <th:block th:fragment="addressListModal">
+
+        <div class="card mb-3">
+            <div class="card-body" id="selectedAddress">
+
+            </div>
+        </div>
+
+
+        <!-- Button trigger modal -->
+        <button type="button" class="btn btn-primary addressModalBtn" data-bs-toggle="modal" data-bs-target="#addressModal">
+            배송지 변경
+        </button>
+        <div class="modal" style="border: 1px solid" id="addressModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="exampleModalLabel">배송지 조회</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="text-danger" id="addressMsg"></div>
+                        <div>
+                            <button class="btn btn-primary mb-3 w-100" data-bs-toggle="collapse"  data-bs-target="#addAddressToggle"> + 배송지 추가</button>
+                            <div class="collapse" id="addAddressToggle">
+                                <form id="addAddressForm" class="border rounded p-3 mb-3">
+                                    <h6 class="mb-3">새 배송지 추가</h6>
+
+                                    <div class="input-group mb-2">
+                                        <input type="text" value="test" name="addressName" class="form-control" placeholder="배송지 이름 (집 / 회사)" required>
+                                        <input type="text" value="테스트" name="recipientName" class="form-control" placeholder="받는 사람" required>
+                                    </div>
+
+                                    <!-- 주소 검색 영역 -->
+                                    <div class="input-group mb-2" onclick="openPostcode()">
+                                        <span class="input-group-text">🔍</span>
+                                        <input  type="text" value="테스트동" name="addressLine1" id="addressLine1" class="form-control" style="flex: 8;" placeholder="도로명 주소" required readonly>
+                                        <input type="text" value="0011" name="zipcode" id="zipcode" class="form-control" style="flex: 4" placeholder="우편번호" required readonly>
+                                    </div>
+                                    <div class="mb-2">
+                                        <input type="text" value="상세테스트" name="addressLine2" class="form-control" placeholder="상세 주소 (선택)">
+                                    </div>
+                                    <div class="input-group mb-2">
+                                        <span class="input-group-text">📞</span>
+                                        <input type="text" value="010-0000-0011" name="phone" class="form-control" placeholder="연락처 : 010-1234-5678">
+                                    </div>
+                                    <div class="input-group mb-2">
+                                        <input type="text" value="공동현관:1111" name="requestMessage" class="form-control" placeholder="요청사항 : 현관 비밀번호 7777">
+                                    </div>
+                                    <button type="submit" class="btn btn-success w-100 btn-sm">등록</button>
+                                </form>
+
+                            </div>
+                        </div>
+
+                        <div id="addressListBox"></div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+
+        <script>
+            const addAddressForm=document.getElementById("addAddressForm");
+            const addressModalBtn=document.querySelector(".addressModalBtn");
+            const addressMsg=document.getElementById("addressMsg");
+            const addressListBox=document.getElementById("addressListBox");
+            const selectedAddress=document.getElementById("selectedAddress");
+            //배송지 검색 카카오 api
+            function openPostcode() {
+                new daum.Postcode({
+                    oncomplete: function(data) {
+                        document.querySelector("input[name='addressLine1']").value = data.roadAddress;
+                        document.querySelector("input[name='zipcode']").value = data.zonecode;
+                    }
+                }).open();
+            };
+
+            const renderAddressSelected=(address)=>{
+                return`   <!-- 배송지명 + 기본배송지 표시 -->
+                <h5>
+                    <span>${address.addressName}</span>
+                    <span class="badge bg-primary ms-1">${address.isDefault ? '기본배송지':''}</span>
+                </h5>
+
+                <!-- 받는 사람 -->
+                <p class="mb-1">
+                    <strong>받는 사람:</strong>
+                    <span id="recipientName">${address.recipientName}</span>
+                </p>
+
+                <!-- 주소 -->
+                <p class="mb-1">
+                    <strong>주소:</strong>
+                    <span id="addressLine1">${address.addressLine1}</span>
+                    <span id="addressLine2">${address.addressLine2}</span>
+                </p>
+
+                <!-- 우편번호 -->
+                <p class="mb-1">
+                    <strong>우편번호:</strong>
+                    <span id="zipCode">${address.zipcode}</span>
+                </p>
+
+                <!-- 연락처 -->
+                <p class="mb-1">
+                    <strong>연락처:</strong>
+                    <span id="phone">${address.phone}</span>
+                </p>
+
+                <!-- 요청사항 -->
+                <p class="mb-1">
+                    <strong>요청사항:</strong>
+                    <span id="requestMeassage">${address.requestMessage}</span>
+                </p>`;
+            }
+            const loadSelectedAddress=async()=>{
+                let url="/api/address/default";
+                const response=await fetch(url);
+                if(response.ok){
+                    const address= await response.json();
+                    if(address){
+                        selectedAddress.innerHTML=renderAddressSelected(address);
+
+                    }
+                }else if(response.status===404){
+                    selectedAddress.innerHTML=`<div>"배송지 변경"을 누르고 배송지를 등록하거나 선택하세요.</div>`;
+                }else if(response.status===400){
+                    if(confirm("로그인 후 이용하세요")){
+                        location.href="/login";
+                    }
+                }else{
+                    addressMsg.innerText="서버 오류입니다. 다시 시도하세요."
+                }
+
+            }
+            loadSelectedAddress();
+            const renderAddress = (item) => {
+               return`
+ <div class="card mb-2 ${item.isDefault ? 'border-primary' : ''}">
+    <div class="card-body">
+
+        <div class="d-flex justify-content-between">
+            <h5 class="card-title">${item.addressName}</h5>
+            <div>
+                <button class="btn btn-sm btn-outline-success"
+                        onclick="setDefault(${item.id})" ${item.isDefault ? "hidden" : ""}>
+                    기본 배송지 변경
+                </button>
+                <span>${item.isDefault ? "기본 배송지" : ""}</span>
+            </div>
+        </div>
+        <div class="card-text my-2">
+            <strong>받는 사람:</strong> ${item.recipientName}<br>
+            <strong>주소:</strong> ${item.addressLine1} ${item.addressLine2 || ""}<br>
+            <strong>우편번호:</strong> ${item.zipcode}<br>
+            <strong>연락처:</strong> ${item.phone}<br>
+            <strong>요청사항:</strong> ${item.requestMessage || "-"}<br>
+        </div>
+        <div class="d-flex justify-content-end">
+            <button class="btn btn-outline-primary me-1" onclick="editAddress(${item.id})">수정</button>
+            <button class="btn btn-outline-danger me-1" onclick="deleteAddress(${item.id})">삭제</button>
+        </div>
+    </div>
+</div>        `;
+            };
+            const renderAddressList=(addressList)=>{
+                if(addressList && addressList.length>0){
+                    let html="";
+                    for(let address of addressList){
+                        html+=renderAddress(address);
+                    }
+                    addressListBox.innerHTML=html;
+                }else {
+                    addressListBox.innerText= "<p class='text-muted'>등록된 배송지가 없습니다.</p>";
+                }
+
+            }
+            const loadAddressList = async () => {
+                let url="/api/address";
+                const response = await fetch(url);
+                if(response.ok){
+                    const addressList= await response.json();
+                    renderAddressList(addressList);
+
+                }else if(response.status===400){
+                    if(confirm("로그인 후 이용하세요")){
+                        location.href="/login";
+                    }
+                }else{
+                    addressMsg.innerText="서버 오류입니다. 다시 시도하세요."
+                }
+            }
+            addressModalBtn.addEventListener("click", loadAddressList);
+            addAddressForm.addEventListener("submit", async (e)=>{
+                e.preventDefault();
+                let url="/api/address";
+                const formData=new FormData(e.target);
+                const jsonData=Object.fromEntries(formData.entries());
+                const options={
+                    method:"POST",
+                    headers:{
+                        "Content-Type":"application/json"
+                    },
+                    body:JSON.stringify(jsonData)
+                }
+                const resonse=await fetch(url,options);
+                if(resonse.ok){
+                    alert("등록 성공")
+                    await loadAddressList()
+                    // 폼 초기화
+                    addAddressForm.reset();
+
+                    // 주소 검색 필드 readonly라서 일부 브라우저 자동 초기화 안될 수 있어서 직접 초기화
+                    document.getElementById("addressLine1").value = "";
+                    document.getElementById("zipcode").value = "";
+
+                } else if(resonse.status === 400){
+                    const errorText = await resonse.text();
+                    addressMsg.innerText = errorText || "입력 값이 잘못되었습니다.";
+                    alert(errorText);
+                } else {
+                    addressMsg.innerText = "서버 오류가 발생했습니다. 다시 시도해주세요.";
+                }
+            })
+        </script>
+    </th:block>
+</body>
+</html>

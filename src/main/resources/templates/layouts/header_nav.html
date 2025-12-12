@@ -1,9 +1,7 @@
 <!DOCTYPE html>
-<html lang="ko"
-      xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
-<!-- [공통] 헤더 -->
-<header layout:fragment="headerNav(isLogin)"  class="navbar navbar-expand-md navbar-light bg-white shadow-sm sticky-top">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<header th:fragment="headerNav" class="navbar navbar-expand-md navbar-light bg-white shadow-sm sticky-top">
     <div class="container">
         <a class="navbar-brand d-flex align-items-center brand-purple" href="/">
             <svg fill="currentColor" viewBox="0 0 48 48" width="40" height="40">
@@ -15,43 +13,32 @@
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
+
         <div class="collapse navbar-collapse" id="navMenu">
             <ul class="navbar-nav ms-auto mb-2 mb-md-0 align-items-center">
                 <li class="nav-item"><a class="nav-link" href="/ledger">Ledger</a></li>
                 <li class="nav-item"><a class="nav-link" href="/board">Board</a></li>
                 <li class="nav-item"><a class="nav-link text-warning" href="/hotdeal">Hot Deals</a></li>
-                <li class="nav-item ms-3" th:if="${isLogin}">
-                    <!-- 로그인 안 한 상태 -->
-                    <nav class="main-navbar">
-                        <div class="nav-container">
-                            <!-- Right: Login -->
-                            <div class="nav-right">
 
-                                <!-- 로그인 안 한 상태 -->
-                                <div th:if="${session.loginUser == null and session.sellerUser == null}">
-                                    <a href="/login" class="nav-login-btn">UserLogin</a>
-                                </div>
+                <li class="nav-item ms-3">
+                    <div class="d-flex align-items-center gap-2">
 
-                                <!-- 일반 회원 로그인 -->
-                                <div th:if="${session.loginUser != null}" class="nav-user-info">
-                                    <a href="/mypage">
-                                        <span th:text="${session.loginUser.memberNickname + '님 환영합니다!'}"></span>
-                                    </a>
-                                    &nbsp; | &nbsp;
-                                    <a href="/logout" class="nav-logout-btn">LogOut</a>
-                                </div>
+                        <a th:if="${session.loginUser == null}" href="/login" class="btn btn-sm btn-outline-primary">
+                            UserLogin
+                        </a>
 
-                                <!-- 판매자 로그인 -->
-
-                            </div>
+                        <div th:if="${session.loginUser != null}" class="d-flex align-items-center gap-2">
+                            <a href="/mypage" class="text-decoration-none text-dark fw-bold">
+                                <span th:text="${session.loginUser.memberNickname} + '님'"></span>
+                            </a>
+                            <span class="text-secondary">|</span>
+                            <a href="/logout" class="btn btn-sm btn-light">LogOut</a>
                         </div>
-                    </nav>
 
+                    </div>
                 </li>
             </ul>
         </div>
-
-
     </div>
 </header>
 </html>
