@@ -130,4 +130,21 @@ public class AddressController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("기본배송지 변경에 실패했습니다.");
         }
     }
+
+
+    //배송지 삭제
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteAddress(
+            @PathVariable Long id,
+            @SessionAttribute(value = "loginUser", required = false) Member loginUser
+    ) {
+        if (loginUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+        }
+
+        boolean deleted = addressService.deleteAddress(id);
+        if (!deleted) return ResponseEntity.badRequest().body("삭제 실패");
+
+        return ResponseEntity.ok().build();
+    }
 }
