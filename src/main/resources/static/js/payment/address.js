@@ -116,7 +116,7 @@ const renderAddressList=(addressList)=>{
         }
         addressListBox.innerHTML=html;
     }else {
-        addressListBox.innerText= "<p class='text-muted'>등록된 배송지가 없습니다.</p>";
+        addressListBox.innerHTML= "<p class='text-muted'>등록된 배송지가 없습니다.</p>";
     }
 
 }
