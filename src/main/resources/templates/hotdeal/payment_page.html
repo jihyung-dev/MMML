@@ -97,7 +97,7 @@
                     <div class="mt-2 d-flex gap-2">
                         <button id="payBtn" class="btn btn-primary pay-btn">결제하기</button>
                         <button id="modifyBtn" class="btn btn-warning">주문 수정</button>
-                        <button id="cancelBtn" class="btn btn-outline-secondary">주문 취소</button>
+                        <button id="cancelBtn" type="button" class="btn btn-outline-secondary">주문 취소</button>
                         <input type="hidden" name="orderId" id="orderId" th:value="${order.id}">
                         <input type="hidden" name="buyerEmail" id="buyerEmail" th:value="${session.loginUser != null ? session.loginUser.email : ''}">
                         <input type="hidden" name="merchantUid" id="merchantUid" th:value="${order.merchantUid}">
@@ -167,9 +167,8 @@
                     return;
                 }
 
-                // 2. 서버의 OrderMainController의 GET /hotdeal/order/cancel?merchant_uid={ID} 경로로 요청
-                // merchantUid 변수는 이미 위에 Thymeleaf를 통해 안전하게 설정됨
-                window.location.href = '/hotdeal/order/cancel?merchant_uid=' + targetMerchantUid;
+                //주문취소하기-확인 누르면 메인페이지로
+                window.location.href = '/hotdeal';
             });
         }
 
