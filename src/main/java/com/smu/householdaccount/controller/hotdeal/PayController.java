@@ -18,15 +18,17 @@ import java.util.Map;
 
 @Controller()
 @RequestMapping("/payment")
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+//@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class PayController {
     private final PortOneVerifyService verifyService;
     private final OrderMainService orderService;
     private final PaymentService paymentService;
 
-    public PayController(PortOneVerifyService verifyService, OrderMainService orderService) {
+    public PayController(PortOneVerifyService verifyService, OrderMainService orderService, PaymentService paymentService) {
         this.verifyService = verifyService;
         this.orderService = orderService;
+        this.paymentService = paymentService;
+
     }
 
     @GetMapping("/")
