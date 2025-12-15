@@ -5,9 +5,12 @@ import com.smu.householdaccount.dto.ledger.GroupCreateReq;
 import com.smu.householdaccount.dto.ledger.GroupInviteReq;
 import com.smu.householdaccount.dto.ledger.GroupMemberDto;
 import com.smu.householdaccount.dto.ledger.GroupRenameReq;
+import com.smu.householdaccount.entity.common.Member;
 import com.smu.householdaccount.service.account.GroupService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -42,7 +45,7 @@ public class GroupController {
     ) {
         try {
             groupService.inviteMember(groupId, req.getTargetMemberId());
-            return ResponseEntity.ok("멤버가 성공적으로 초대되었습니다.");
+            return ResponseEntity.ok("초대 메일을 발송하였습니다.");
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -95,5 +98,13 @@ public class GroupController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    /**
+     * 6. 그룹 초대 수락
+     */
+    @GetMapping("/accept")
+    public ResponseEntity<?> acceptInvite(@RequestParam String token, HttpSession session) {
+        return groupService.acceptInvite(token, session);
     }
 }

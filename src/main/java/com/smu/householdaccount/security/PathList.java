@@ -25,6 +25,7 @@ public enum PathList {
     AI("/ai/**"),
     EXCEL("/excel/**"),
     API_LEDGER("/ledger/api/**"),
+    API_GROUP("/api/group/**")
     ;
 
 

@@ -1,11 +1,15 @@
 package com.smu.householdaccount.service.common;
 
+import com.smu.householdaccount.entity.account.BudgetGroup;
 import jakarta.mail.MessagingException;
+import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+
+import java.io.UnsupportedEncodingException;
 
 @Service
 public class EmailService {
@@ -16,10 +20,11 @@ public class EmailService {
         this.mailSender = mailSender;
     }
 
-    public void sendExcelFile(String to, String subject, String text, byte[] excelBytes) throws MessagingException {
+    public void sendExcelFile(String to, String subject, String text, byte[] excelBytes) throws MessagingException, UnsupportedEncodingException {
 
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+        helper.setFrom(new InternetAddress("you12zin34@gmail.com", "내돈내삶"));
 
         helper.setTo(to);
         helper.setSubject(subject);
@@ -34,9 +39,10 @@ public class EmailService {
         mailSender.send(message);
     }
 
-    public void sendAuthCode(String to, String subject, String text) throws MessagingException {
+    public void sendAuthCode(String to, String subject, String text) throws MessagingException, UnsupportedEncodingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+        helper.setFrom(new InternetAddress("you12zin34@gmail.com", "내돈내삶"));
 
         helper.setTo(to);
         helper.setSubject(subject);
@@ -44,4 +50,30 @@ public class EmailService {
 
         mailSender.send(message);
     }
+
+    public void sendInviteMail(String to, String inviteUrl, String groupName) throws MessagingException, UnsupportedEncodingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+        helper.setFrom(new InternetAddress("you12zin34@gmail.com", "내돈내삶"));
+
+        helper.setTo(to);
+        helper.setSubject(groupName + "에 초대되었습니다.");
+
+        String text = """
+            안녕하세요.<br><br>
+            
+            <b>%s</b> 그룹 가계부에 초대되었습니다.<br><br>
+
+            아래 링크를 클릭하여 초대를 수락해주세요.<br>
+            (24시간 동안만 유효합니다.)<br><br>
+
+            ▶ <a href="%s">초대 수락하기</a><br><br>
+
+            감사합니다.
+            """.formatted(groupName, inviteUrl);
+        helper.setText(text, true);
+
+        mailSender.send(message);
+    }
+
 }
