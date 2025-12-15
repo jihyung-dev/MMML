@@ -1372,6 +1372,10 @@ async function startDocu() {
         // 4) 나머지 로직들
         await loadTopData();
         await loadAllCategoryStats();
+
+        // ▼▼▼ [여기!] 이 줄을 추가해주세요 ▼▼▼
+        loadHotDealPreview();
+
         buildCategorySelectList();
         initCharts();
         prepareAgeLabels();
@@ -1535,7 +1539,7 @@ function startExtendedTour() {
 
     const driverObj = driver({
         showProgress: false,
-        animate: true,
+        animate: false,
         allowClose: false,
         doneBtnText: '완료',
         nextBtnText: '네, 좋아요! >',
@@ -1563,6 +1567,30 @@ function startExtendedTour() {
             // [Step 0] ~ [Step 10] (기존 동일)
             {
                 popover: { title: '👋 환영합니다!', description: '가계부의 핵심 기능을<br>빠르게 체험해볼까요?', align: 'center' }
+            },
+            // ✅ [추가됨] 그룹 가계부 안내 (Step 1)
+            {
+                element: '.group-sidebar',
+                popover: {
+                    title: '👥 그룹 가계부 관리',
+                    description: '여기서 내 가계부와 그룹 가계부를<br>자유롭게 오갈 수 있습니다.<br>가족, 친구와 함께 가계부를 써보세요!',
+                    side: "right",
+                    align: 'start'
+            },
+                // 🌟 [핵심 1] 하이라이트 시작될 때 스크롤 고정
+                onHighlightStarted: (element) => {
+                    // 1. Driver.js의 스크롤 동작을 무시하고 즉시 최상단으로 이동
+                    window.scrollTo(0, 0);
+
+                    // 2. 혹시 Driver.js가 뒤늦게 스크롤을 내릴 수 있으므로 0.1초 뒤에 한 번 더 강제 이동
+                    setTimeout(() => {
+                        window.scrollTo({ top: 0, behavior: 'instant' });
+                    }, 100);
+                },
+                // 🌟 [핵심 2] 다음 단계로 넘어가기 직전에도 위치 확인 (선택 사항)
+                onDeselected: () => {
+                    window.scrollTo(0, 0);
+                }
             },
             {
                 element: 'button[onclick="loadLedgerData()"]',
@@ -3434,4 +3462,62 @@ async function deleteCurrentGroup() {
         console.error(e);
         alert("오류가 발생했습니다.");
     }
+}
+
+// =========================================
+// [New] 찜한 핫딜 미리보기 로직
+// =========================================
+async function loadHotDealPreview() {
+    const listEl = document.getElementById("hotDealPreviewList");
+    // HTML에 해당 ID가 없으면 중단 (에러 방지)
+    if (!listEl) return;
+
+    try {
+        // ★ 백엔드 컨트롤러 주소 호출 (/hotdeal/wishlist/preview)
+        const res = await fetch(`/hotdeal/ajax/wishlist/preview`);
+
+        if (!res.ok) throw new Error("핫딜 로딩 실패");
+
+        const data = await res.json(); // 데이터는 배열 형태 [ {title, price, link}, ... ]
+
+        listEl.innerHTML = ""; // 기존 '로딩 중...' 문구 제거
+
+        // 데이터가 없을 때 표시
+        if (!data || data.length === 0) {
+            listEl.innerHTML = '<li class="text-center text-muted small py-3">찜한 상품이 없습니다.</li>';
+            return;
+        }
+
+        // 데이터가 있으면 리스트 생성 (최대 3개)
+        data.slice(0, 3).forEach(item => {
+            const li = document.createElement("li");
+            li.className = "bookmark-item"; // 기존 사이드바 스타일 재사용
+
+            // 클릭 시 해당 상품 상세 페이지로 이동
+            li.innerHTML = `
+                <a href="${item.link}" class="d-flex align-items-center py-2" style="font-size: 0.9rem; text-decoration: none; color: inherit;">
+                    <span class="icon" style="font-size: 1.2rem; margin-right: 10px;">🎁</span>
+                    <div class="d-flex flex-column overflow-hidden" style="flex: 1;">
+                        <span class="fw-bold text-ellipsis" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;">
+                            ${item.title}
+                        </span>
+                        <span class="text-danger small fw-bold">
+                            ${Number(item.price).toLocaleString()}원
+                        </span>
+                    </div>
+                </a>
+            `;
+            listEl.appendChild(li);
+        });
+
+    } catch (e) {
+        console.error("핫딜 미리보기 로드 중 오류:", e);
+        listEl.innerHTML = '<li class="text-center text-danger small py-3">로딩 실패</li>';
+    }
+}
+
+// [추가] 더보기 버튼 클릭 시 이동할 함수 (HTML onclick="openHotDealModal()"에 대응)
+function openHotDealModal() {
+    // 찜한 목록 전체 페이지로 이동
+    window.location.href = "/mypage/ajax/wishlist";
 }

@@ -1,0 +1,107 @@
+@charset "UTF-8";
+
+/* =========================================
+   마이페이지 공통 컨테이너 (흰색 박스 스타일)
+   ========================================= */
+.form-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 30px;
+    border: 1px solid #e5e7eb; /* 연한 회색 테두리 */
+    border-radius: 12px;       /* 둥근 모서리 */
+    background-color: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* 은은한 그림자 */
+}
+
+/* =========================================
+   페이지 헤더 & 섹션 공통
+   ========================================= */
+.page-header, .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.section-title, .page-title {
+    font-size: 1.25rem; /* 약 20px */
+    font-weight: 800;
+    color: #1f2937;
+    margin: 0;
+}
+
+/* 더보기/전체보기 링크 */
+.more-link {
+    font-size: 0.85rem;
+    color: #6b7280;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+    cursor: pointer;
+}
+.more-link:hover {
+    color: #6c63ff; /* 브랜드 컬러 */
+}
+
+/* =========================================
+   리스트 아이템 (활동 내역)
+   ========================================= */
+.activity-item {
+    padding: 12px 0;
+    border-bottom: 1px dashed #f0f0f0;
+}
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.item-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #374151;
+    text-decoration: none;
+    display: block;
+    margin-bottom: 4px;
+    transition: color 0.2s;
+}
+.item-title:hover {
+    color: #6c63ff;
+}
+
+.item-date {
+    font-size: 0.75rem;
+    color: #9ca3af;
+}
+
+/* =========================================
+   카드 스타일 (핫딜, 상품 등)
+   ========================================= */
+.hotdeal-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border: none !important;
+}
+
+.hotdeal-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+}
+
+.hotdeal-card img {
+    transition: transform 0.3s;
+}
+
+.hotdeal-card:hover img {
+    transform: scale(1.05);
+}
+
+/* 페이징 버튼 커스텀 (선택사항) */
+.pagination .page-link {
+    border: none;
+    color: #374151;
+}
+.pagination .page-item.active .page-link {
+    background-color: #0d273d; /* primary color */
+    color: white;
+    border-radius: 50%;
+}

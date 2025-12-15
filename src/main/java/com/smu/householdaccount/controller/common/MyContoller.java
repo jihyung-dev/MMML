@@ -32,24 +32,30 @@ public class MyContoller {
 
     // ✅ [추가] 찜 리포지토리 주입
     private final ItemWishRepository itemWishRepository;
-
+    /**
+     * 내 활동 (찜한 상품, 쓴 글 등 요약 보기)
+     */
     @GetMapping("/activity")
     public String myActivity(@SessionAttribute("loginUser") Member loginUser, Model model) {
         String memberId = loginUser.getMemberId();
-        Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
 
-        Page<BoardPost> myPostPage = boardPostRepository.findByWriterId(memberId,pageable);
-
-        Page<BoardComment> myCommentPage = boardCommentRepository.findByWriterId(memberId, pageable);
-        Page<BoardPost> likedPostPage = boardPostRepository.findByBoardLikes_MemberId(memberId,pageable);
-
-        // ✅ [추가] 찜한 핫딜 (최신순 3개만 조회 -> 미리보기용)
+        // 1. 내가 쓴 글 (최신 3개)
         Pageable limitThree = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<BoardPost> myPostPage = boardPostRepository.findByWriterId(memberId, limitThree);
+
+        // 2. 내가 쓴 댓글 (최신 3개)
+        Page<BoardComment> myCommentPage = boardCommentRepository.findByWriterId(memberId, limitThree);
+
+        // 3. 좋아요 누른 글 (최신 3개)
+        Page<BoardPost> likedPostPage = boardPostRepository.findByBoardLikes_MemberId(memberId, limitThree);
+
+        // 4. 찜한 핫딜 (최신 3개)
         Page<ItemWish> myWishPage = itemWishRepository.findByMemberMemberId(memberId, limitThree);
 
         model.addAttribute("myPostPage", myPostPage);
         model.addAttribute("myCommentPage", myCommentPage);
         model.addAttribute("likedPostPage", likedPostPage);
+        model.addAttribute("myWishPage", myWishPage);
 
         return "user/activity";
     }
@@ -98,19 +104,69 @@ public class MyContoller {
         }
     }
 
-    // ✅ [추가] 찜한 핫딜 전체 보기 페이지 (더보기 클릭 시 이동)
-    @GetMapping("/wishlist")
+    // ==========================================
+    // ▼ [해결] 작동하지 않던 '더보기' 링크 연결 메서드 추가
+    // ==========================================
+
+    // 1. 찜한 핫딜 전체 보기 (/mypage/ajax/wishlist)
+    // [수정 후] 이렇게 바꿔주세요!
+    @GetMapping("/wishlist")  // 1. 주소 변경: /mypage/wishlist
     public String myWishlist(@SessionAttribute("loginUser") Member loginUser,
                              @RequestParam(defaultValue = "0") int page,
                              Model model) {
-
         String memberId = loginUser.getMemberId();
-        // 12개씩 보여주기
         Pageable pageable = PageRequest.of(page, 12, Sort.by(Sort.Direction.DESC, "createdAt"));
-
         Page<ItemWish> wishPage = itemWishRepository.findByMemberMemberId(memberId, pageable);
-
         model.addAttribute("wishPage", wishPage);
-        return "user/wishlist"; // templates/user/wishlist.html 필요
+
+        // 2. 파일 경로 변경: templates/user/wishlist.html 을 바라보도록 설정
+        return "user/wishlist";
+    }
+
+    // ==========================================
+    // [AJAX 전용] 부분 화면 리턴 메서드들
+    // ==========================================
+
+    // 1. 내가 쓴 글 (AJAX)
+    @GetMapping("/ajax/posts")
+    public String ajaxMyPosts(@SessionAttribute("loginUser") Member loginUser,
+                              @RequestParam(defaultValue = "0") int page,
+                              Model model) {
+        String memberId = loginUser.getMemberId();
+        Pageable pageable = PageRequest.of(page, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        Page<BoardPost> postPage = boardPostRepository.findByWriterId(memberId, pageable);
+        model.addAttribute("postPage", postPage);
+
+        // ★ 중요: 전체 페이지가 아니라 'post_list.html' 파일만 리턴합니다.
+        return "user/ajax/post_list :: postListFragment";
+    }
+
+    // 2. 내가 쓴 댓글 (AJAX)
+    @GetMapping("/ajax/comments")
+    public String ajaxMyComments(@SessionAttribute("loginUser") Member loginUser,
+                                 @RequestParam(defaultValue = "0") int page,
+                                 Model model) {
+        String memberId = loginUser.getMemberId();
+        Pageable pageable = PageRequest.of(page, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        Page<BoardComment> commentPage = boardCommentRepository.findByWriterId(memberId, pageable);
+        model.addAttribute("commentPage", commentPage);
+
+        return "user/ajax/comment_list :: commentListFragment";
+    }
+
+    // 3. 좋아요 누른 글 (AJAX)
+    @GetMapping("/ajax/liked")
+    public String ajaxMyLiked(@SessionAttribute("loginUser") Member loginUser,
+                              @RequestParam(defaultValue = "0") int page,
+                              Model model) {
+        String memberId = loginUser.getMemberId();
+        Pageable pageable = PageRequest.of(page, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        Page<BoardPost> likedPage = boardPostRepository.findByBoardLikes_MemberId(memberId, pageable);
+        model.addAttribute("likedPage", likedPage);
+
+        return "user/ajax/liked_list :: likedListFragment";
     }
 }

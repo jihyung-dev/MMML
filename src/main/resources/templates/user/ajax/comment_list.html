@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="commentListFragment">
+    <ul class="flex flex-col gap-3" th:if="${commentPage.totalElements > 0}">
+        <li th:each="comment : ${commentPage}" class="p-4 bg-white border rounded-lg hover:shadow-sm transition">
+            <a th:href="@{/board/{id}(id=${comment.post.id})}" class="block">
+                <p class="text-base text-gray-800 mb-2" th:text="${comment.commentContent}">내용</p>
+                <div class="text-sm text-gray-500 bg-gray-50 p-2 rounded">
+                    원문: <span class="font-medium" th:text="${comment.post.postTitle}">제목</span>
+                </div>
+                <div class="text-xs text-gray-400 mt-2" th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">날짜</div>
+            </a>
+        </li>
+    </ul>
+    <div th:if="${commentPage.totalElements == 0}" class="text-center py-5 text-gray-500">작성한 댓글이 없습니다.</div>
+
+    <div th:if="${commentPage.totalPages > 1}" class="flex justify-center gap-2 mt-4">
+        <button th:if="${commentPage.hasPrevious()}" th:onclick="'loadComments(' + ${commentPage.number - 1} + ')'" class="px-3 py-1 border rounded hover:bg-gray-100">&laquo;</button>
+        <span class="px-3 py-1 bg-primary text-white rounded" th:text="${commentPage.number + 1}"></span>
+        <button th:if="${commentPage.hasNext()}" th:onclick="'loadComments(' + ${commentPage.number + 1} + ')'" class="px-3 py-1 border rounded hover:bg-gray-100">&raquo;</button>
+    </div>
+</div>
+</html>

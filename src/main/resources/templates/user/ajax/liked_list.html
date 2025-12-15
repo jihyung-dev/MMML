@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="likedListFragment">
+    <ul class="flex flex-col gap-3" th:if="${likedPage.totalElements > 0}">
+        <li th:each="post : ${likedPage}" class="p-4 bg-white border rounded-lg hover:shadow-sm transition">
+            <a th:href="@{/board/{id}(id=${post.id})}" class="block">
+                <div class="flex justify-between items-start">
+                    <h3 class="text-lg font-bold text-gray-800 mb-1" th:text="${post.postTitle}">제목</h3>
+                    <span class="text-red-500 text-sm">♥</span>
+                </div>
+                <div class="text-sm text-gray-500 flex gap-3 mt-1">
+                    <span th:text="${post.writer.memberNickname}">작성자</span>
+                    <span>•</span>
+                    <span th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd')}">날짜</span>
+                </div>
+            </a>
+        </li>
+    </ul>
+    <div th:if="${likedPage.totalElements == 0}" class="text-center py-5 text-gray-500">좋아요한 글이 없습니다.</div>
+
+    <div th:if="${likedPage.totalPages > 1}" class="flex justify-center gap-2 mt-4">
+        <button th:if="${likedPage.hasPrevious()}" th:onclick="'loadLiked(' + ${likedPage.number - 1} + ')'" class="px-3 py-1 border rounded hover:bg-gray-100">&laquo;</button>
+        <span class="px-3 py-1 bg-primary text-white rounded" th:text="${likedPage.number + 1}"></span>
+        <button th:if="${likedPage.hasNext()}" th:onclick="'loadLiked(' + ${likedPage.number + 1} + ')'" class="px-3 py-1 border rounded hover:bg-gray-100">&raquo;</button>
+    </div>
+</div>
+</html>
