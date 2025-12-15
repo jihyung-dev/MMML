@@ -1950,3 +1950,15 @@ div#driver-popover-item {
     border-top: none;
     text-align: center;
 }
+
+@media (max-width: 768px) {
+    #group-sidebar {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background-color: #ffffff;
+        /* 추가 스타일링이 필요할 수 있습니다 */
+        width: 100% !important; /* 너비를 100%로 설정 */
+        border-bottom: 1px solid #e0e0e0;
+    }
+}

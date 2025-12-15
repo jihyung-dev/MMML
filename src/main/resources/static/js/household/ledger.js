@@ -1570,13 +1570,60 @@ function startExtendedTour() {
         },
 
         steps: [
-            // [Step 0] ~ [Step 10] (기존 동일)
+            // [Step 0] 환영 메시지 (기존 유지)
             {
                 popover: { title: '👋 환영합니다!', description: '가계부의 핵심 기능을<br>빠르게 체험해볼까요?', align: 'center' }
             },
+
+            // ✨✨ [NEW] 그룹 가계부 안내 (여기에 추가!) ✨✨
+            {
+                element: '.group-sidebar', // 사이드바 전체 선택
+                popover: {
+                    title: '1. 함께 쓰는 가계부',
+                    description: '가족, 연인, 친구와 함께 쓰시나요?<br>이곳에서 <b>그룹을 만들거나 전환</b>할 수 있어요.',
+                    side: "right",
+                    align: 'start',
+                    showButtons: []
+                },
+                onHighlightStarted: (el) => {
+                    el.classList.add('neon-active');
+
+                    // 사이드바 영역을 클릭하면 다음으로 넘어가게 설정
+                    el.addEventListener('click', () => {
+                        el.classList.remove('neon-active');
+                        driverObj.moveNext();
+                    }, { once: true });
+                }
+            },
+            // ✨✨ ------------------------------------ ✨✨
+
+            // [Step 2] 데이터 입력 방법 (순서 밀림: 기존 Step 1)
+            {
+                element: '.import-main-section',
+                popover: {
+                    title: '2. 데이터 입력 방법', // 번호 수정 (1 -> 2)
+                    description: '이곳에서 <b>카드 내역을 불러오거나</b>,<br><b>엑셀 파일을 업로드</b>하여 시작할 수 있습니다.',
+                    side: "bottom",
+                    showButtons: []
+                },
+                onHighlightStarted: (el) => {
+                    el.classList.add('neon-active');
+                    el.addEventListener('click', () => {
+                        el.classList.remove('neon-active');
+                        driverObj.moveNext();
+                    }, { once: true });
+                }
+            },
+
+            // [Step 3] 간편 불러오기 (순서 밀림: 기존 Step 2)
             {
                 element: 'button[onclick="loadLedgerData()"]',
-                popover: { title: '1. 데이터 연동', description: '먼저 데이터를 가져옵니다.<br><b>이 버튼을 클릭하세요!</b>', side: "bottom", showButtons: [] },
+                popover: {
+                    title: '3. 간편 불러오기', // 번호 수정 (2 -> 3)
+                    description: '가장 쉬운 방법은<br><b>이 버튼을 클릭</b>하는 것입니다!',
+                    side: "bottom",
+                    showButtons: []
+                },
                 onHighlightStarted: (el) => {
                     el.classList.add('neon-active');
 
@@ -3445,3 +3492,4 @@ async function deleteCurrentGroup() {
         alert("오류가 발생했습니다.");
     }
 }
+
