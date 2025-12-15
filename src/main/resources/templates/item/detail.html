@@ -431,19 +431,6 @@
             });
         }
 
-        if (purchaseForm) {
-            purchaseForm.addEventListener('submit', function(e) {
-                // 장바구니에 담긴 옵션이 없으면 제출 방지
-                if (!window.cart || window.cart.length === 0) {
-                    e.preventDefault();
-                    alert('구매할 옵션을 1개 이상 선택해 주세요.');
-                    return;
-                }
-
-                // cart가 비어있지 않으면, renderCart가 생성한 hidden input들을 통해 폼이 정상 제출됩니다.
-            });
-        }
-
         const buyBtn = document.getElementById('buyBtn');
 
 
