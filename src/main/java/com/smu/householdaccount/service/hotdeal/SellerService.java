@@ -1,11 +1,14 @@
 package com.smu.householdaccount.service.hotdeal;
 
+import com.smu.householdaccount.dto.SellerItemNewBean;
 import com.smu.householdaccount.entity.hotdeal.Item;
 import com.smu.householdaccount.entity.hotdeal.OrderMain;
 import com.smu.householdaccount.entity.hotdeal.Seller;
 import jakarta.validation.constraints.Size;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import java.io.IOException;
 
 public interface SellerService {
 
@@ -28,4 +31,6 @@ public interface SellerService {
     Page<Item> getItemBySeller(Long sellerId, Pageable pageable);
 
     void updateSeller(@Size(max = 50) String memberId, Seller updatedSeller);
+
+    void modifyItem(SellerItemNewBean bean, Long itemId) throws IOException;
 }
