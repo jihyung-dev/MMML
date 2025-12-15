@@ -32,6 +32,13 @@ public class LedgerApiController {
             @SessionAttribute(name = "loginUserId", required = false) String memberId,
             @RequestParam(required = false) Long group_Id
     ) {
+        // [수정] memberId가 없을 경우 예외 처리 (로그인이 안 된 상태)
+        if (memberId == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        // [수정] group_id가 null이어도 서비스에서 알아서 '개인 가계부'를 찾도록 처리되어야 함
+        // LedgerService.getDashboardDataNew 메서드 내부에서 resolveGroup 호출 확인 필요
         return ResponseEntity.ok(ledgerService.getDashboardDataNew(year, month, memberId, group_Id));
     }
     // [수정] DataTables용 상세 내역 리스트 API
@@ -42,9 +49,10 @@ public class LedgerApiController {
             @SessionAttribute(name = "loginUserId", required = false) String memberId,
             @RequestParam(required = false) Long group_Id
     ) {
-// 서비스 메서드 호출 (이름 바꿨으니 맞춰주세요)
-        Long groupId = redisService.getGroupIdByMemberId(memberId, group_Id).orElse(null); // 일단 group_id가 null일 경우 진행 안되게 js에서 처리는 해놨는데, 여기까지 들어오면 에러 100퍼
-        return ResponseEntity.ok(ledgerService.getTransactionList(groupId, year, month));
+        // 서비스 메서드 호출 (이름 바꿨으니 맞춰주세요)
+        // [수정] Redis 조회 로직 제거 또는 단순화 (Service 내부 resolveGroup에서 처리함)
+        //Long groupId = redisService.getGroupIdByMemberId(memberId, group_Id).orElse(null); // 일단 group_id가 null일 경우 진행 안되게 js에서 처리는 해놨는데, 여기까지 들어오면 에러 100퍼
+        return ResponseEntity.ok(ledgerService.getTransactionList(memberId, group_Id, year, month));
     }
     // [New] 단건 등록 API
     @PostMapping("/entry")

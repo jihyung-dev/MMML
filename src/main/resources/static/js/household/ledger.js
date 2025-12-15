@@ -827,6 +827,15 @@ async function renderFullCategoryChart() {
 function buildCategoryComparisonList(currentCategories, threeMonthCategories) {
     const result = [];
 
+    // [추가] 데이터가 없으면 빈 배열 반환 (에러 방지)
+    if (!currentCategories || !Array.isArray(currentCategories)) {
+        return [];
+    }
+    // threeMonthCategories도 체크
+    if (!threeMonthCategories || !Array.isArray(threeMonthCategories)) {
+        threeMonthCategories = [];
+    }
+
     currentCategories.forEach(cur => {
         const avgData = threeMonthCategories.find(t => t.categoryName === cur.categoryName);
         const avg = avgData ? Number(avgData.amount) / 3 : 0;
@@ -841,22 +850,32 @@ function buildCategoryComparisonList(currentCategories, threeMonthCategories) {
     return result;
 }
 
-async function exportExcel(mail) {
-    const url = `/excel/export/mail?year=${currentYear}&month=${currentMonth}&email=${mail}`;
+async function exportExcel() {
+    const url = `/excel/export/mail?year=${currentYear}&month=${currentMonth}`;
+    const btn = document.getElementById("btnExcelExport");
+    // 이미 비활성화되어 있으면 클릭 무시
+    if (btn.disabled) return;
+    btn.disabled = true;
+    btn.textContent = "전송 중...";
 
-    const res = await fetch(url, { method: "GET" });
+    try {
+        // 📌 메일 전송 API 호출
+        const res = await fetch(url, { method: "GET" });
 
-    if (!res.ok) {
-        alert("엑셀 생성 실패");
-        return;
+        if (!res.ok) {
+            throw new Error("메일 전송 중 오류");
+        }
+
+        btn.textContent = "전송 완료!";
+    } catch (e) {
+        console.error(e);
+        btn.textContent = "전송 실패";
     }
-
-    // 기존내용
-    // const blob = await res.blob();
-    // const a = document.createElement("a");
-    // a.href = window.URL.createObjectURL(blob);
-    // a.download = `ledger_${currentYear}-${currentMonth}.xlsx`;
-    // a.click();
+    // 📌 5초 뒤 다시 버튼 활성화
+    setTimeout(() => {
+        btn.disabled = false;
+        btn.textContent = "엑셀 메일로 보내기";
+    }, 5000);
 
 }
 // top 데이터 관련
@@ -1293,23 +1312,37 @@ async function getGroupId() {
     const data = await res.json(); // await 필수
     console.log("데이터 확인 :", data);
 
-    if (!data.hasGroup) {
-        showEmptyState();
-        return false;
-    } else {
-        showLedgerContent();
-        return true;
-    }
+    // [수정] 화면 제어 로직 제거 또는 주석 처리
+    // if (!data.hasGroup) {
+    //     showEmptyState();
+    //     return false;
+    // } else {
+    //     showLedgerContent();
+    //     return true;
+    // }
+
+    return data.hasGroup;
 }
 
 async function startDocu() {
-    // 로그인 유저의 Group_id 조회(group_id가 존재하지 않을 경우 등록한 가게부 내역이 하나도 없다는 의미)
-    const hasGroup = await getGroupId(); // await
-    dragElement();
-    if (!hasGroup) {
-        return;
-    }
+    //수정 전
+    // // 로그인 유저의 Group_id 조회(group_id가 존재하지 않을 경우 등록한 가게부 내역이 하나도 없다는 의미)
+    // const hasGroup = await getGroupId(); // await
 
+    //수정 후
+    // 1. 그룹 ID 체크 (없어도 진행하도록 수정)
+    // getGroupId 함수는 내부적으로 showEmptyState()를 호출하지만,
+    // 여기서는 화면 제어를 startDocu에서 하도록 변경하는 게 좋습니다.
+
+    // 우선 dragElement는 무조건 실행 (파일 업로드는 가능해야 하므로)
+
+    dragElement();
+
+    // 2. 현재 URL 파라미터 확인 (groupId가 있는지)
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentGroupId = urlParams.get('groupId');
+
+    showLedgerContent();
     showSkeleton();
     updateMonthLabel();
 
@@ -1389,7 +1422,10 @@ window.finishTour = function() {
 }
 
 function startExtendedTour() {
-    // if (localStorage.getItem('tour_complete_final_v16')) return;
+    // [수정] 이미 투어를 완료했으면 실행하지 않음 (return)
+    if (localStorage.getItem('tour_complete_final_v16') === 'true') {
+        return;
+    }
 
     // [추가] 현재 년/월을 기반으로 '현재 달 1일' 날짜 문자열 생성
     const dynamicDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
@@ -2926,4 +2962,296 @@ function initMonthPicker() {
             }
         });
     });
+
 }
+
+// =========================================
+// [New] 그룹 멤버 관리 로직
+// =========================================
+
+// 1. 모달 열기 & 목록 로드
+async function openMemberManageModal() {
+    const groupId = document.getElementById("currentGroupId").value;
+    if (!groupId) {
+        alert("개인 가계부에서는 멤버를 관리할 수 없습니다.");
+        return;
+    }
+
+    const modal = document.getElementById("memberManageModal");
+    modal.classList.add("show");
+    modal.style.display = "flex";
+
+    // 모달 열릴 때 외부 클릭 방지 플래그 (기존 로직 호환)
+    modalJustOpened = true;
+    setTimeout(() => { modalJustOpened = false; }, 100);
+
+    // 멤버 목록 불러오기
+    await loadGroupMembers(groupId);
+}
+
+// 2. 모달 닫기
+function closeMemberManageModal() {
+    const modal = document.getElementById("memberManageModal");
+    modal.style.display = "none";
+    modal.classList.remove("show");
+
+    // 입력창 초기화
+    document.getElementById("inviteUserId").value = "";
+}
+
+// 3. 멤버 목록 API 호출 및 렌더링
+async function loadGroupMembers(groupId) {
+    const listGroup = document.getElementById("memberListGroup");
+
+    try {
+        const res = await fetch(`/api/group/${groupId}/members`);
+        if (!res.ok) throw new Error("멤버 목록 로드 실패");
+
+        const members = await res.json();
+
+        listGroup.innerHTML = ""; // 초기화
+
+        if (members.length === 0) {
+            listGroup.innerHTML = '<li class="list-group-item text-center">멤버가 없습니다.</li>';
+            return;
+        }
+
+        members.forEach(m => {
+            const isOwner = m.role === 'OWNER';
+            // 본인이거나 방장인 경우에 따라 버튼 노출 로직이 필요하지만,
+            // 일단 UI에서는 '삭제' 버튼을 다 보여주고 서버에서 막는 방식 or
+            // 로그인한 유저 ID를 JS 전역변수로 가지고 있어야 정확한 UI 제어 가능.
+            // 여기서는 단순하게 "방장 아님 -> 삭제 버튼 표시"로 예시를 듭니다.
+
+            const li = document.createElement("li");
+            li.className = "list-group-item d-flex justify-content-between align-items-center py-3";
+
+            li.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <div class="fw-bold me-2">${m.nickname} <span class="text-muted small">(${m.memberId})</span></div>
+                    ${isOwner ? '<span class="badge bg-warning text-dark">방장</span>' : '<span class="badge bg-secondary">멤버</span>'}
+                </div>
+                ${!isOwner ? `
+                    <button class="btn btn-sm btn-outline-danger" 
+                            onclick="removeMember(${m.groupMemberId})">내보내기</button>
+                ` : ''}
+            `;
+            listGroup.appendChild(li);
+        });
+
+    } catch (e) {
+        console.error(e);
+        listGroup.innerHTML = '<li class="list-group-item text-danger">목록을 불러오지 못했습니다.</li>';
+    }
+}
+
+// 4. 멤버 초대하기
+async function inviteMember() {
+    const groupId = document.getElementById("currentGroupId").value;
+    const targetId = document.getElementById("inviteUserId").value;
+
+    if (!targetId) {
+        alert("초대할 아이디를 입력해주세요.");
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/group/${groupId}/invite`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ targetMemberId: targetId })
+        });
+
+        const msg = await res.text(); // 서버에서 String 메시지를 줄 경우
+
+        if (res.ok) {
+            alert("초대되었습니다!");
+            document.getElementById("inviteUserId").value = ""; // 입력창 비우기
+            await loadGroupMembers(groupId); // 목록 갱신
+        } else {
+            alert("실패: " + msg); // "이미 멤버입니다" 등의 메시지 출력
+        }
+    } catch (e) {
+        console.error(e);
+        alert("초대 중 오류가 발생했습니다.");
+    }
+}
+
+// 5. 멤버 내보내기 (강퇴)
+async function removeMember(groupMemberId) {
+    const groupId = document.getElementById("currentGroupId").value;
+
+    if (!confirm("정말 이 멤버를 내보내시겠습니까?")) return;
+
+    try {
+        const res = await fetch(`/api/group/${groupId}/members/${groupMemberId}`, {
+            method: "DELETE"
+        });
+
+        const msg = await res.text();
+
+        if (res.ok) {
+            alert("삭제되었습니다.");
+            await loadGroupMembers(groupId); // 목록 갱신
+        } else {
+            alert("실패: " + msg); // 권한 없음 등의 메시지
+        }
+    } catch (e) {
+        console.error(e);
+        alert("삭제 중 오류가 발생했습니다.");
+    }
+}
+
+// [추가] 모달 외부 클릭 닫기 로직에 memberManageModal 추가
+document.addEventListener("click", (e) => {
+    // ... 기존 코드 ...
+
+    // 4. 멤버 관리 모달 닫기
+    const memberModal = document.getElementById("memberManageModal");
+    if (memberModal && memberModal.style.display === "flex") {
+        const content = memberModal.querySelector(".modal-content");
+        if (content && !content.contains(e.target) && !modalJustOpened) {
+            closeMemberManageModal();
+        }
+    }
+});
+
+// =========================================
+// [New] 그룹 생성 로직
+// =========================================
+
+function openCreateGroupModal() {
+    const modal = document.getElementById("createGroupModal");
+    modal.classList.add("show");
+    modal.style.display = "flex";
+
+    // 초기화
+    document.getElementById("newGroupName").value = "";
+
+    modalJustOpened = true;
+    setTimeout(() => { modalJustOpened = false; }, 100);
+}
+
+function closeCreateGroupModal() {
+    const modal = document.getElementById("createGroupModal");
+    modal.style.display = "none";
+    modal.classList.remove("show");
+}
+
+async function submitCreateGroup() {
+    const name = document.getElementById("newGroupName").value;
+    if (!name.trim()) {
+        alert("그룹 이름을 입력해주세요.");
+        return;
+    }
+
+    try {
+        const res = await fetch("/api/group", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ groupName: name })
+        });
+
+        if (res.ok) {
+            const newGroupId = await res.json();
+            alert("그룹이 생성되었습니다!");
+            // 생성된 그룹 페이지로 이동
+            window.location.href = `/ledger?groupId=${newGroupId}`;
+        } else {
+            alert("그룹 생성 실패");
+        }
+    } catch (e) {
+        console.error(e);
+        alert("오류가 발생했습니다.");
+    }
+}
+
+// [추가] 모달 외부 클릭 닫기 (기존 리스너에 추가)
+document.addEventListener("click", (e) => {
+    // ... (기존 차트, 추가, 리스트, 멤버 모달 닫기 로직들) ...
+
+    // 5. 그룹 생성 모달 닫기
+    const createModal = document.getElementById("createGroupModal");
+    if (createModal && createModal.style.display === "flex") {
+        const content = createModal.querySelector(".modal-content");
+        if (content && !content.contains(e.target) && !modalJustOpened) {
+            closeCreateGroupModal();
+        }
+    }
+});
+
+// =========================================
+// [New] 그룹 이름 변경 로직
+// =========================================
+
+function openRenameGroupModal() {
+    const groupId = document.getElementById("currentGroupId").value;
+    if (!groupId) {
+        alert("개인 가계부 이름은 변경할 수 없습니다.");
+        return;
+    }
+
+    // 현재 이름 가져오기 (사이드바에서 텍스트 추출)
+    // 좀 더 정확히 하려면 API 호출하거나 DOM 탐색 필요하지만, 편의상 빈칸으로 시작하거나
+    // 간단히 placeholder로 둡니다.
+
+    const modal = document.getElementById("renameGroupModal");
+    modal.classList.add("show");
+    modal.style.display = "flex";
+
+    document.getElementById("renameInput").value = ""; // 초기화
+
+    modalJustOpened = true;
+    setTimeout(() => { modalJustOpened = false; }, 100);
+}
+
+function closeRenameGroupModal() {
+    const modal = document.getElementById("renameGroupModal");
+    modal.style.display = "none";
+    modal.classList.remove("show");
+}
+
+async function submitRenameGroup() {
+    const groupId = document.getElementById("currentGroupId").value;
+    const newName = document.getElementById("renameInput").value.trim();
+
+    if (!newName) {
+        alert("새로운 이름을 입력해주세요.");
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/group/${groupId}/name`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ newGroupName: newName })
+        });
+
+        const msg = await res.text();
+
+        if (res.ok) {
+            alert("이름이 변경되었습니다.");
+            // 페이지 새로고침하여 사이드바 갱신
+            location.reload();
+        } else {
+            alert("변경 실패: " + msg);
+        }
+    } catch (e) {
+        console.error(e);
+        alert("오류가 발생했습니다.");
+    }
+}
+
+// [추가] 모달 외부 클릭 닫기 (기존 리스너에 추가)
+document.addEventListener("click", (e) => {
+    // ... 기존 코드 ...
+
+    // 6. 이름 변경 모달 닫기
+    const renameModal = document.getElementById("renameGroupModal");
+    if (renameModal && renameModal.style.display === "flex") {
+        const content = renameModal.querySelector(".modal-content");
+        if (content && !content.contains(e.target) && !modalJustOpened) {
+            closeRenameGroupModal();
+        }
+    }
+});

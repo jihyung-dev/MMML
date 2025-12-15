@@ -79,7 +79,7 @@ public class LedgerService {
     private final ObjectMapper mapper;
 
 
-    public Double getExchangeRate(){
+    public Double getExchangeRate() {
         String url = host + "/latest?from=USD&to=KRW";
         HttpHeaders headers = new HttpHeaders();
         String response = http.get(url, headers, String.class);
@@ -96,23 +96,26 @@ public class LedgerService {
     /**
      * 사용자의 모든 거래 내역
      */
-    public List<LedgerEntry> getLedgerAll(String memberId, Long group_id){
+    public List<LedgerEntry> getLedgerAll(String memberId, Long group_id) {
         Long groupId = redisService.getGroupIdByMemberId(memberId, group_id).orElse(null);
         BudgetGroup group = budgetGroupRepository.findById(groupId).orElseThrow();
-        LocalDateTime start = LocalDateTime.of(2025, 8, 1,0,0,0);
-        LocalDateTime end   = LocalDateTime.of(2025, 8, 31,0,0,0);
+        LocalDateTime start = LocalDateTime.of(2025, 8, 1, 0, 0, 0);
+        LocalDateTime end = LocalDateTime.of(2025, 8, 31, 0, 0, 0);
         Log.d("데이터 확인", group.toString());
-        Log.d("그룹 : " , ledgerRepository.findByGroupAndDateRange(group, start, end).toString());
+        Log.d("그룹 : ", ledgerRepository.findByGroupAndDateRange(group, start, end).toString());
         return null;
     }
 
     /**
      * 월별 사용자의 거래 내역
      */
-    public LedgerSummaryDto getMonthLedger(int year, int month, int period, String memberId, Long group_id){
+    public LedgerSummaryDto getMonthLedger(int year, int month, int period, String memberId, Long group_id) {
         Long groupId = redisService.getGroupIdByMemberId(memberId, group_id).orElse(null);
-        BudgetGroup group = budgetGroupRepository.findById(groupId).orElseThrow(); // 수정 필요.하드코딩
-        LocalDateTime date = LocalDateTime.of(year, month, 1,0,0,0);
+
+        // [수정] 안전하게 그룹 조회
+        BudgetGroup group = resolveGroup(memberId, group_id);
+
+        LocalDateTime date = LocalDateTime.of(year, month, 1, 0, 0, 0);
         // 기준이 되는 달의 1일
         LocalDate targetMonth = LocalDate.of(year, month, 1);
 
@@ -125,10 +128,15 @@ public class LedgerService {
         return getLedgerSummary(entries);
     }
 
-    public List<MonthlyLedgerDto> get6MonthLedger(int year, int month, int period, String memberId, Long group_id){
-        Long groupId = redisService.getGroupIdByMemberId(memberId, group_id).orElse(null);
-        BudgetGroup group = budgetGroupRepository.findById(groupId).orElseThrow(); // 수정 필요.하드코딩
-        LocalDateTime date = LocalDateTime.of(year, month, 1,0,0,0);
+    public List<MonthlyLedgerDto> get6MonthLedger(int year, int month, int period, String memberId, Long group_id) {
+
+        //수정
+        //Long groupId = redisService.getGroupIdByMemberId(memberId, group_id).orElse(null);
+
+        // [수정] resolveGroup 사용
+        BudgetGroup group = resolveGroup(memberId, group_id);
+
+        LocalDateTime date = LocalDateTime.of(year, month, 1, 0, 0, 0);
         // 기준이 되는 달의 1일
         LocalDate targetMonth = LocalDate.of(year, month, 1);
 
@@ -144,8 +152,8 @@ public class LedgerService {
     public LedgerSummaryDto getMonthlyChart(int year, int month, String memberId, Long group_id) {
         Long groupId = redisService.getGroupIdByMemberId(memberId, group_id).orElse(null);
         BudgetGroup group = budgetGroupRepository.findById(groupId).orElseThrow(); // 수정 필요.하드코딩
-        LocalDateTime date_start = LocalDateTime.of(year, month, 1,0,0,0);
-        LocalDateTime date_end = LocalDateTime.of(year, month, Utility.endOfMonth(year, month),0,0,0);
+        LocalDateTime date_start = LocalDateTime.of(year, month, 1, 0, 0, 0);
+        LocalDateTime date_end = LocalDateTime.of(year, month, Utility.endOfMonth(year, month), 0, 0, 0);
         List<LedgerEntry> entries = ledgerRepository.findByGroupAndDateRange(group, date_start, date_end);
 
         return getLedgerSummary(entries);
@@ -153,6 +161,7 @@ public class LedgerService {
 
     /**
      * 1년치 데이터(1월 ~ 현재)
+     *
      * @param year
      * @param month
      * @return
@@ -169,22 +178,21 @@ public class LedgerService {
     }
 
 
-
-    public LedgerSummaryDto getLedgerSummary(List<LedgerEntry> entries){
+    public LedgerSummaryDto getLedgerSummary(List<LedgerEntry> entries) {
         BigDecimal totalExpense = BigDecimal.ZERO;
         BigDecimal totalIncome = BigDecimal.ZERO;
 
         Map<String, BigDecimal> categoryMap = new HashMap<>();
-        Map<LocalDateTime, DailySummary> dailyMap  = new HashMap<>();
+        Map<LocalDateTime, DailySummary> dailyMap = new HashMap<>();
 
-        for(LedgerEntry entry : entries){
+        for (LedgerEntry entry : entries) {
             LocalDateTime date = entry.getOccurredAt();
             dailyMap.putIfAbsent(date, LedgerSummaryDto.DailySummary.builder()
                     .date(date)
                     .expense(BigDecimal.ZERO)
                     .income(BigDecimal.ZERO).build());
             // 전체 지출 더하기
-            if(entry.getEntryType().equals("EXPENSE")){
+            if (entry.getEntryType().equals("EXPENSE")) {
                 totalExpense = totalExpense.add(entry.getEntryAmount());
 
                 // 카테고리
@@ -193,7 +201,7 @@ public class LedgerService {
                 categoryMap.put(category, categoryMap.getOrDefault(category, BigDecimal.ZERO).add(entry.getEntryAmount()));
                 // 데일리
                 dailyMap.get(date).setExpense(dailyMap.get(date).getExpense().add(entry.getEntryAmount()));
-            } else if(entry.getEntryType().equals("INCOME")){
+            } else if (entry.getEntryType().equals("INCOME")) {
                 totalIncome = totalIncome.add(entry.getEntryAmount());
 
                 dailyMap.get(date).setIncome(dailyMap.get(date).getIncome().add(entry.getEntryAmount()));
@@ -253,14 +261,22 @@ public class LedgerService {
 // [New] 대시보드 데이터 처리 (기존 로직 영향 없음)
 // ========================================================
     public LedgerSummaryDto getDashboardDataNew(int year, int month, String memberId, Long group_id) {
-        Long groupId = redisService.getGroupIdByMemberId(memberId, group_id).orElse(null);
+        //수정 전
+        //Long groupId = redisService.getGroupIdByMemberId(memberId, group_id).orElse(null);
+
+        //수정 후
+        // ★ 여기서 resolveGroup을 호출하여 절대 null이 아닌 그룹 객체를 확보합니다.
+        BudgetGroup myGroup = resolveGroup(memberId, group_id);
+
         // 1. 날짜 및 그룹 설정
         LocalDateTime start = LocalDateTime.of(year, month, 1, 0, 0, 0);
         LocalDateTime end = start.plusMonths(1).minusSeconds(1);
-        BudgetGroup myGroup = budgetGroupRepository.findById(groupId).orElseThrow();
 
         // 2. 카테고리별 합계
         List<CategorySumDto> catSums = ledgerRepository.findCategorySumNew(myGroup, start, end);
+
+        // [안전 장치] null이면 빈 리스트로
+        if (catSums == null) catSums = new ArrayList<>();
 
         List<LedgerSummaryDto.CategorySummary> categories = catSums.stream()
                 .map(dto -> LedgerSummaryDto.CategorySummary.builder()
@@ -271,6 +287,7 @@ public class LedgerService {
 
         // 3. 일별 합계 (Repository에서 COUNT도 같이 가져왔다고 가정)
         List<DailySumDto> daySums = ledgerRepository.findDailySumNew(myGroup, start, end);
+        if (daySums == null) daySums = new ArrayList<>(); // [안전 장치]
 
         // 4. 일별 데이터 정리 (Map 사용)
         Map<LocalDate, LedgerSummaryDto.DailySummary> dailyMap = new HashMap<>();
@@ -317,10 +334,16 @@ public class LedgerService {
 
     // [수정] DataTables용 상세 내역 조회 (DTO로 변환 반환)
     @Transactional(readOnly = true)
-    public List<LedgerDetailDto> getTransactionList(Long groupId, int year, int month) {
-        // 1. 그룹 및 날짜 조회
-        BudgetGroup group = budgetGroupRepository.findById(groupId)
-                .orElseThrow(() -> new IllegalArgumentException("Group not found"));
+    public List<LedgerDetailDto> getTransactionList(String memberId, Long groupId, int year, int month) {
+
+        //수정 전
+//        // 1. 그룹 및 날짜 조회
+//        BudgetGroup group = budgetGroupRepository.findById(groupId)
+//                .orElseThrow(() -> new IllegalArgumentException("Group not found"));
+
+        //수정 후
+        // ★ 여기서도 resolveGroup 사용
+        BudgetGroup group = resolveGroup(memberId, groupId);
 
         LocalDateTime start = LocalDateTime.of(year, month, 1, 0, 0, 0);
         LocalDateTime end = start.plusMonths(1).minusSeconds(1);
@@ -511,6 +534,7 @@ public class LedgerService {
         ledgerRepository.save(entry);
         System.out.println("=== 저장 완료 ===");
     }
+
     // [수정] 1. 일별 상세 내역 조회 (안전장치 추가)
     @Transactional(readOnly = true)
     public List<LedgerDetailDto> getDailyTransactionList(String memberId, String dateStr) {
@@ -559,7 +583,7 @@ public class LedgerService {
                 .orElseThrow(() -> new IllegalArgumentException("내역 없음"));
 
         // 작성자 본인 확인
-        if(!entry.getMember().getMemberId().equals(memberId)) throw new IllegalArgumentException("권한 없음");
+        if (!entry.getMember().getMemberId().equals(memberId)) throw new IllegalArgumentException("권한 없음");
 
         // 값 업데이트
         entry.setEntryAmount(req.getAmount());
@@ -577,7 +601,7 @@ public class LedgerService {
     @Transactional
     public void deleteEntry(Long entryId, String memberId) {
         LedgerEntry entry = ledgerRepository.findById(entryId).orElseThrow();
-        if(!entry.getMember().getMemberId().equals(memberId)) throw new IllegalArgumentException("권한 없음");
+        if (!entry.getMember().getMemberId().equals(memberId)) throw new IllegalArgumentException("권한 없음");
         ledgerRepository.delete(entry);
     }
 
@@ -602,7 +626,7 @@ public class LedgerService {
             List<List<String>> rows = extractAllRows(sheet, headers.size()); // 전체 rows
 
             result.put("fileName", originalName);
-            result.put("fileSize", (file.getSize()/1024) + " KB");
+            result.put("fileSize", (file.getSize() / 1024) + " KB");
             result.put("headers", headers);
             result.put("rows", rows); // 전체 rows!
 
@@ -652,7 +676,9 @@ public class LedgerService {
         }
     }
 
-    /** 헤더 추출 */
+    /**
+     * 헤더 추출
+     */
     private List<String> extractHeaderColumns(Row headerRow) {
         List<String> headers = new ArrayList<>();
 
@@ -686,7 +712,9 @@ public class LedgerService {
     }
 
 
-    /** POI Cell → String 변환 유틸 */
+    /**
+     * POI Cell → String 변환 유틸
+     */
     private String convertCellToString(Cell cell) {
         if (cell == null) return "";
 
@@ -726,7 +754,8 @@ public class LedgerService {
         snakeMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
 
         List<Map<String, Object>> rawList =
-                snakeMapper.readValue(new File(path), new TypeReference<>() {});
+                snakeMapper.readValue(new File(path), new TypeReference<>() {
+                });
 
         return rawList.stream()
                 .map(map -> {
@@ -776,7 +805,7 @@ public class LedgerService {
 
         } catch (Exception e) {
             Log.e(" Excel 분류 처리 실패: {}", e.getMessage());
-            if(memberId == null){
+            if (memberId == null) {
                 throw new RuntimeException("로그인이 필요한 기능입니다.", e);
             }
             throw new RuntimeException("Excel 기반 카테고리 분류 처리 중 오류 발생", e);
@@ -813,4 +842,41 @@ public class LedgerService {
                 || text.matches(".*[ìíëêð].*");
     }
 
+    // =================================================================
+    // [수정된 resolveGroup] 그룹이 여러 개여도 에러 안 나게 처리
+    // =================================================================
+    private BudgetGroup resolveGroup(String memberId, Long requestGroupId) {
+        // 1. 요청 ID 우선
+        if (requestGroupId != null) {
+            return budgetGroupRepository.findById(requestGroupId)
+                    .orElseThrow(() -> new IllegalArgumentException("요청한 그룹을 찾을 수 없습니다."));
+        }
+
+        // 2. Redis 조회
+        Long redisGroupId = redisService.getGroupIdByMemberId(memberId, null).orElse(null);
+        if (redisGroupId != null) {
+            return budgetGroupRepository.findById(redisGroupId).orElse(null);
+        }
+
+        // 3. [핵심 수정] DB에서 소유 그룹 '리스트' 조회
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 정보 없음"));
+
+        // ★ findAllByOwner 호출
+        List<BudgetGroup> myGroups = budgetGroupRepository.findAllByOwner(member);
+
+        if (!myGroups.isEmpty()) {
+            // 그룹이 여러 개여도 에러 없이 '첫 번째' 그룹 반환
+            return myGroups.get(0);
+        }
+
+        // 4. 없으면 자동 생성
+        System.out.println("⚠️ 사용자의 가계부 그룹이 없어 자동 생성합니다.");
+        BudgetGroup newGroup = new BudgetGroup();
+        newGroup.setGroupName(member.getMemberNickname() + "님의 가계부");
+        newGroup.setOwner(member);
+        newGroup.setCreatedAt(LocalDateTime.now());
+
+        return budgetGroupRepository.save(newGroup);
+    }
 }

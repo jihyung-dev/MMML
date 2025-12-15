@@ -92,7 +92,9 @@
                         </div>
                     </div>
                 </div>
-
+                <div class="mb-3">
+                    <th:block th:insert="/address/listModal :: addressListModal"></th:block>
+                </div>
                 <div class="mb-3">
                     <small class="muted-small">결제 수단</small>
                     <div class="mt-2 d-flex gap-2">
@@ -117,7 +119,6 @@
             </div>
         </div>
     </div>
-
 </div>
 
 <!-- 안전한 JS 인라인 사용: th:inline="javascript" -->

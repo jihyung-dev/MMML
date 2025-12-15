@@ -2,6 +2,8 @@ package com.smu.householdaccount.controller.account;
 
 import com.smu.householdaccount.dto.ledger.LedgerSummaryDto;
 import com.smu.householdaccount.dto.python.ClassifyTransactionResponse;
+import com.smu.householdaccount.entity.account.GroupMember;
+import com.smu.householdaccount.repository.account.GroupMemberRepository;
 import com.smu.householdaccount.service.ai.AIService;
 import com.smu.householdaccount.service.account.LedgerService;
 import com.smu.householdaccount.service.common.RedisService;
@@ -12,11 +14,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.ui.Model;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Controller
 @RequiredArgsConstructor
@@ -26,6 +26,8 @@ public class LedgerController {
     private final LedgerService ledgerService;
     private final AIService aiService;
     private final RedisService redisService;
+
+    private final GroupMemberRepository groupMemberRepository;
 
     /**
      * 환율 받아오는 API
@@ -103,10 +105,35 @@ public class LedgerController {
     //  [NEW API] 캘린더 UI 전용 JSON 데이터 반환 엔드포인트
     //  - /ledger/calendar URL을 사용하여 캘린더 데이터만 반환합니다.
     // ===================================================================
+    @GetMapping("") // ✅ 반드시 추가해야 합니다!
+    public String home(
+            @RequestParam(required = false) Long groupId,
+            Model model,
+            @SessionAttribute(name = "loginUserId", required = false) String memberId // 세션에서 ID 가져오기
+    ) {
+        // [수정] 가짜 데이터(mockGroups) 삭제하고 진짜 DB 조회
+        List<Map<String, Object>> myGroups = new ArrayList<>();
 
-    @GetMapping("")
-    public String home(){
-        return "household/blank";
+        if (memberId != null) {
+            // 내가 속한 그룹 리스트 조회
+            List<GroupMember> groupMembers = groupMemberRepository.findByMember_MemberId(memberId);
+
+            for (GroupMember gm : groupMembers) {
+                // 개인 가계부(P)는 제외하고 모임(G)만 사이드바에 표시 (선택 사항)
+                // 만약 모두 표시하려면 if문 제거
+                if (gm.getGroup().getGroupMembers().size() > 0) {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("groupId", gm.getGroup().getId());
+                    map.put("groupName", gm.getGroup().getGroupName());
+                    myGroups.add(map);
+                }
+            }
+        }
+
+        model.addAttribute("myGroups", myGroups);
+        model.addAttribute("currentGroupId", groupId);
+
+        return "household/ledger_home"; // 파일 위치에 맞게 수정 (예: "household/ledger_home")
     }
 
     /**
@@ -162,14 +189,18 @@ public class LedgerController {
     @ResponseBody
     public Map<String, Object> getGroupId(
             HttpSession session,
-            @RequestParam(required = false) Long group_Id) {
+            @RequestParam(required = false) Long group_Id
+    ) {
         String memberId = (String) session.getAttribute("loginUserId");
 
-        Optional<Long> groupIdOpt =
-                redisService.getGroupIdByMemberId(memberId, group_Id);
+        // Redis 조회
+        Optional<Long> groupIdOpt = redisService.getGroupIdByMemberId(memberId, group_Id);
 
         Map<String, Object> res = new HashMap<>();
-        res.put("hasGroup", groupIdOpt.isPresent());
+
+        // ★ [핵심] 그룹 ID가 없어도 hasGroup을 true로 줘서 화면은 뜨게 만듭니다.
+        // (왜냐? Service에서 resolveGroup이 알아서 찾아줄 거니까요!)
+        res.put("hasGroup", true);
         res.put("groupId", groupIdOpt.orElse(null));
 
         return res;

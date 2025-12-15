@@ -20,12 +20,6 @@ public class PayController {
         this.verifyService = verifyService;
         this.orderService = orderService;
     }
-
-    @GetMapping("/")
-    public String testpay(){
-        return "/payment/test_pay";
-    }
-
     /**
      * 결제 확인 API
      * @param impUid

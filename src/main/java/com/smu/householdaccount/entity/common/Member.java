@@ -134,6 +134,9 @@ public class Member {
     @OneToMany(mappedBy = "member")
     private Set<PaymentTransaction> paymentTransactions = new LinkedHashSet<>();
 
+    @OneToMany(mappedBy = "member")
+    private Set<MemberAddress> addresses = new LinkedHashSet<>();
+
     // 🔹 회원 1명 ↔ 판매자 0..1 (1:1 관계)
     @OneToOne(mappedBy = "member")
     private Seller seller;

@@ -1,0 +1,110 @@
+package com.smu.householdaccount.controller.account;
+
+
+import com.smu.householdaccount.dto.ledger.GroupCreateReq;
+import com.smu.householdaccount.dto.ledger.GroupInviteReq;
+import com.smu.householdaccount.dto.ledger.GroupMemberDto;
+import com.smu.householdaccount.dto.ledger.GroupRenameReq;
+import com.smu.householdaccount.entity.common.Member;
+import com.smu.householdaccount.service.account.GroupService;
+import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/group")
+@RequiredArgsConstructor
+public class GroupController {
+
+    private final GroupService groupService;
+
+    /*
+    1. 그룹 멤버 목록 조회
+    GET /api/group/{groupId}/members
+    */
+    @GetMapping("/{groupId}/members")
+    public ResponseEntity<List<GroupMemberDto>> getGroupMembers(
+            @PathVariable Long groupId
+    ) {
+        List<GroupMemberDto> members = groupService.getGroupMembers(groupId);
+        return ResponseEntity.ok(members);
+    }
+
+    /*
+    2. 멤버 초대
+    POST /api/group/{groupId}/invite
+    */
+    @PostMapping("/{groupId}/invite")
+    public ResponseEntity<String> inviteMember(
+            @PathVariable Long groupId,
+            @RequestBody GroupInviteReq req
+    ) {
+        try {
+            groupService.inviteMember(groupId, req.getTargetMemberId());
+            return ResponseEntity.ok("초대 메일을 발송하였습니다.");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+     /*
+    3. 멤버 강퇴 (또는 탈퇴)
+    DELETE /api/group/{groupId}/members/{groupMemberId}
+    */
+    @DeleteMapping("/{groupId}/members/{groupMemberId}")
+    public ResponseEntity<String> removeMember(
+            @PathVariable Long groupId,
+            @PathVariable Long groupMemberId,
+            @SessionAttribute(name = "loginUserId") String requesterId //로그인한 사용자 ID (요청자)
+    ) {
+        try {
+            groupService.removeMember(groupId, groupMemberId, requesterId);
+            return ResponseEntity.ok("멤버가 삭제되었습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    /**
+     * 4. 그룹 생성
+     * POST /api/group
+     */
+    @PostMapping
+    public ResponseEntity<Long> createGroup(
+            @RequestBody GroupCreateReq req,
+            @SessionAttribute(name = "loginUserId") String ownerId
+    ) {
+        Long newGroupId = groupService.createGroup(req.getGroupName(), ownerId);
+        return ResponseEntity.ok(newGroupId);
+    }
+
+    /**
+     * 5. 그룹 이름 변경
+     * PATCH /api/group/{groupId}/name
+     */
+    @PatchMapping("/{groupId}/name")
+    public ResponseEntity<String> updateGroupName(
+            @PathVariable Long groupId,
+            @RequestBody GroupRenameReq req,
+            @SessionAttribute(name = "loginUserId") String requesterId
+    ) {
+        try {
+            groupService.updateGroupName(groupId, req.getNewGroupName(), requesterId);
+            return ResponseEntity.ok("그룹 이름이 변경되었습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    /**
+     * 6. 그룹 초대 수락
+     */
+    @GetMapping("/accept")
+    public ResponseEntity<?> acceptInvite(@RequestParam String token, HttpSession session) {
+        return groupService.acceptInvite(token, session);
+    }
+}
