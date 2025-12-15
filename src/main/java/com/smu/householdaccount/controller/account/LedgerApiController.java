@@ -58,11 +58,12 @@ public class LedgerApiController {
     @PostMapping("/entry")
     public ResponseEntity<String> addLedgerEntry(
             @RequestBody LedgerSaveRequest requestDto,
-            @SessionAttribute(name = "loginUserId", required = false) String memberId
+            @SessionAttribute(name = "loginUserId", required = false) String memberId,
+            @RequestParam(required = false) Long groupId // [추가] 쿼리 파라미터로 받음
     ) {
         if (memberId == null) memberId = "testuser"; // 테스트용
 
-        ledgerService.addSingleEntry(requestDto, memberId);
+        ledgerService.addSingleEntry(requestDto, memberId, groupId);
 
         return ResponseEntity.ok("Saved successfully");
     }

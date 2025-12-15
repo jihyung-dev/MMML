@@ -30,4 +30,6 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, Long>{
     // (옵션) 그룹장(OWNER)이 누군지 찾을 때
     Optional<GroupMember> findByGroup_IdAndRole(Long groupId, String role);
 
+    // [추가] 그룹에 속한 모든 멤버 삭제
+    void deleteByGroup(BudgetGroup group);
 }
