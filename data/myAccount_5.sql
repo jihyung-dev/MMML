@@ -261,6 +261,13 @@ CREATE TABLE MMML.ORDER_MAIN (
     -- [추가된 컬럼]
                                  seller_id       BIGINT,
 
+                                 recipient_name  VARCHAR(100),
+                                 address_line1   VARCHAR(255),
+                                 address_line2   VARCHAR(255),
+                                 request_message   VARCHAR(255),
+                                 zipcode         VARCHAR(10),
+                                 phone           VARCHAR(20),
+
                                  created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
                                  updated_at      DATETIME DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
 
@@ -269,6 +276,14 @@ CREATE TABLE MMML.ORDER_MAIN (
                                  FOREIGN KEY (seller_id) REFERENCES MMML.SELLER(seller_id), -- FK 설정
                                  UNIQUE KEY UQ_MERCHANT_UID (merchant_uid)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+# ALTER TABLE MMML.ORDER_MAIN ADD COLUMN recipient_name  VARCHAR(100);
+# ALTER TABLE MMML.ORDER_MAIN ADD COLUMN address_line1  VARCHAR(255);
+# ALTER TABLE MMML.ORDER_MAIN ADD COLUMN address_line2  VARCHAR(255);
+# ALTER TABLE MMML.ORDER_MAIN ADD COLUMN request_message  VARCHAR(10);
+# ALTER TABLE MMML.ORDER_MAIN ADD COLUMN zipcode  VARCHAR(10);
+# ALTER TABLE MMML.ORDER_MAIN ADD COLUMN phone  VARCHAR(20);
+
 
 -- === PAYMENT_TRANSACTION (결제 거래 기록) ===
 CREATE TABLE MMML.PAYMENT_TRANSACTION (

@@ -1,3 +1,4 @@
+
 <!-- templates/hotdeal/payment_page.html -->
 <!doctype html>
 <html lang="ko"
@@ -22,15 +23,11 @@
 <div layout:fragment="content" class="container">
 
     <div class="payment-card card shadow-sm">
-        <div class="card-body">
+        <form id="paymentForm" class="card-body">
             <h4 class="card-title mb-3">결제 정보 확인</h4>
 
             <div th:if="${order != null}">
 
-                <input type="hidden" id="orderId" th:value="${order.id}">
-                <input type="hidden" id="merchantUid" th:value="${order.merchantUid}">
-                <input type="hidden" id="amount" th:value="${order.totalAmount}">
-                <input type="hidden" id="buyerId" th:value="${session.loginUser != null ? session.loginUser.memberId : ''}">
 
                 <div class="mb-3">
                     <small class="muted-small">주문번호</small>
@@ -93,7 +90,7 @@
                     </div>
                 </div>
                 <div class="mb-3">
-                    <th:block th:insert="/address/listModal :: addressListModal"></th:block>
+                    <th:block th:insert="/address/default :: default"></th:block>
                 </div>
                 <div class="mb-3">
                     <small class="muted-small">결제 수단</small>
@@ -101,6 +98,12 @@
                         <button id="payBtn" class="btn btn-primary pay-btn">결제하기</button>
                         <button id="modifyBtn" class="btn btn-warning">주문 수정</button>
                         <button id="cancelBtn" class="btn btn-outline-secondary">주문 취소</button>
+                        <input type="hidden" name="orderId" id="orderId" th:value="${order.id}">
+                        <input type="hidden" name="buyerEmail" id="buyerEmail" th:value="${session.loginUser != null ? session.loginUser.email : ''}">
+                        <input type="hidden" name="merchantUid" id="merchantUid" th:value="${order.merchantUid}">
+                        <input type="hidden" name="amount" id="amount" th:value="${order.totalAmount}">
+                        <input type="hidden" name="buyerId" id="buyerId" th:value="${session.loginUser != null ? session.loginUser.memberId : ''}">
+
                     </div>
                 </div>
 
@@ -117,36 +120,38 @@
                 <p class="text-muted">유효한 주문 정보가 없습니다. 다시 시도해 주세요.</p>
                 <a th:href="@{/hotdeal}" class="btn btn-outline-primary">핫딜 목록으로</a>
             </div>
-        </div>
+        </form>
+        <th:block th:insert="/address/listModal :: addressListModal"></th:block>
+        <script src="/js/payment/address.js"></script>
     </div>
 </div>
 
 <!-- 안전한 JS 인라인 사용: th:inline="javascript" -->
 <script th:inline="javascript" layout:fragment="script">
     /*<![CDATA[*/
-    var orderId = /*[[${order.id} ?: 0]]*/ 0;
-    var merchantUid = /*[[${merchantUid} ?: 'order-unknown']]*/ 'order-unknown';
-    var amount = /*[[${amount} ?: 0]]*/ 0;
+    const orderId = /*[[${order.id} ?: 0]]*/ 0;
+    const merchantUid = /*[[${merchantUid} ?: 'order-unknown']]*/ 'order-unknown';
+    const amount = /*[[${amount} ?: 0]]*/ 0;
 
     document.addEventListener('DOMContentLoaded', function () {
-        var payBtn = document.getElementById('payBtn');
-        var cancelBtn = document.getElementById('cancelBtn');
+        const payBtn = document.getElementById('payBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const paymentForm = document.getElementById('paymentForm');
 
 
-        if (payBtn) {
-            payBtn.addEventListener('click', function () {
+        if (paymentForm) {
+            paymentForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const formData=new FormData(paymentForm);
+
+                const jsonData=Object.fromEntries(formData.entries());
+                console.log(jsonData)
 
                 // 💡 1. Hidden Input 필드에서 값 가져오기
-                var orderId = document.getElementById('orderId').value;
-                var merchantUid = document.getElementById('merchantUid').value;
-                var amount = document.getElementById('amount').value;
-                var buyerId = document.getElementById('buyerId').value; //구매자 정보는 hidden 필드에서 가져오기.
-
-
                 if (!confirm('총 ' + amount + '원을 결제하시겠습니까?')) return;
                 // 실제 PG 연동 스크립트로 대체하세요.
                 //window.location.href = /*[[@{/hotdeal/order/success}]]*/ '/hotdeal/order/success';
-                startPayment(orderId, merchantUid, amount, buyerId);
+                startPayment(jsonData);
             });
         }
 
@@ -169,12 +174,12 @@
         }
 
         //주문 수정
-        var modifyBtn = document.getElementById('modifyBtn');
+        const modifyBtn = document.getElementById('modifyBtn');
 
         if (modifyBtn){
             modifyBtn.addEventListener('click', function (){
-                var merchantUid = document.getElementById('merchantUid').value;
-                var orderId = document.getElementById('orderId').value;
+                const merchantUid = document.getElementById('merchantUid').value;
+                const orderId = document.getElementById('orderId').value;
 
                 if (!confirm("주문을 수정하시겠습니까?")) return;
 
