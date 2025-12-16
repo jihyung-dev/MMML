@@ -105,21 +105,28 @@ public class MyContoller {
     }
 
     // ==========================================
-    // ▼ [해결] 작동하지 않던 '더보기' 링크 연결 메서드 추가
+    // [신규] 찜한 핫딜 전체 목록 페이지 이동
     // ==========================================
+    @GetMapping("/wishlist")
+    public String wishlistPage(@SessionAttribute(name = "loginUser", required = false) Member loginUser,
+                               Model model,
+                               @RequestParam(defaultValue = "0") int page) {
+        // 1. 로그인 여부 확인
+        if (loginUser == null) {
+            return "redirect:/login";
+        }
 
-    // 1. 찜한 핫딜 전체 보기 (/mypage/ajax/wishlist)
-    // [수정 후] 이렇게 바꿔주세요!
-    @GetMapping("/wishlist")  // 1. 주소 변경: /mypage/wishlist
-    public String myWishlist(@SessionAttribute("loginUser") Member loginUser,
-                             @RequestParam(defaultValue = "0") int page,
-                             Model model) {
-        String memberId = loginUser.getMemberId();
+        // 2. 페이징 설정 (한 페이지에 보여줄 개수 설정, 예: 12개)
         Pageable pageable = PageRequest.of(page, 12, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<ItemWish> wishPage = itemWishRepository.findByMemberMemberId(memberId, pageable);
+
+        // 3. DB에서 데이터 조회
+        Page<ItemWish> wishPage = itemWishRepository.findByMemberMemberId(loginUser.getMemberId(), pageable);
+
+        // 4. 모델에 데이터 담기
         model.addAttribute("wishPage", wishPage);
 
-        // 2. 파일 경로 변경: templates/user/wishlist.html 을 바라보도록 설정
+        // 5. 뷰 페이지 반환 (templates/user/wishlist.html)
+        // 이 뷰 파일은 마이페이지 레이아웃을 상속받아 왼쪽 내비게이션을 포함해야 합니다.
         return "user/wishlist";
     }
 
