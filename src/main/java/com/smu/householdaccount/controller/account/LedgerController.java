@@ -2,8 +2,11 @@ package com.smu.householdaccount.controller.account;
 
 import com.smu.householdaccount.dto.ledger.LedgerSummaryDto;
 import com.smu.householdaccount.dto.python.ClassifyTransactionResponse;
+import com.smu.householdaccount.entity.account.BudgetGroup;
 import com.smu.householdaccount.entity.account.GroupMember;
+import com.smu.householdaccount.entity.account.GroupProperty;
 import com.smu.householdaccount.repository.account.GroupMemberRepository;
+import com.smu.householdaccount.repository.account.GroupPropertyRepository;
 import com.smu.householdaccount.service.ai.AIService;
 import com.smu.householdaccount.service.account.LedgerService;
 import com.smu.householdaccount.service.common.RedisService;
@@ -28,6 +31,7 @@ public class LedgerController {
     private final RedisService redisService;
 
     private final GroupMemberRepository groupMemberRepository;
+    private final GroupPropertyRepository groupPropertyRepository; // [추가] 속성 조회용
 
     /**
      * 환율 받아오는 API
@@ -119,16 +123,29 @@ public class LedgerController {
             List<GroupMember> groupMembers = groupMemberRepository.findByMember_MemberId(memberId);
 
             for (GroupMember gm : groupMembers) {
-                // 개인 가계부(P)는 제외하고 모임(G)만 사이드바에 표시 (선택 사항)
-                // 만약 모두 표시하려면 if문 제거
-                if (gm.getGroup().getGroupMembers().size() > 0) {
+//                // 수정 전
+//                // 개인 가계부(P)는 제외하고 모임(G)만 사이드바에 표시 (선택 사항)
+//                // 만약 모두 표시하려면 if문 제거
+//                if (gm.getGroup().getGroupMembers().size() > 0) {
+
+                    //수정 후
+                // [수정] 그룹의 속성(Type)을 확인하여 'P'(개인) 타입은 목록에서 제외
+                // (Repository에 findByGroup 메서드가 필요합니다. 아래 참고)
+                BudgetGroup group = gm.getGroup();
+
+                GroupProperty prop = groupPropertyRepository.findByGroup(group).orElse(null);
+
+                // 'P' 타입이 아니거나, 속성이 없는 경우(혹시 모를 예외)에만 목록에 추가
+                if (prop != null && prop.getGroupType() == 'P') {
+                    continue; // 개인 가계부는 패스 (이미 상단 '나의 가계부' 버튼이 있으므로)
+                }
                     Map<String, Object> map = new HashMap<>();
                     map.put("groupId", gm.getGroup().getId());
                     map.put("groupName", gm.getGroup().getGroupName());
                     myGroups.add(map);
                 }
             }
-        }
+
 
         model.addAttribute("myGroups", myGroups);
         model.addAttribute("currentGroupId", groupId);

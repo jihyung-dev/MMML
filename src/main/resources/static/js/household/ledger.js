@@ -82,71 +82,76 @@ function updateMonthlyTotals(data) {
     const container = document.getElementById('categorySummary');
     if (!container || !data || !data.daily) return;
 
-    // daily 데이터를 사용하여 총액 계산
-    const totalIncome = data.daily.reduce((sum, d) => sum + d.income, 0);
-    const totalExpense = data.daily.reduce((sum, d) => sum + d.expense, 0);
+    // [수정] 서버에서 계산된 값을 직접 사용 (없으면 0)
+    const totalIncome = data.totalIncome || 0;
+    const totalExpense = data.totalExpense || 0;
 
     const incomeColor = '#3781d1';
     const expenseColor = '#db6767';
 
+    // 금액 포맷팅 (콤마 추가)
+    const incomeStr = Number(totalIncome).toLocaleString();
+    const expenseStr = Number(totalExpense).toLocaleString();
+
+    // 순수익 (수입 - 지출) 계산
+    const balance = Number(totalIncome) - Number(totalExpense);
+    const balanceColor = balance >= 0 ? '#333' : '#db6767';
+
     container.innerHTML = `
-        <div style="font-weight: bold; padding: 10px 0; border-top: 1px solid #eee;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                <span>수입 소계</span>
-                <span style="color: ${incomeColor}; font-size: 1.1em;">
-                    +${totalIncome.toLocaleString()} 원
+        <div style="font-weight: bold; font-size: 0.95rem;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span class="text-secondary">수입</span>
+                <span style="color: ${incomeColor};">
+                    +${incomeStr} 원
                 </span>
             </div>
-            <div style="display: flex; justify-content: space-between;">
-                <span>지출 소계</span>
-                <span style="color: ${expenseColor}; font-size: 1.1em;">
-                    -${totalExpense.toLocaleString()} 원
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span class="text-secondary">지출</span>
+                <span style="color: ${expenseColor};">
+                    -${expenseStr} 원
+                </span>
+            </div>
+            <div style="display: flex; justify-content: space-between; border-top: 1px dashed #ddd; padding-top: 8px;">
+                <span>합계</span>
+                <span style="color: ${balanceColor}; font-size: 1.1em;">
+                    ${balance.toLocaleString()} 원
                 </span>
             </div>
         </div>
     `;
 }
 
-async function loadLedgerChart({ year, month , dataUpdate = false}) {
-    const key = `${year}-${month}`;
-    // 👉 오늘 기준으로 monthDiff 계산 (0 = 이번달, 1 = 지난달, 2 = 지지난달)
-    const baseYear = currentYear;
-    const baseMonth = currentMonth;
+async function loadLedgerChart({ year, month, dataUpdate = false }) {
+    const currentGroupId = document.getElementById("currentGroupId").value;
+    // [통일] 'personal'로 통일
+    const key = `${year}-${month}-${currentGroupId || 'personal'}`;
 
-    const monthDiff =
-        (baseYear - year) * 12 + (baseMonth - month);
+    // ... (날짜 계산 로직 동일) ...
+    const baseYear = now.getFullYear(); // 전역 변수 now 사용 주의 (필요시 new Date().getFullYear() 권장)
+    const monthDiff = (currentYear - year) * 12 + (currentMonth - month); // 전역 변수 사용
+    const isWithinLast3Months = monthDiff >= 0 && monthDiff <= 2;
 
-    const isWithinLast3Months =
-        monthDiff >= 0 && monthDiff <= 2;
-
-    // 캐시 확인
     let cached = getCache(key);
     if (cached) {
         drawCategoryPieChart(cached.current.categories);
         drawDailyLineChart(cached.current.daily, cached.prev1.daily);
-
-        // [추가 1] 캐시가 있을 때 캘린더 그리기
         if(cached.current.daily) initCalendar(cached.current.daily);
-
         return cached;
     }
 
-    // 캐시 없으면 새로 생성
-    const bundle = await setCache(key, year, month);
+    // [중요] setCache에 groupId 전달
+    const bundle = await setCache(key, year, month, currentGroupId);
 
-    drawCategoryPieChart(bundle.current.categories);
-    drawDailyLineChart(bundle.current.daily, bundle.prev1.daily);
-    // ✅ 예전 달이면 처음 한 번만, 최근 3개월이면 항상
-    if (!isThreeMonthBarChartDrawn || (isWithinLast3Months && dataUpdate)) {
-        await renderFullCategoryChart();
+    if (bundle) {
+        drawCategoryPieChart(bundle.current.categories);
+        drawDailyLineChart(bundle.current.daily, bundle.prev1.daily);
+
+        if (!isThreeMonthBarChartDrawn || (isWithinLast3Months && dataUpdate)) {
+            await renderFullCategoryChart();
+        }
+        if(bundle.current.daily) updateMonthlyTotals(bundle.current);
+        if(bundle.current.daily) initCalendar(bundle.current.daily);
     }
-
-    // [New] 소계 업데이트 // 추가!
-    if(bundle.current.daily) updateMonthlyTotals(bundle.current);
-
-    // [추가 2] 데이터를 새로 가져왔을 때 캘린더 그리기
-    if(bundle.current.daily) initCalendar(bundle.current.daily);
-
     return bundle;
 }
 
@@ -542,10 +547,16 @@ function nextMonth() {
 // ✔ 차트 업데이트 → API 호출 + 화면 렌더링
 // 이번달 데이터 호출 -> 6개월 데이터 호출
 async function updateChart(dataUpdate = false) {
+    showSkeleton(); // 업데이트 시작 시 스켈레톤 표시
     updateMonthLabel();
-    await loadLedgerChart({ year: currentYear, month: currentMonth, dataUpdate: dataUpdate });
-    // ★ [추가] 리스트 테이블 로딩/갱신
-    initDataTable();
+    try {
+        await loadLedgerChart({ year: currentYear, month: currentMonth, dataUpdate: dataUpdate });
+        initDataTable(); // 리스트 테이블 갱신
+    } catch (error) {
+        console.error("차트 업데이트 중 오류 발생:", error);
+    } finally {
+        hideSkeleton(); // 성공하든 실패하든 스켈레톤 숨김
+    }
 }
 
 // 주석처리 확인용 !
@@ -573,42 +584,28 @@ async function openModal(category) {
     const modal = document.getElementById("chartModal");
     modal.classList.add("show");
     modal.style.display = "flex";
-
     modalJustOpened = true;
     setTimeout(() => modalJustOpened = false, 100);
 
-    const key = `${currentYear}-${currentMonth}`;
+    const currentGroupId = document.getElementById("currentGroupId").value;
+    // [통일] 'personal' 사용
+    const key = `${currentYear}-${currentMonth}-${currentGroupId || 'personal'}`;
 
-    // 1) 이번 달 데이터는 ledgerCache 에서 가져오기
+    // ... (이하 로직 기존과 동일: getCategoryFromLedgerCache 등 호출) ...
+    // ... 생략 (이전 답변 코드 참고) ...
+    // 기존 openModal 로직 유지하되 key 생성 부분만 위와 같이 수정하세요.
     const currentMonthAmount = getCategoryFromLedgerCache(key, category);
+    if (currentMonthAmount == null) return;
 
-    if (currentMonthAmount == null) {
-        console.warn("현재 월 캐시에서 카테고리를 찾을 수 없습니다:", category);
-        return;
-    }
-
-    // 2) 3개월 데이터 가져오기 (합계)
     const threeMonthData = await load3MonthData(key);
+    const categories = threeMonthData ? threeMonthData.categories : [];
+    const threeMonthCategory = categories.find(c => c.categoryName === category);
 
-    const threeMonthCategory = threeMonthData.categories.find(
-        c => c.categoryName === category
-    );
+    const avg = threeMonthCategory ? (Number(threeMonthCategory.amount) / 3) : 0;
+    const curr = currentMonthAmount || 0;
 
-    if (!threeMonthCategory) {
-        console.warn("3개월 데이터에 해당 카테고리가 없습니다:", category);
-        return;
-    }
-
-    const avg = Number(threeMonthCategory.amount) / 3;
-
-    // 3) 모달 파이 차트 그리기
-    drawModalComparePieChart(currentMonthAmount, avg, category);
-
-    // 4) 텍스트 표시 업데이트
-    updateModalComparisonView(
-        currentMonthAmount,
-        avg
-    );
+    drawModalComparePieChart(curr, avg, category);
+    updateModalComparisonView(curr, avg);
 }
 
 // 이전 3개월 데이터 호출, 데이터 캐싱
@@ -617,8 +614,15 @@ async function load3MonthData(key) {
         return loaded3MonthCache[key];
     else // 3개월 비교데이터는 단 한개만 캐싱
         loaded3MonthCache = {};
-    // 없으면 fetch 해서 가져오고 저장 후 return
-    const res = await fetch(`/ledger/api/request/userLedger/month?year=${currentYear}&month=${currentMonth}&period=3`);
+
+    const currentGroupId = document.getElementById("currentGroupId").value;
+    const groupParam = currentGroupId ? `&group_Id=${currentGroupId}` : "";
+
+    // 수정 전 코드
+    /*// 없으면 fetch 해서 가져오고 저장 후 return
+    const res = await fetch(`/ledger/api/request/userLedger/month?year=${currentYear}&month=${currentMonth}&period=3`);*/
+    // 수정 후 코드
+    const res = await fetch(`/ledger/api/request/userLedger/month?year=${currentYear}&month=${currentMonth}&period=3${groupParam}`);
     const data = await res.json();
 
     loaded3MonthCache[key] = data;
@@ -628,9 +632,11 @@ async function load3MonthData(key) {
 // 이전 6개월 데이터 호출, 데이터 캐싱, 최초 한번만 호출
 // 2025/12/9 수정 - 데이터 변경 발생 시 다시 호출하는 걸로 변경
 async function load6MonthData() {
+    const currentGroupId = document.getElementById("currentGroupId").value;
+    const groupParam = currentGroupId ? `&group_Id=${currentGroupId}` : "";
+
     // 없으면 fetch 해서 가져오고 저장 후 return
-    const last6 = await fetch(`/ledger/api/request/userLedger/6month?year=${currentYear}&month=${currentMonth}&period=6`);
-    const data = await last6.json();
+    const last6 = await fetch(`/ledger/api/request/userLedger/6month?year=${currentYear}&month=${currentMonth}&period=6${groupParam}`);    const data = await last6.json();
     loaded6MonthCache = data;
 
     console.log("📌 load6MonthData() 결과(last6):", data);
@@ -725,8 +731,8 @@ document.addEventListener("keydown", (e) => {
 // 3. 캐싱 함수 (이벤트 리스너 밖으로 분리)
 // =========================================
 // 3개월간 데이터 캐싱(LRU 방식 사용)
-async function setCache(key, year, month, maxSize = 3) {
-    // 이미 존재하면 최신으로 갱신
+// [수정] 캐시 생성 (groupId 파라미터 추가!)
+async function setCache(key, year, month, groupId, maxSize = 3) {
     if (ledgerCache.has(key)) {
         const old = ledgerCache.get(key);
         ledgerCache.delete(key);
@@ -734,32 +740,43 @@ async function setCache(key, year, month, maxSize = 3) {
         return old;
     }
 
-    // 현재 달 데이터
-    const current = await fetch(`/ledger/api/dashboard-data?year=${year}&month=${month}`)
-        .then(res => res.json());
+    // 그룹 ID 처리
+    const groupParam = groupId ? `&group_Id=${groupId}` : "";
 
-    // 지난달 계산
-    let prev1Year = year;
-    let prev1Month = month - 1;
-    if (prev1Month === 0) {
-        prev1Month = 12;
-        prev1Year--;
+    try {
+        // 현재 달 데이터
+        const currentRes = await fetch(`/ledger/api/dashboard-data?year=${year}&month=${month}${groupParam}`);
+        if (!currentRes.ok) throw new Error("Current month data fetch failed");
+        const current = await currentRes.json();
+
+        // 지난달 계산
+        let prev1Year = year;
+        let prev1Month = month - 1;
+        if (prev1Month === 0) {
+            prev1Month = 12;
+            prev1Year--;
+        }
+
+        // 지난달 데이터
+        const prev1Res = await fetch(`/ledger/api/dashboard-data?year=${prev1Year}&month=${prev1Month}${groupParam}`);
+        if (!prev1Res.ok) throw new Error("Prev month data fetch failed");
+        const prev1 = await prev1Res.json();
+
+        const bundle = { current, prev1 };
+
+        // LRU 저장
+        ledgerCache.set(key, bundle);
+
+        if (ledgerCache.size > maxSize) {
+            const oldestKey = ledgerCache.keys().next().value;
+            ledgerCache.delete(oldestKey);
+        }
+
+        return bundle;
+    } catch (e) {
+        console.error("setCache 오류:", e);
+        return null;
     }
-
-    const prev1 = await fetch(`/ledger/api/dashboard-data?year=${prev1Year}&month=${prev1Month}`)
-        .then(res => res.json());
-
-    const bundle = { current, prev1 };
-
-    // LRU 저장
-    ledgerCache.set(key, bundle);
-
-    if (ledgerCache.size > maxSize) {
-        const oldestKey = ledgerCache.keys().next().value;
-        ledgerCache.delete(oldestKey);
-    }
-
-    return bundle;
 }
 
 function getCache(key) {
@@ -798,8 +815,11 @@ function updateModalComparisonView(curr, avg) {
 
 // 특정 카테고리 금액 가져오기
 function getCategoryFromLedgerCache(key, categoryName) {
+    // 키는 인자로 받아오므로, 호출하는 쪽에서 이미 그룹ID를 붙여서 보내야 함
+    // (openModal에서 이미 수정된 키를 넘겨줌)
+
     const bundle = ledgerCache.get(key);
-    if (!bundle || !bundle.current) return null;
+    if (!bundle || !bundle.current || !bundle.current.categories) return null;
 
     const found = bundle.current.categories.find(
         c => c.categoryName === categoryName
@@ -810,14 +830,18 @@ function getCategoryFromLedgerCache(key, categoryName) {
 
 // 3개월간 데이터 + 이번 달 데이터 합쳐서 리턴
 async function renderFullCategoryChart() {
-    const key = `${currentYear}-${currentMonth}`;
+    const currentGroupId = document.getElementById("currentGroupId").value;
+    // [통일] 'personal' 사용
+    const key = `${currentYear}-${currentMonth}-${currentGroupId || 'personal'}`;
 
     const cache = ledgerCache.get(key);
+    if (!cache || !cache.current || !cache.current.categories) return;
+
     const current = cache.current.categories;
+    const threeMonthData = await load3MonthData(key); // load3MonthData 내부에서도 groupId 처리됨
 
-    const threeMonthData = await load3MonthData(key);
-    const threeMonth = threeMonthData.categories;
-
+    // 안전장치
+    const threeMonth = (threeMonthData && threeMonthData.categories) ? threeMonthData.categories : [];
     const list = buildCategoryComparisonList(current, threeMonth);
 
     drawCategoryComparisonBarChart(list);
@@ -875,33 +899,21 @@ async function exportExcel(mail) {
 
 // 6개월치 데이터 로드
 async function loadTopData() {
-    const last6 = await load6MonthData();  // 6개월 전체 데이터
+    const last6 = await load6MonthData();
 
-    const key = `${currentYear}-${currentMonth}`;
+    const currentGroupId = document.getElementById("currentGroupId").value;
+    // [통일] 'personal' 사용
+    const key = `${currentYear}-${currentMonth}-${currentGroupId || 'personal'}`;
+
     const monthObj = ledgerCache.get(key);
 
-    if (!monthObj || !monthObj.current?.categories) {
-        console.log("이번달 데이터 없음");
+    if (!monthObj || !monthObj.current || !monthObj.current.categories) {
+        updateTop3CardsAndCharts([], [], last6 || []);
         return;
     }
 
-    // 1) 이번달 Top3
     const top3 = getTop3FromCategories(monthObj.current.categories);
-    console.log("Top3:", top3);
-
-    // 2) 카드 + 차트 업데이트
-    updateTop3CardsAndCharts(top3, monthObj.current.categories, last6);
-}
-
-// top3 카테고리의 월, 사용 금액 분류
-function getHistoryForCategory(monthlyList, categoryName) {
-    return monthlyList.map(m => {
-        const match = m.summary.categories.find(c => c.categoryName === categoryName);
-        return {
-            month: m.month,
-            total: match ? Number(match.amount) : 0
-        };
-    });
+    updateTop3CardsAndCharts(top3, monthObj.current.categories, last6 || []);
 }
 
 // top3 카테고리 분류
@@ -930,6 +942,23 @@ function getTop3FromCategories(entries) {
         .slice(0, 3);
 
     return sorted.map(([category]) => category);
+}
+
+// [복구] Top3 카테고리의 월별 이력 추출 (안전장치 포함)
+function getHistoryForCategory(monthlyList, categoryName) {
+    // 배열이 아니거나 데이터가 없으면 빈 배열 반환
+    if (!Array.isArray(monthlyList)) {
+        return [];
+    }
+
+    return monthlyList.map(m => {
+        // summary나 categories가 없을 경우를 대비해 optional chaining (?.) 사용
+        const match = m.summary?.categories?.find(c => c.categoryName === categoryName);
+        return {
+            month: m.month,
+            total: match ? Number(match.amount) : 0
+        };
+    });
 }
 
 function updateTop3CardsAndCharts(top3, thisMonthCategories, last6) {
@@ -1313,57 +1342,55 @@ async function getGroupId() {
 
     return data.hasGroup;
 }
-
+// [수정] 초기 로딩 함수 (중복 제거 및 안전장치 강화)
 async function startDocu() {
-    //수정 전
-    // // 로그인 유저의 Group_id 조회(group_id가 존재하지 않을 경우 등록한 가게부 내역이 하나도 없다는 의미)
-    // const hasGroup = await getGroupId(); // await
-
-    //수정 후
-    // 1. 그룹 ID 체크 (없어도 진행하도록 수정)
-    // getGroupId 함수는 내부적으로 showEmptyState()를 호출하지만,
-    // 여기서는 화면 제어를 startDocu에서 하도록 변경하는 게 좋습니다.
-
-    // 우선 dragElement는 무조건 실행 (파일 업로드는 가능해야 하므로)
-
     dragElement();
 
-    // 2. 현재 URL 파라미터 확인 (groupId가 있는지)
+    // URL 파라미터 체크 및 동기화
     const urlParams = new URLSearchParams(window.location.search);
-    const currentGroupId = urlParams.get('groupId');
+    const groupIdFromUrl = urlParams.get('groupId');
 
+    if (groupIdFromUrl && document.getElementById("currentGroupId").value !== groupIdFromUrl) {
+        document.getElementById("currentGroupId").value = groupIdFromUrl;
+    }
+
+    // 화면 초기화
     showLedgerContent();
     showSkeleton();
     updateMonthLabel();
 
-    // 1) 전체 평균 데이터 먼저 로드
-    globalAvgLedger = await loadGlobalAvgData();
+    try {
+        // 1) 전체 평균 데이터
+        globalAvgLedger = await loadGlobalAvgData();
 
-    // 2) 차트 및 캘린더 로드
-    await loadLedgerChart({ year: currentYear, month: currentMonth });
+        // 2) 차트 및 캘린더 로드
+        await loadLedgerChart({ year: currentYear, month: currentMonth });
 
-    // 3) ★ [추가] 리스트 테이블 로드 (이 한 줄이 없어서 처음에 안 나왔던 것!)
-    initDataTable();
+        // 3) 리스트 테이블 로드
+        initDataTable();
 
-    // 4) 나머지 로직들 (순서 중요)
-    await loadTopData();
-    await loadAllCategoryStats();
-    buildCategorySelectList();
-    initCharts();
-    prepareAgeLabels();
+        // 4) 나머지 로직들
+        await loadTopData();
+        await loadAllCategoryStats();
 
-    initMonthPicker();
+        // ▼▼▼ [여기!] 이 줄을 추가해주세요 ▼▼▼
+        loadHotDealPreview();
 
-    hideSkeleton();
+        buildCategorySelectList();
+        initCharts();
+        prepareAgeLabels();
+        initMonthPicker();
 
-// ★ 확장된 인터랙티브 투어 시작
+    } catch (e) {
+        console.error("초기 데이터 로딩 중 오류:", e);
+    } finally {
+        // ★ 에러가 나든 안 나든 무조건 스켈레톤 끄기
+        hideSkeleton();
+    }
+
     setTimeout(() => {
         startExtendedTour();
-    }, 500); // 화면 렌더링 안정화 대기
-
-/*    // ★ [여기 추가] 온보딩 모달 실행
-    console.log("온보딩 모달 체크 시작..."); // 디버깅용 로그
-    checkAndShowWelcomeModal();*/
+    }, 500);
 }
 /*// 2. 모달 띄우기 함수
 function checkAndShowWelcomeModal() {
@@ -1412,13 +1439,28 @@ window.finishTour = function() {
 }
 
 function startExtendedTour() {
-    // [수정] 이미 투어를 완료했으면 실행하지 않음 (return)
-    if (localStorage.getItem('tour_complete_final_v16') === 'true') {
+    // 투어 안보기 기존 코드
+    // // [수정] 이미 투어를 완료했으면 실행하지 않음 (return)
+    // if (localStorage.getItem('tour_complete_final_v16') === 'true') {
+    //     return;
+    // }
+
+    // 투어 안보기 새로운 코드
+    // 1. 로그인한 사용자 ID 가져오기
+    const userIdInput = document.getElementById('loginUserId');
+    const userId = (userIdInput && userIdInput.value) ? userIdInput.value : 'guest';
+
+    // 2. 유저별 고유 키 생성 (예: tour_done_user123)
+    const tourKey = 'tour_done_' + userId;
+
+    // 3. [체크] 이미 투어를 봤다면 종료 (return)
+    if (localStorage.getItem(tourKey) === 'true') {
         return;
     }
 
     // [추가] 현재 년/월을 기반으로 '현재 달 1일' 날짜 문자열 생성
     const dynamicDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-01`;
+
     // 1. 투어용 CSS 주입
     const styleId = 'driver-custom-style';
     if (!document.getElementById(styleId)) {
@@ -1497,7 +1539,7 @@ function startExtendedTour() {
 
     const driverObj = driver({
         showProgress: false,
-        animate: true,
+        animate: false,
         allowClose: false,
         doneBtnText: '완료',
         nextBtnText: '네, 좋아요! >',
@@ -1513,6 +1555,8 @@ function startExtendedTour() {
             closeBtn.onclick = (e) => {
                 e.stopPropagation();
                 if (confirm('투어를 종료하시겠습니까?')) {
+                    // ★ 닫기 버튼 눌렀을 때도 '봤음' 처리하려면 아래 주석 해제
+                    localStorage.setItem(tourKey, 'true');
                     window.finishTour();
                 }
             };
@@ -1523,6 +1567,30 @@ function startExtendedTour() {
             // [Step 0] ~ [Step 10] (기존 동일)
             {
                 popover: { title: '👋 환영합니다!', description: '가계부의 핵심 기능을<br>빠르게 체험해볼까요?', align: 'center' }
+            },
+            // ✅ [추가됨] 그룹 가계부 안내 (Step 1)
+            {
+                element: '.group-sidebar',
+                popover: {
+                    title: '👥 그룹 가계부 관리',
+                    description: '여기서 내 가계부와 그룹 가계부를<br>자유롭게 오갈 수 있습니다.<br>가족, 친구와 함께 가계부를 써보세요!',
+                    side: "right",
+                    align: 'start'
+            },
+                // 🌟 [핵심 1] 하이라이트 시작될 때 스크롤 고정
+                onHighlightStarted: (element) => {
+                    // 1. Driver.js의 스크롤 동작을 무시하고 즉시 최상단으로 이동
+                    window.scrollTo(0, 0);
+
+                    // 2. 혹시 Driver.js가 뒤늦게 스크롤을 내릴 수 있으므로 0.1초 뒤에 한 번 더 강제 이동
+                    setTimeout(() => {
+                        window.scrollTo({ top: 0, behavior: 'instant' });
+                    }, 100);
+                },
+                // 🌟 [핵심 2] 다음 단계로 넘어가기 직전에도 위치 확인 (선택 사항)
+                onDeselected: () => {
+                    window.scrollTo(0, 0);
+                }
             },
             {
                 element: 'button[onclick="loadLedgerData()"]',
@@ -1773,9 +1841,12 @@ function startExtendedTour() {
             }
         ],
 
+        // [중요] 투어가 끝날 때 (완료/스킵/종료) 실행됨
         onDestroyStarted: () => {
             window.finishTour();
-            localStorage.setItem('tour_complete_final_v16', 'true');
+            // ★ [핵심] 여기서 '유저별 키'로 저장합니다!
+            localStorage.setItem(tourKey, 'true');
+            console.log(`투어 완료 저장됨: ${tourKey} = true`);
         }
     });
 
@@ -1791,14 +1862,22 @@ function startExtendedTour() {
     let ledgerTable = null;
 
 function initDataTable() {
+
+    // [추가] 현재 그룹 ID
+    const currentGroupId = document.getElementById("currentGroupId").value;
+    const groupParam = currentGroupId ? `&group_Id=${currentGroupId}` : "";
+
+    const url = `/ledger/api/transaction-list?year=${currentYear}&month=${currentMonth}${groupParam}`;
+
     if (ledgerTable) {
-        ledgerTable.ajax.url(`/ledger/api/transaction-list?year=${currentYear}&month=${currentMonth}`).load();
+        ledgerTable.ajax.url(url).load(); // URL 업데이트 후 로드
         return;
     }
 
     ledgerTable = $('#ledgerTable').DataTable({
         ajax: {
-            url: `/ledger/api/transaction-list?year=${currentYear}&month=${currentMonth}`,
+            // url: `/ledger/api/transaction-list?year=${currentYear}&month=${currentMonth}`,
+            url: url, // [수정] 그룹 파라미터 포함된 URL
             dataSrc: ''
         },
         // [수정] columns 설정: 너비(%) 고정 및 말줄임표(...) 적용
@@ -2280,8 +2359,17 @@ async function deleteEntry() {
             closeAddEntryModal();
             closeDayListModal();
 
-            const key = `${currentYear}-${currentMonth}`;
+            //수정 전
+            // const key = `${currentYear}-${currentMonth}`;
+            // ledgerCache.delete(key);
+
+            //수정 후
+            // [수정] 올바른 캐시 키 삭제 (그룹ID 포함)
+            const currentGroupId = document.getElementById("currentGroupId").value;
+            // [수정]
+            const key = `${currentYear}-${currentMonth}-${currentGroupId || 'personal'}`;
             ledgerCache.delete(key);
+
             if (`${currentYear}-${currentMonth}` === `${new Date().getFullYear()}-${new Date().getMonth() + 1}`) {
                 // 이번 달 삭제 일 경우 top3까지 수정
                 await updateChartWithTop3();
@@ -2310,12 +2398,16 @@ async function updateChartNoTop3(){
 }
 
 // 4. 저장/삭제 로직 수정 (ID 유무에 따라 POST/PUT/DELETE 분기)
-async function submitNewEntry() {
-    const id = document.getElementById("entryId").value;
-    const url = id ? `/ledger/api/entry/${id}` : '/ledger/api/entry';
-    const method = id ? 'PUT' : 'POST';
+// ledger.js
 
-    // ... 값 가져오기 (기존 코드 동일) ...
+async function submitNewEntry() {
+    // 1. 수정 모드인지 확인하기 위해 ID 가져오기
+    const id = document.getElementById("entryId").value;
+
+    // 2. [필수] 현재 보고 있는 그룹 ID 가져오기 (HTML 히든 인풋에서)
+    const currentGroupId = document.getElementById("currentGroupId").value;
+
+    // 3. 입력값 가져오기
     const dateVal = document.getElementById("inputDate").value;
     const timeVal = document.getElementById("inputTime").value;
     const type = document.getElementById("inputType").value;
@@ -2323,7 +2415,10 @@ async function submitNewEntry() {
     const amount = document.getElementById("inputAmount").value;
     const place = document.getElementById("inputPlace").value;
     const memo = document.getElementById("inputMemo").value;
-    const payType = document.querySelector('input[name="payType"]:checked').value;
+
+    // 라디오 버튼 값 가져오기 (체크된 것)
+    const payTypeEl = document.querySelector('input[name="payType"]:checked');
+    const payType = payTypeEl ? payTypeEl.value : 'CARD'; // 기본값 안전장치
 
     if (!amount || amount <= 0) {
         alert("금액을 정확히 입력해주세요.");
@@ -2346,10 +2441,16 @@ async function submitNewEntry() {
         let url = '/ledger/api/entry';
         let method = 'POST';
 
-        // ★ ID가 있으면 수정 모드!
         if (id) {
+            // [수정 모드] ID가 있으면 URL 뒤에 ID 붙이고 PUT 방식
             url = `/ledger/api/entry/${id}`;
             method = 'PUT';
+        } else {
+            // [생성 모드] ID가 없으면 POST 방식
+            // ★ 핵심 수정: 현재 그룹 ID가 있으면 URL 파라미터로 붙여줌
+            if (currentGroupId) {
+                url += `?groupId=${currentGroupId}`;
+            }
         }
 
         const res = await fetch(url, {
@@ -2357,17 +2458,27 @@ async function submitNewEntry() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-// 성공 시 모달 둘 다 닫고 캐시 삭제 후 차트 갱신
+
+        // 성공 시 처리
         if(res.ok) {
             closeDayListModal();
             closeAddEntryModal();
-            ledgerCache.delete(`${currentYear}-${currentMonth}`);
+
+            //수정 전
+            // 캐시 삭제 및 차트 갱신
+            // ledgerCache.delete(`${currentYear}-${currentMonth}`);
+
+            //수정 후
+            // [수정] 올바른 캐시 키 삭제 (그룹ID 포함)
+            const key = `${currentYear}-${currentMonth}-${currentGroupId || 'default'}`;
+            ledgerCache.delete(key);
+
             if (`${currentYear}-${currentMonth}` === `${new Date().getFullYear()}-${new Date().getMonth() + 1}`) {
-                // 이번 달
                 await updateChartWithTop3();
             } else {
                 await updateChartNoTop3();
             }
+
             // 파이썬 호출(유저 카테고리 저장)
             updateCategory(payload);
 
@@ -2888,22 +2999,30 @@ function normalizeDateTime(dt) {
     return dt.replace('T', ' ').substring(0, 19);
 }
 
-// 차트 데이터가 없을 경우
+// [수정] 차트 데이터가 없을 경우 (안전장치 추가)
 function showChartEmpty(chartId) {
     const chart = document.getElementById(chartId);
-    const empty = chart.parentElement.querySelector(".chart-empty");
+    if (!chart) return; // 요소가 없으면 중단
 
-    chart.style.display = "none";
-    empty.style.display = "flex";
+    // 부모 요소 찾기 (closest 사용 권장)
+    const wrapper = chart.closest('.chart-wrapper') || chart.parentElement;
+    const empty = wrapper ? wrapper.querySelector(".chart-empty") : null;
+
+    if (chart) chart.style.display = "none";
+    if (empty) empty.style.display = "flex";
 }
 
-// 차트 데이터가 있을 경우
+// [수정] 차트 데이터가 있을 경우 (안전장치 추가)
 function showChart(chartId) {
     const chart = document.getElementById(chartId);
-    const empty = chart.parentElement.querySelector(".chart-empty");
+    if (!chart) return; // 요소가 없으면 중단
 
-    empty.style.display = "none";
-    chart.style.display = "block";
+    // 부모 요소 찾기
+    const wrapper = chart.closest('.chart-wrapper') || chart.parentElement;
+    const empty = wrapper ? wrapper.querySelector(".chart-empty") : null;
+
+    if (empty) empty.style.display = "none";
+    if (chart) chart.style.display = "block";
 }
 
 // top3 empty 관리
@@ -3245,3 +3364,160 @@ document.addEventListener("click", (e) => {
         }
     }
 });
+
+// =========================================
+// [New] 플로팅 가이드 위젯 로직
+// =========================================
+
+// 1. 위젯 토글 (열기/닫기)
+function toggleTourWidget() {
+    const widget = document.getElementById("tourWidget");
+    const icon = document.getElementById("widgetToggleIcon");
+
+    if (widget.classList.contains("expanded")) {
+        // 닫기 (쏙 들어가기)
+        widget.classList.remove("expanded");
+        icon.innerText = "▲"; // 올리는 화살표
+    } else {
+        // 열기 (뾱 올라오기)
+        widget.classList.add("expanded");
+        icon.innerText = "▼"; // 내리는 화살표
+    }
+}
+
+// 2. 페이지 로드 후 '깜짝' 등장 효과 (선택사항)
+// 사용자가 기능을 모를까봐 처음에 한 번 쓱 올려서 보여줍니다.
+setTimeout(() => {
+    // 투어를 안 본 사람 혹은 투어가 끝난 상태라면 위젯을 살짝 보여줌
+    const widget = document.getElementById("tourWidget");
+    if(widget) {
+        widget.classList.add("expanded");
+        document.getElementById("widgetToggleIcon").innerText = "▼";
+
+        // 5초 뒤에 다시 쏙 들어감 (자동 숨김)
+        setTimeout(() => {
+            toggleTourWidget();
+        }, 1350);
+    }
+}, 2000); // 2초 뒤 실행
+
+// [수정] 투어 다시보기 (완벽 초기화 후 실행)
+function restartTour() {
+    // 위젯 닫기
+    toggleTourWidget();
+
+    const userIdInput = document.getElementById('loginUserId');
+    const userId = (userIdInput && userIdInput.value) ? userIdInput.value : 'guest';
+    const tourKey = 'tour_done_' + userId;
+
+    // 1. '봤음' 기록 삭제
+    localStorage.removeItem(tourKey);
+
+    // 2. [핵심] 기존 드라이버 인스턴스 및 잔여 요소 강제 정리
+    if (window.driverObjInstance) {
+        window.driverObjInstance.destroy();
+        window.driverObjInstance = null;
+    }
+    // 혹시 모를 잔여물 제거 (오버레이, 팝업 등)
+    document.querySelectorAll('.driver-overlay, .driver-popover').forEach(el => el.remove());
+    document.body.classList.remove('driver-active');
+
+    // 3. 약간의 딜레이 후 투어 시작 (DOM 정리 시간 확보)
+    setTimeout(() => {
+        startExtendedTour();
+    }, 100);
+}
+
+// =========================================
+// [New] 그룹 삭제 로직
+// =========================================
+
+async function deleteCurrentGroup() {
+    const groupId = document.getElementById("currentGroupId").value;
+
+    if (!groupId) {
+        alert("개인 가계부는 삭제할 수 없습니다.");
+        return;
+    }
+
+    if (!confirm("정말 이 그룹을 삭제하시겠습니까?\n모든 내역과 멤버 정보가 사라지며 복구할 수 없습니다.")) {
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/group/${groupId}`, {
+            method: "DELETE"
+        });
+
+        const msg = await res.text();
+
+        if (res.ok) {
+            alert("그룹이 삭제되었습니다.");
+            // 삭제 후 '나의 가계부(기본)'로 이동
+            window.location.href = "/ledger";
+        } else {
+            alert("삭제 실패: " + msg);
+        }
+    } catch (e) {
+        console.error(e);
+        alert("오류가 발생했습니다.");
+    }
+}
+
+// =========================================
+// [New] 찜한 핫딜 미리보기 로직
+// =========================================
+async function loadHotDealPreview() {
+    const listEl = document.getElementById("hotDealPreviewList");
+    // HTML에 해당 ID가 없으면 중단 (에러 방지)
+    if (!listEl) return;
+
+    try {
+        // ★ 백엔드 컨트롤러 주소 호출 (/hotdeal/wishlist/preview)
+        const res = await fetch(`/hotdeal/ajax/wishlist/preview`);
+
+        if (!res.ok) throw new Error("핫딜 로딩 실패");
+
+        const data = await res.json(); // 데이터는 배열 형태 [ {title, price, link}, ... ]
+
+        listEl.innerHTML = ""; // 기존 '로딩 중...' 문구 제거
+
+        // 데이터가 없을 때 표시
+        if (!data || data.length === 0) {
+            listEl.innerHTML = '<li class="text-center text-muted small py-3">찜한 상품이 없습니다.</li>';
+            return;
+        }
+
+        // 데이터가 있으면 리스트 생성 (최대 3개)
+        data.slice(0, 3).forEach(item => {
+            const li = document.createElement("li");
+            li.className = "bookmark-item"; // 기존 사이드바 스타일 재사용
+
+            // 클릭 시 해당 상품 상세 페이지로 이동
+            li.innerHTML = `
+                <a href="${item.link}" class="d-flex align-items-center py-2" style="font-size: 0.9rem; text-decoration: none; color: inherit;">
+                    <span class="icon" style="font-size: 1.2rem; margin-right: 10px;">🎁</span>
+                    <div class="d-flex flex-column overflow-hidden" style="flex: 1;">
+                        <span class="fw-bold text-ellipsis" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;">
+                            ${item.title}
+                        </span>
+                        <span class="text-danger small fw-bold">
+                            ${Number(item.price).toLocaleString()}원
+                        </span>
+                    </div>
+                </a>
+            `;
+            listEl.appendChild(li);
+        });
+
+    } catch (e) {
+        console.error("핫딜 미리보기 로드 중 오류:", e);
+        listEl.innerHTML = '<li class="text-center text-danger small py-3">로딩 실패</li>';
+    }
+}
+
+// [추가] 더보기 버튼 클릭 시 이동할 함수 (HTML onclick="openHotDealModal()"에 대응)
+function openHotDealModal() {
+    // 찜한 목록 전체 페이지로 이동
+    window.location.href = "/mypage/ajax/wishlist";
+}

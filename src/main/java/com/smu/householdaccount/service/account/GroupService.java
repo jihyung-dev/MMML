@@ -9,6 +9,7 @@ import com.smu.householdaccount.entity.common.Member;
 import com.smu.householdaccount.repository.account.BudgetGroupRepository;
 import com.smu.householdaccount.repository.account.GroupMemberRepository;
 import com.smu.householdaccount.repository.account.GroupPropertyRepository;
+import com.smu.householdaccount.repository.account.LedgerRepository;
 import com.smu.householdaccount.repository.common.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,9 @@ public class GroupService {
     private final BudgetGroupRepository budgetGroupRepository;
 
     private final GroupPropertyRepository groupPropertyRepository; // [추가] 필드 주입 필요
+
+    // [추가] 내역 삭제를 위해 필요
+    private final LedgerRepository ledgerRepository;
 
     /**
      * 1. 그룹 멤버 목록 조회
@@ -170,5 +174,44 @@ public class GroupService {
         // 이름 변경
         group.setGroupName(newName);
         // (JPA 변경 감지에 의해 자동 저장됨)
+    }
+
+    /**
+     * 6. 그룹 삭제
+     */
+    @Transactional
+    public void deleteGroup(Long groupId, String requesterId) {
+        // 1. 그룹 조회
+        BudgetGroup group = budgetGroupRepository.findById(groupId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 그룹입니다."));
+
+        // 2. 권한 확인 (방장만 가능)
+        if (!group.getOwner().getMemberId().equals(requesterId)) {
+            throw new IllegalStateException("그룹장만 그룹을 삭제할 수 있습니다.");
+        }
+
+        // 3. 개인 가계부인지 확인
+        GroupProperty prop = groupPropertyRepository.findByGroup(group).orElse(null);
+        if (prop != null && prop.getGroupType() == 'P') {
+            throw new IllegalStateException("개인 가계부는 삭제할 수 없습니다.");
+        }
+
+        // =================================================
+        // ★ [핵심] 자식 데이터 먼저 삭제 (순서 중요!)
+        // =================================================
+
+        // 4-1. 가계부 내역(LedgerEntry) 삭제
+        ledgerRepository.deleteByGroupId(group);
+
+        // 4-2. 그룹 속성(GroupProperty) 삭제
+        if (prop != null) {
+            groupPropertyRepository.delete(prop);
+        }
+
+        // 4-3. 그룹 멤버(GroupMember) 삭제
+        groupMemberRepository.deleteByGroup(group);
+
+        // 5. 마지막으로 그룹 본체(BudgetGroup) 삭제
+        budgetGroupRepository.delete(group);
     }
 }

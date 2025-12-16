@@ -1,11 +1,19 @@
 package com.smu.householdaccount.service.common;
 
+import com.smu.householdaccount.entity.account.BudgetGroup;
+import com.smu.householdaccount.entity.account.GroupMember;
+import com.smu.householdaccount.entity.account.GroupProperty;
 import com.smu.householdaccount.entity.common.Member;
+import com.smu.householdaccount.repository.account.BudgetGroupRepository;
+import com.smu.householdaccount.repository.account.GroupMemberRepository;
+import com.smu.householdaccount.repository.account.GroupPropertyRepository;
 import com.smu.householdaccount.repository.common.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -16,6 +24,11 @@ public class MemberServiceImp implements MemberService {
 
     // 간단하게 new 로 사용 (나중에 Bean 주입 방식으로 바꿔도 됨)
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+    // [추가] 가계부 생성을 위한 레포지토리들 주입
+    private final BudgetGroupRepository budgetGroupRepository;
+    private final GroupPropertyRepository groupPropertyRepository;
+    private final GroupMemberRepository groupMemberRepository;
 
     @Override
     public Member updateMemberInfo(String memberId, String memberName, String currentpw, String newpw, String newpw2, String phone, String address) {
@@ -52,19 +65,49 @@ public class MemberServiceImp implements MemberService {
     @Override
     public Member registerUser(Member member) {
 
-        // 비밀번호 암호화
+        // 1. 비밀번호 암호화
         String encodedPw = passwordEncoder.encode(member.getPassword());
         member.setPassword(encodedPw);
 
-        // 기본 권한 설정
+        // 2. 권한 설정
         if (member.getRole() == null || member.getRole().isBlank()) {
             member.setRole("GENERAL");
         }
 
+        // 3. 회원 저장
+        Member savedMember = memberRepository.save(member);
+
+        // ★ [핵심] 개인 가계부 자동 생성 호출! (이 부분이 누락되었었습니다)
+        createPersonalLedger(savedMember);
+
         // enabled, createdAt 은 @PrePersist 에서 처리
-        return memberRepository.save(member);
+        return savedMember;
     }
 
+    // [추가] 개인 가계부 생성 메서드
+    private void createPersonalLedger(Member member) {
+        // 1) 그룹 본체 생성
+        BudgetGroup group = new BudgetGroup();
+        group.setGroupName(member.getMemberName() + "님의 개인 가계부");
+        group.setOwner(member);
+        group.setCreatedAt(LocalDateTime.now());
+        budgetGroupRepository.save(group);
+
+        // 2) 그룹 속성(Property) 생성 -> 타입 'P'
+        GroupProperty property = new GroupProperty();
+        property.setGroup(group);
+        property.setGroupType('P'); // Personal
+        // property.setCreatedAt(Instant.now()); // 필요 시 주석 해제
+        groupPropertyRepository.save(property);
+
+        // 3) 멤버(OWNER)로 등록
+        GroupMember groupMember = new GroupMember();
+        groupMember.setGroup(group);
+        groupMember.setMember(member);
+        groupMember.setRole("OWNER");
+        groupMember.setCreatedAt(LocalDateTime.now());
+        groupMemberRepository.save(groupMember);
+    }
     /**
      * 로그인
      */
