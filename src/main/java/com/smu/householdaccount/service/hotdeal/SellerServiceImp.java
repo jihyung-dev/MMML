@@ -6,6 +6,7 @@ import com.smu.householdaccount.entity.hotdeal.*;
 import com.smu.householdaccount.repository.account.CategoryRepository;
 import com.smu.householdaccount.repository.hotdeal.*;
 import com.smu.householdaccount.service.common.S3Service;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,6 +31,7 @@ public class SellerServiceImp implements SellerService {
     private final CategoryRepository categoryRepository;
     private final ItemDetailImageRepository itemDetailImageRepository;
     private final S3Service s3Service;
+    private final EntityManager em;
 
     /**
      * 판매자 페이지에서 주문 받은 내역 조회
@@ -134,9 +136,9 @@ public class SellerServiceImp implements SellerService {
     @Transactional
     public void modifyItem(SellerItemNewBean bean,Long itemId) throws IOException {
         // 2) 수정 대상 상품 조회
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("상품을 찾을 수 없습니다."));
-
+//        Item item = itemRepository.findById(itemId)
+//                .orElseThrow(() -> new RuntimeException("상품을 찾을 수 없습니다."));
+        Item item=em.find(Item.class,itemId);
         // 5) 판매 기간(LocalDate → LocalDateTime)
         LocalDateTime saleStartAt = null;
         if (bean.getSaleStartDate() != null) {
@@ -149,9 +151,6 @@ public class SellerServiceImp implements SellerService {
             saleEndAt = bean.getSaleEndDate().atStartOfDay();
         }
 
-        // 6) 카테고리 조회
-        Category category = categoryRepository.findById(bean.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 카테고리입니다."));
 
         // 7) 대표 이미지 URL 처리
         String itemImageUrl = bean.getItemImageUrl();    // 폼에서 온 URL (수정 폼에서는 보통 null)
@@ -166,28 +165,29 @@ public class SellerServiceImp implements SellerService {
                 itemImageUrl = item.getItemImageUrl();
             }
         }
-
+        System.out.println(item);
         // 8) 기본 상품 정보 갱신
         item.setItemName(bean.getItemName());
         item.setOriginalPrice(bean.getOriginalPrice());
         item.setItemSaleprice(bean.getItemSaleprice());
         item.setCategoryId(bean.getCategoryId());
-        item.setCategory(category);
         item.setItemImageUrl(itemImageUrl);
         item.setSaleStartAt(saleStartAt);
         item.setSaleEndAt(saleEndAt);
         // item.setSaleStatus(...); // 필요하면 상태 변경도 여기서 처리
-
-        itemRepository.save(item);
+        System.out.println(bean);
+        System.out.println(item);
+//        item=itemRepository.save(item);
+//        em.persist(item);
+        itemRepository.update(item);
 
         // =================================================
         // 9) 옵션 전체 재설정
         //    - 기존 옵션들 삭제 후, 폼에서 넘어온 값 기준으로 다시 저장
         // =================================================
         // 9-1) 기존 옵션 삭제
-        List<HotdealOption> existingOptions = hotdealOptionRepository.findByItemId(item.getId());
 //        hotdealOptionRepository.deleteAll(existingOptions); // ⭐ 전체 삭제 후 재등록
-        if(existingOptions!=null && !existingOptions.isEmpty()){
+        if(item.getHotdealOptions()!=null && !item.getHotdealOptions().isEmpty()){
             hotdealOptionRepository.deleteAllByItemId(item.getId());
         }
         // 9-2) 신규 옵션 저장 (등록 로직과 동일)
@@ -244,9 +244,8 @@ public class SellerServiceImp implements SellerService {
 
         if (hasNewDetailImages) {
             // 기존 이미지 전체 삭제
-            List<ItemDetailImage> oldImages = itemDetailImageRepository.findByItemId(item.getId());
 //            itemDetailImageRepository.deleteAll(oldImages);
-            if(oldImages!=null && !oldImages.isEmpty()){
+            if(item.getImages()!=null && !item.getImages().isEmpty()){
                 itemDetailImageRepository.deleteAllByItemId(item.getId());
             }
 
@@ -262,6 +261,7 @@ public class SellerServiceImp implements SellerService {
                 img.setDisplayOrder((long) i);
                 itemDetailImageRepository.save(img);
             }
+
         }
 
     }
