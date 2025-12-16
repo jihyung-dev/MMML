@@ -1,6 +1,7 @@
 package com.smu.householdaccount.entity.hotdeal;
 
 import com.smu.householdaccount.entity.common.Member;
+import com.smu.householdaccount.entity.common.MemberAddress;
 import jakarta.persistence.*;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
@@ -82,4 +83,22 @@ public class  OrderMain {
 
     @Column(name = "MERCHANT_UID")
     private String merchantUid;
+    @Size(max = 100)
+    @Column(name = "recipient_name", length = 100)
+    private String recipientName;
+    @Size(max = 255)
+    @Column(name = "address_line1")
+    private String addressLine1;
+    @Size(max = 255)
+    @Column(name = "address_line2")
+    private String addressLine2;
+    @Size(max = 10)
+    @Column(name = "request_message", length = 10)
+    private String requestMessage;
+    @Size(max = 10)
+    @Column(name = "zipcode", length = 10)
+    private String zipcode;
+    @Size(max = 20)
+    @Column(name = "phone", length = 20)
+    private String phone;
 }

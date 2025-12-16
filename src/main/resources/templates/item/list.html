@@ -13,37 +13,6 @@
 <body>
 
 <div layout:fragment="content">
-<!--    기존 main -->
-    <!-- 마이페이지 버튼 -->
-
-    <!--<div class="d-flex flex-wrap align-items-center gap-2 justify-content-end">
-        <a th:href="@{/mypage}" class="btn btn-outline-secondary btn-sm" role="button" aria-label="마이페이지">
-                &lt;!&ndash;└ 링크수정필요 &ndash;&gt;
-            마이페이지
-        </a>
-    </div>-->
-
-<!-- Feature Cards -->
-<!--<div class="container py-5">
-    <div class="row g-2 text-center">
-
-        <div class="col-md-4">
-            <a href="/board" class="text-decoration-none fs-6 fw-bold d-block py-2 menu-link">
-                게시판
-            </a>
-        </div>
-        <div class="col-md-4">
-            <a href="/ledger" class="text-decoration-none fs-6 fw-bold d-block py-2 menu-link">
-                가계부
-            </a>
-        </div>
-        <div class="col-md-4">
-            <a href="/hotdeal" class="text-decoration-none fs-5 fw-bold d-block py-2 menu-link active">
-                핫딜
-            </a>
-        </div>
-    </div>
-</div>-->
 
 <!--    main 내용, 로그인관련으로 유추중 -->
 <!--     🔹 판매자 등록 / 판매자 상세 / 로그인 후 유도 버튼-->
@@ -134,27 +103,27 @@
 
 
     <!-- 정렬(드롭다운) -->
-<!-- 서버로는 ?sort=NEWEST, PRICE_ASC, PRICE_DESC, POPULAR 등으로 전달 -->
-<div class="dropdown d-flex justify-content-end">
-    <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="sortDropdown"
-            data-bs-toggle="dropdown" aria-expanded="false">
-        정렬: <span th:text="${currentSortLabel != null ? currentSortLabel : '최신순'}">최신순</span>
-    </button>
-    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="sortDropdown">
-        <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='createdAt,desc')}">최신순</a></li>
-        <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='price,asc')}">낮은 가격</a></li>
-        <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='price,desc')}">높은 가격</a></li>
-        <!-- 수정필요                <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='createdAt,desc')}">인기도</a></li>-->
+    <div class="dropdown d-flex justify-content-end" id="sortDropdownWrap">
+        <button class="btn btn-light btn-sm dropdown-toggle" type="button" id="sortDropdown"
+                data-bs-toggle="dropdown" aria-expanded="false">
+            정렬:
+            <!-- 서버에서 currentSortLabel 넘겨주면 우선 사용, 아니면 param.sort 또는 JS가 채움 -->
+            <span th:text="${currentSortLabel != null ? currentSortLabel : '최신순'}"
+                  id="sortDropdownLabel">최신순</span>
+        </button>
 
-        <!-- 인기도 추가 -->
-        <li>
-            <a class="dropdown-item"
-               th:href="@{/hotdeal(page=0, sort='popularityScore,desc', categoryId=${param.categoryId}, q=${param.q}, minPrice=${param.minPrice}, maxPrice=${param.maxPrice}, status=${param.status})}">
-                인기도순
-            </a>
-        </li>
-    </ul>
-</div>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="sortDropdown" id="sortDropdownMenu">
+            <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='createdAt,desc')}">최신순</a></li>
+            <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='itemSaleprice,asc')}">낮은 가격</a></li>
+            <li><a class="dropdown-item" th:href="@{'?'(page=0,sort='itemSaleprice,desc')}">높은 가격</a></li>
+            <li>
+                <a class="dropdown-item"
+                   th:href="@{/hotdeal(page=0, sort='popularityScore,desc', categoryId=${param.categoryId}, q=${param.q}, minPrice=${param.minPrice}, maxPrice=${param.maxPrice}, status=${param.status})}">
+                    인기도순
+                </a>
+            </li>
+        </ul>
+    </div>
 
     <div  class="d-flex justify-content-end py-2">
         <small th:text="'총 ' + ${itemPage.totalElements} + '개'">총 0개</small>
@@ -205,19 +174,26 @@
     </div>
 
 
-<!-- 페이지네이션 -->
-<div th:with="page=${itemPage.number}, last=${itemPage.totalPages}, sort=${itemPage.sort}, size=${param.size}" class="my-4 d-flex justify-content-center">
+<div th:if="${itemPage.totalElements == 0}" class="text-center my-4">
+    <p class="mb-1">검색 결과가 없습니다.</p>
+    <small class="text-muted">검색어를 바꿔보거나 필터를 초기화 하세요.</small>
+</div>
+
+<!-- 페이지네이션 (항상 하나 이상의 페이지번호 보이기) -->
+<div th:with="page=${itemPage.number}, last=${itemPage.totalPages > 0 ? itemPage.totalPages : 1}, sort=${itemPage.sort}, size=${param.size}" class="my-4 d-flex justify-content-center">
     <nav>
         <ul class="pagination">
-            <li class="page-item" th:classappend="(${itemPage}==0 ? 'disabled')">
+            <li class="page-item" th:classappend="${page == 0} ? 'disabled'">
                 <a class="page-link" th:href="@{'?'(page=0, size=${size})}">≪</a>
             </li>
+
             <li class="page-item" th:each="i : ${#numbers.sequence(1, last)}"
-                th:classappend="((${i}-1) == ${page}?'active')">
-                <a class="page-link" th:href="@{'?'(page=${i}-1, size=${size})}" th:text="${i}"></a>
+                th:classappend="${(i-1) == page} ? 'active'">
+                <a class="page-link" th:href="@{'?'(page=${i}-1, size=${size})}" th:text="${i}">1</a>
             </li>
-            <li class="page-item" th:classappend="(${page} == (${last}-1) ? 'disabled')">
-                <a class="page-link" th:href="@{'?'(page=${last}-1, size=${size})}">≫</a>
+
+            <li class="page-item" th:classappend="${page == (last - 1)} ? 'disabled'">
+                <a class="page-link" th:href="@{'?'(page=${last-1}, size=${size})}">≫</a>
             </li>
         </ul>
     </nav>
@@ -264,6 +240,69 @@
             .catch(error => console.error("Error:", error));
     }
 
+        (function(){ //정렬 키워드 바뀌는 js
+            // 1) 콘솔에 JS 에러 있는지 먼저 확인 (디버그용 로그)
+            try {
+                // 2) URL에서 sort 파라미터 읽기
+                function getParam(name) {
+                    const url = new URL(window.location.href);
+                    return url.searchParams.get(name);
+                }
+                const sortParam = getParam('sort');
+
+                // 3) 레이블 선택 로직 (서버가 넘긴 값이 없을 때 클라이언트에서 채움)
+                const labelEl = document.getElementById('sortDropdownLabel');
+                if (labelEl) {
+                    if (!labelEl.textContent || labelEl.textContent.trim() === '' || labelEl.textContent.trim() === '최신순') {
+                        // only override if server didn't explicitly set another label
+                        if (sortParam && sortParam.includes('itemSaleprice,asc')) labelEl.textContent = '낮은 가격';
+                        else if (sortParam && sortParam.includes('itemSaleprice,desc')) labelEl.textContent = '높은 가격';
+                        else if (sortParam && sortParam.includes('popularityScore,desc')) labelEl.textContent = '인기도순';
+                        else labelEl.textContent = '최신순';
+                    }
+                }
+
+                // 4) Bootstrap JS가 로드되어 있지 않다면 간단한 폴백으로 드롭다운 동작 제공
+                var dropdownToggle = document.getElementById('sortDropdown');
+                var dropdownMenu = document.getElementById('sortDropdownMenu');
+                if (dropdownToggle && dropdownMenu) {
+                    var bootstrapLoaded = (typeof bootstrap !== 'undefined') && bootstrap.Dropdown;
+                    if (!bootstrapLoaded) {
+                        // 폴백 토글 (간단 구현)
+                        dropdownToggle.addEventListener('click', function(e){
+                            e.stopPropagation();
+                            var isShown = dropdownMenu.classList.contains('show');
+                            if (isShown) {
+                                dropdownMenu.classList.remove('show');
+                                dropdownToggle.setAttribute('aria-expanded', 'false');
+                            } else {
+                                dropdownMenu.classList.add('show');
+                                dropdownToggle.setAttribute('aria-expanded', 'true');
+                            }
+                        });
+                        // 바깥 클릭 시 닫기
+                        document.addEventListener('click', function(){
+                            if (dropdownMenu.classList.contains('show')) {
+                                dropdownMenu.classList.remove('show');
+                                dropdownToggle.setAttribute('aria-expanded','false');
+                            }
+                        });
+                        // ESC로 닫기
+                        document.addEventListener('keydown', function(e){
+                            if (e.key === 'Escape' && dropdownMenu.classList.contains('show')) {
+                                dropdownMenu.classList.remove('show');
+                                dropdownToggle.setAttribute('aria-expanded','false');
+                            }
+                        });
+                    } else {
+                        // Bootstrap이 있다면, JS 에러가 없는지 확인 (개발자 콘솔 권장)
+                        // (Bootstrap이 자동으로 작동하므로 추가 설정 불필요)
+                    }
+                }
+            } catch (err) {
+                console.error('sort dropdown script error:', err);
+            }
+        })();
 
 </script>
 

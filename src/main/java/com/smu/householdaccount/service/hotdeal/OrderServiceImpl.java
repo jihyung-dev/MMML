@@ -49,7 +49,7 @@ public class OrderServiceImpl implements OrderService{
 
 
         //2. OrderMain 생성
-        String merchantUid = "order-" + UUID.randomUUID();
+        String merchantUid = UUID.randomUUID()+"";
         OrderMain order = new OrderMain();
         order.setMerchantUid(merchantUid);
 
@@ -89,22 +89,23 @@ public class OrderServiceImpl implements OrderService{
             throw new IllegalArgumentException("삭제된 아이템 옵션 입니다.");
         }
 
-        // --- 성능 개선: 모든 itemId를 모아서 한 번에 Item들을 조회 ---
-        Set<Long> itemIds = options.stream()
-                .map(HotdealOption::getItemId)
-                .collect(Collectors.toSet());
-
-        List<Item> items = itemRepository.findAllById(itemIds); // 한 번에 조회
-        Map<Long, Item> itemMap = items.stream()
-                .collect(Collectors.toMap(Item::getId, Function.identity()));
-
-        // 검사: 모든 option의 item이 존재하는지 확인
-        for (HotdealOption option : options) {
-            if (!itemMap.containsKey(option.getItemId())) {
-                throw new IllegalStateException("옵션에 연결된 상품이 없습니다. itemId=" + option.getItemId());
-            }
-        }
-
+//        // --- 성능 개선: 모든 itemId를 모아서 한 번에 Item들을 조회 ---
+//        Set<Long> itemIds = options.stream()
+//                .map(HotdealOption::getItemId)
+//                .collect(Collectors.toSet());
+//
+//
+//        List<Item> items = itemRepository.findAllById(itemIds); // 한 번에 조회
+//        Map<Long, Item> itemMap = items.stream()
+//                .collect(Collectors.toMap(Item::getId, Function.identity()));
+//
+//        // 검사: 모든 option의 item이 존재하는지 확인
+//        for (HotdealOption option : options) {
+//            if (!itemMap.containsKey(option.getItemId())) {
+//                throw new IllegalStateException("옵션에 연결된 상품이 없습니다. itemId=" + option.getItemId());
+//            }
+//        }
+        Item item=itemRepository.findById(hotdealOrderBean.getItemId()).orElseThrow();
         // 주문아이템 생성 및 총액 계산
         List<OrderItem> orderItems = new ArrayList<>();
         long totalAmount = 0L;
@@ -113,7 +114,7 @@ public class OrderServiceImpl implements OrderService{
             HotdealOption option = options.get(i);
             long additionalPrice = option.getAdditionalPrice() != null ? option.getAdditionalPrice().longValue() : 0L;
             long quantity = hotdealOrderBean.getQuantity().get(i); // 가정: quantity 리스트 길이 == options 길이
-            long salePrice = itemMap.get(option.getItemId()).getItemSaleprice().longValue();
+            long salePrice = item.getItemSaleprice().longValue();
 
             long amount = (additionalPrice + salePrice) * quantity;
             totalAmount += amount;
@@ -123,14 +124,11 @@ public class OrderServiceImpl implements OrderService{
 
 
             // 반드시 item 엔티티를 세팅해서 템플릿에서 oi.item.itemName을 바로 사용할 수 있게 함
-            Item item = itemMap.get(option.getItemId());
             orderItem.setItem(item);
-            orderItem.setOption(option);
-
+            orderItem.setOptionId(option.getId());
             orderItem.setItemId(option.getItemId());
             orderItem.setQty(hotdealOrderBean.getQuantity().get(i));
             orderItem.setPrice(BigDecimal.valueOf(amount));
-
             orderItems.add(orderItem);
         }
 
@@ -140,13 +138,16 @@ public class OrderServiceImpl implements OrderService{
         orderMain.setTotalAmount(totalAmount);
         orderMain.setSellerId(hotdealOrderBean.getSellerId());
         orderMain.setOrderStatus("PENDING");
-        orderMain.setMerchantUid("order-" + UUID.randomUUID());
+        orderMain.setMerchantUid(UUID.randomUUID()+"");
         orderMain = orderMainRepository.save(orderMain);
 
         // OrderItem에 주문 설정 (양방향 설정)
         for (OrderItem orderItem : orderItems) {
             orderItem.setOrder(orderMain); // order.setOrder(...) 내부에서 orderId도 세팅됨
+            orderItem.setOrderId(orderMain.getId());
+
         }
+
 
         orderItemRepository.saveAll(orderItems);
 

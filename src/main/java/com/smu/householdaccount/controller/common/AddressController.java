@@ -13,35 +13,63 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import javax.swing.text.html.Option;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/address")
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class AddressController {
+
     private final AddressService addressService;
+
     @GetMapping
     public ResponseEntity<List<MemberAddress>> getAddress(
             @SessionAttribute(value = "loginUser",required = false) Member loginUser
     ){
         if(loginUser==null) return ResponseEntity.badRequest().build();
+
         List<MemberAddress> memberAddressList=addressService.getAddressesByMemberId(loginUser.getMemberId());
+
         return ResponseEntity.ok(memberAddressList);
     }
+
+
     @GetMapping("/default")
     public ResponseEntity<MemberAddress> getDefaultAddress(
             @SessionAttribute(value = "loginUser",required = false) Member loginUser
     ){
+
         if(loginUser==null) return ResponseEntity.badRequest().build();
+
         MemberAddress memberAddress=addressService.getDefaultAddress(loginUser.getMemberId());
+
         if(memberAddress==null) return ResponseEntity.notFound().build();
+
         return ResponseEntity.ok(memberAddress);
+    }
+    @GetMapping("/{id}")
+    public ResponseEntity<MemberAddress> getAddress(
+            @PathVariable Long id,
+            @SessionAttribute(value = "loginUser",required = false) Member loginUser
+    ){
+
+        if(loginUser==null) return ResponseEntity.badRequest().build();
+
+        Optional<MemberAddress> memberAddress=addressService.getAddressById(id);
+
+        if(memberAddress.isEmpty()) return ResponseEntity.notFound().build();
+
+        return ResponseEntity.ok(memberAddress.get());
     }
 
     @PostMapping
     public ResponseEntity<?> addAddress(
+
             @Valid @RequestBody MemberAddressValid dto,
             BindingResult bindingResult,
+
             @SessionAttribute(value = "loginUser", required = false) Member loginUser
     ){
         if (loginUser == null) {
@@ -55,7 +83,7 @@ public class AddressController {
                     .map(DefaultMessageSourceResolvable::getDefaultMessage)
                     .findFirst()
                     .orElse("입력값이 올바르지 않습니다.");
-            System.out.println(errorMessage);
+
             return ResponseEntity.badRequest().body(errorMessage);
         }
 
@@ -82,5 +110,41 @@ public class AddressController {
         if(loginUser==null) return ResponseEntity.badRequest().build();
         MemberAddress address=addressService.modifyAddress(memberAddress);
         return ResponseEntity.ok(address);
+    }
+
+
+    //새로 추가한 기본배송지 변경 엔드포인트(PUT /api/address/default/{id})
+    @PutMapping("/default/{id}")
+    public ResponseEntity<?> setDefaultAddress(
+            @PathVariable("id") Long addressId,
+            @SessionAttribute(value = "loginUser", required = false) Member loginUser
+    ) {
+        if (loginUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+        }
+
+        boolean success = addressService.modifyDefaultAddress(loginUser.getMemberId(), addressId);
+        if (success) {
+            return ResponseEntity.ok().body("기본배송지로 변경되었습니다.");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("기본배송지 변경에 실패했습니다.");
+        }
+    }
+
+
+    //배송지 삭제
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteAddress(
+            @PathVariable Long id,
+            @SessionAttribute(value = "loginUser", required = false) Member loginUser
+    ) {
+        if (loginUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+        }
+
+        boolean deleted = addressService.deleteAddress(id);
+        if (!deleted) return ResponseEntity.badRequest().body("삭제 실패");
+
+        return ResponseEntity.ok().build();
     }
 }
