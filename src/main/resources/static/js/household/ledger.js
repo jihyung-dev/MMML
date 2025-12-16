@@ -1574,32 +1574,62 @@ function startExtendedTour() {
         },
 
         steps: [
-            // [Step 0] ~ [Step 10] (기존 동일)
+            // [Step 0] 환영 메시지 (기존 유지)
             {
                 popover: { title: '👋 환영합니다!', description: '가계부의 핵심 기능을<br>빠르게 체험해볼까요?', align: 'center' }
             },
-            // ✅ [추가됨] 그룹 가계부 안내 (Step 1)
+
+            // [Step 1] 그룹 사이드바 전체 안내 (기존 유지)
             {
                 element: '.group-sidebar',
                 popover: {
                     title: '👥 그룹 가계부 관리',
-                    description: '여기서 내 가계부와 그룹 가계부를<br>자유롭게 오갈 수 있습니다.<br>가족, 친구와 함께 가계부를 써보세요!',
+                    description: '여기서 내 가계부와 그룹 가계부를<br>자유롭게 오갈 수 있습니다.',
                     side: "right",
                     align: 'start'
-            },
-                // 🌟 [핵심 1] 하이라이트 시작될 때 스크롤 고정
-                onHighlightStarted: (element) => {
-                    // 1. Driver.js의 스크롤 동작을 무시하고 즉시 최상단으로 이동
-                    window.scrollTo(0, 0);
-
-                    // 2. 혹시 Driver.js가 뒤늦게 스크롤을 내릴 수 있으므로 0.1초 뒤에 한 번 더 강제 이동
-                    setTimeout(() => {
-                        window.scrollTo({ top: 0, behavior: 'instant' });
-                    }, 100);
                 },
-                // 🌟 [핵심 2] 다음 단계로 넘어가기 직전에도 위치 확인 (선택 사항)
-                onDeselected: () => {
+                onHighlightStarted: (element) => {
                     window.scrollTo(0, 0);
+                    setTimeout(() => { window.scrollTo({ top: 0, behavior: 'instant' }); }, 100);
+                }
+            },
+
+            // ✨✨ [NEW 1] 새 그룹 만들기 ✨✨
+            {
+                element: '.add-group-btn',
+                popover: {
+                    title: '🆕 새 그룹 만들기',
+                    description: '가족, 연인, 친구와 함께 쓰시나요?<br>이 버튼을 눌러 <b>새로운 그룹을 생성</b>해보세요.',
+                    side: "right",
+                    align: 'start'
+                }
+            },
+
+            // ✨✨ [NEW 2] 그룹 이름 변경 (연필 아이콘) ✨✨
+            // 주의: 이 버튼은 그룹 가계부 화면일 때만 존재하므로, 개인 가계부 화면에서는 자동으로 건너뜁니다.
+            {
+                element: 'button[onclick="openRenameGroupModal()"]',
+                popover: {
+                    title: '✏️ 그룹 이름 변경',
+                    description: '그룹의 이름을 바꾸고 싶다면<br><b>연필 아이콘</b>을 클릭하여 수정할 수 있습니다.',
+                    side: "bottom",
+                    align: 'start'
+                }
+            },
+
+            // ✨✨ [NEW 3] 멤버 초대 및 이메일 인증 (톱니바퀴 아이콘) ✨✨
+            // 주의: 이 버튼은 그룹 가계부 화면일 때만 존재합니다.
+            {
+                element: 'button[onclick="openMemberManageModal()"]',
+                popover: {
+                    title: '⚙️ 멤버 초대 및 관리',
+                    description: `
+                        <b>톱니바퀴</b>를 눌러 멤버를 관리합니다.<br>
+                        초대할 <b>ID를 입력</b>하면 해당 이메일로<br>
+                        <b>📩 인증 메일</b>이 발송되며, 수락 시 멤버로 추가됩니다.
+                    `,
+                    side: "bottom",
+                    align: 'start'
                 }
             },
             {
