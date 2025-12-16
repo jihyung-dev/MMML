@@ -1964,7 +1964,6 @@ div#driver-popover-item {
     height: calc(100vh - 20px);
 
     overflow-y: auto;
-    z-index: 100;
 
     /* (선택사항) 둥근 모서리와 그림자를 주면 더 '위젯'처럼 보입니다 */
     border-radius: 0 12px 12px 0;
