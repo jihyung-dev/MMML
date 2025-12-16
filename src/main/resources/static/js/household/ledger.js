@@ -874,22 +874,32 @@ function buildCategoryComparisonList(currentCategories, threeMonthCategories) {
     return result;
 }
 
-async function exportExcel(mail) {
-    const url = `/excel/export/mail?year=${currentYear}&month=${currentMonth}&email=${mail}`;
+async function exportExcel() {
+    const url = `/excel/export/mail?year=${currentYear}&month=${currentMonth}`;
+    const btn = document.getElementById("btnExcelExport");
+    // 이미 비활성화되어 있으면 클릭 무시
+    if (btn.disabled) return;
+    btn.disabled = true;
+    btn.textContent = "전송 중...";
 
-    const res = await fetch(url, { method: "GET" });
+    try {
+        // 📌 메일 전송 API 호출
+        const res = await fetch(url, { method: "GET" });
 
-    if (!res.ok) {
-        alert("엑셀 생성 실패");
-        return;
+        if (!res.ok) {
+            throw new Error("메일 전송 중 오류");
+        }
+
+        btn.textContent = "전송 완료!";
+    } catch (e) {
+        console.error(e);
+        btn.textContent = "전송 실패";
     }
-
-    // 기존내용
-    // const blob = await res.blob();
-    // const a = document.createElement("a");
-    // a.href = window.URL.createObjectURL(blob);
-    // a.download = `ledger_${currentYear}-${currentMonth}.xlsx`;
-    // a.click();
+    // 📌 5초 뒤 다시 버튼 활성화
+    setTimeout(() => {
+        btn.disabled = false;
+        btn.textContent = "엑셀 메일로 보내기";
+    }, 5000);
 
 }
 // top 데이터 관련

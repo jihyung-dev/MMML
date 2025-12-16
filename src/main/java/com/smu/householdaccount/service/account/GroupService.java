@@ -1,6 +1,8 @@
 package com.smu.householdaccount.service.account;
 
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smu.householdaccount.dto.ledger.GroupMemberDto;
 import com.smu.householdaccount.entity.account.BudgetGroup;
 import com.smu.householdaccount.entity.account.GroupMember;
@@ -11,13 +13,21 @@ import com.smu.householdaccount.repository.account.GroupMemberRepository;
 import com.smu.householdaccount.repository.account.GroupPropertyRepository;
 import com.smu.householdaccount.repository.account.LedgerRepository;
 import com.smu.householdaccount.repository.common.MemberRepository;
+import com.smu.householdaccount.service.common.EmailService;
+import com.smu.householdaccount.service.common.RedisService;
+import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,6 +37,9 @@ public class GroupService {
     private final GroupMemberRepository groupMemberRepository;
     private final MemberRepository memberRepository;
     private final BudgetGroupRepository budgetGroupRepository;
+    private final RedisService redisService;
+    private final EmailService emailService;
+    private final ObjectMapper mapper;
 
     private final GroupPropertyRepository groupPropertyRepository; // [추가] 필드 주입 필요
 
@@ -68,14 +81,19 @@ public class GroupService {
             throw new IllegalStateException("이미 그룹에 가입된 멤버입니다.");
         }
 
-        // 멤버 추가
-        GroupMember newMember = new GroupMember();
-        newMember.setGroup(group);
-        newMember.setMember(target);
-        newMember.setRole("MEMBER"); // 기본은 일반 멤버
-        newMember.setCreatedAt(LocalDateTime.now());
+        // 이메일 토큰 생성
+        String token = UUID.randomUUID().toString();
 
-        groupMemberRepository.save(newMember);
+        redisService.saveGroupInviteToken(target.getEmail(), token, groupId, targetMemberId, target);
+        String inviteUrl = "http://localhost:7004/api/group/accept?token=" + token;
+
+        try {
+            emailService.sendInviteMail(target.getEmail(), inviteUrl, group.getGroupName());
+        } catch (MessagingException e) {
+            throw new RuntimeException(e);
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -174,6 +192,93 @@ public class GroupService {
         // 이름 변경
         group.setGroupName(newName);
         // (JPA 변경 감지에 의해 자동 저장됨)
+    }
+
+    public ResponseEntity<?> acceptInvite(String token, HttpSession session) {
+
+        // 1) Redis에서 초대 데이터 조회
+        String inviteJson = redisService.getGroupInviteToken(token);
+
+        if (inviteJson == null) {
+            // 초대 링크 만료 → 홈으로 보내고 메시지 띄우기
+            session.setAttribute("inviteError", "초대 링크가 만료되었거나 존재하지 않습니다.");
+
+            return ResponseEntity.status(302)
+                    .header("Location", "/")
+                    .build();
+        }
+
+        // 2) JSON → Map 역직렬화
+        Map<String, Object> inviteData;
+        try {
+            inviteData = mapper.readValue(inviteJson,
+                    new TypeReference<Map<String, Object>>() {});
+        } catch (Exception e) {
+            session.setAttribute("inviteError", "초대 정보를 읽는 데 실패했습니다.");
+
+            return ResponseEntity.status(302)
+                    .header("Location", "/")
+                    .build();
+        }
+
+        Long groupId = Long.valueOf(inviteData.get("groupId").toString());
+        String targetMemberId = inviteData.get("targetMemberId").toString();
+
+        // 3) 로그인 여부 체크
+        Member loginUser = (Member) session.getAttribute("loginUser");
+        if (loginUser == null) {
+            session.setAttribute("inviteToken", token);
+
+            return ResponseEntity.status(302)
+                    .header("Location", "/login")
+                    .build();
+        }
+
+        // 4) 로그인된 계정이 초대 대상과 다르면 홈으로 redirect + 메시지
+        if (!loginUser.getMemberId().equals(targetMemberId)) {
+            session.setAttribute("inviteError",
+                    "초대된 사용자(" + targetMemberId + ")로 로그인해야 초대를 수락할 수 있습니다.");
+
+            return ResponseEntity.status(302)
+                    .header("Location", "/")
+                    .build();
+        }
+
+        // 5) 그룹 존재 여부 확인
+        BudgetGroup group = budgetGroupRepository.findById(groupId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 그룹입니다."));
+
+        // 6) 이미 가입된 멤버인지 검사 (권장 추가)
+        boolean alreadyMember = groupMemberRepository.existsByGroupAndMember(group, loginUser);
+        if (alreadyMember) {
+
+            session.setAttribute("inviteError",
+                    "이미 '" + group.getGroupName() + "' 그룹에 가입되어 있습니다.");
+
+            return ResponseEntity.status(302)
+                    .header("Location", "/")
+                    .build();
+        }
+
+        // 7) 그룹 가입 처리
+        GroupMember member = new GroupMember();
+        member.setGroup(group);
+        member.setMember(loginUser);
+        member.setRole("MEMBER");
+        member.setCreatedAt(LocalDateTime.now());
+        groupMemberRepository.save(member);
+
+        // 8) Redis 토큰 삭제
+        redisService.deleteKey("invite:token:" + token);
+
+        // 9) 성공 메시지를 홈에서 보여줄 수 있도록 세션 저장
+        session.setAttribute("inviteSuccess",
+                "'" + group.getGroupName() + "' 그룹 초대를 수락했습니다!");
+
+        // 10) 홈으로 redirect
+        return ResponseEntity.status(302)
+                .header("Location", "/")
+                .build();
     }
 
     /**

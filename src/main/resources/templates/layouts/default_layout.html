@@ -53,6 +53,14 @@
 <th:block th:replace="~{layouts/footer :: footer}"></th:block>
 
 <th:block layout:fragment="script"></th:block>
+<script th:inline="javascript">
+    let inviteError = /*[[${inviteError}]]*/ null;
+    let inviteSuccess = /*[[${inviteSuccess}]]*/ null;
 
+    console.log("inviteError:", inviteError);
+
+    if (inviteError) alert(inviteError);
+    if (inviteSuccess) alert(inviteSuccess);
+</script>
 </body>
 </html>

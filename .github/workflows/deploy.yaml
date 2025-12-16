@@ -1,0 +1,57 @@
+name: Deploy Spring Boot to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Grant execute permission
+        run: chmod +x mvnw
+
+      - name: Build with Maven Wrapper
+        run: ./mvnw clean package -DskipTests
+
+      # 🔥 반드시 여기!
+      - name: Normalize jar name
+        run: |
+          ls -al target
+          mv target/HouseholdAccount-0.0.1-SNAPSHOT.jar target/app.jar
+
+      - name: Copy jar to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          source: "target/app.jar"
+          target: "/home/ec2-user/app"
+
+      - name: Restart application on EC2
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script_stop: false
+          script: |
+            sudo systemctl restart mmml
+            sudo systemctl status mmml --no-pager
+
+      - name: CI sanity check
+        run: |
+          pwd
+          find src/main/java -name GroupInviteReq.java || echo "❌ NOT FOUND"

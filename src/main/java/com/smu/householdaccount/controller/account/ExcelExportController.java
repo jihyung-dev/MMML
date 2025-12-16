@@ -1,6 +1,7 @@
 package com.smu.householdaccount.controller.account;
 
 import com.smu.householdaccount.entity.account.LedgerEntry;
+import com.smu.householdaccount.entity.common.Member;
 import com.smu.householdaccount.service.common.EmailService;
 import com.smu.householdaccount.service.account.ExcelService;
 import com.smu.householdaccount.service.account.LedgerService;
@@ -49,8 +50,8 @@ public class ExcelExportController {
     public ResponseEntity<?> exportAndSendMail(
             @RequestParam int year,
             @RequestParam int month,
-            @RequestParam String email,
             @SessionAttribute(name = "loginUserId", required = false) String memberId,
+            @SessionAttribute(name = "loginUser", required = false) Member loginUser,
             @RequestParam(required = false) Long group_Id
     ) {
         try {
@@ -58,7 +59,7 @@ public class ExcelExportController {
             List<LedgerEntry> summary = ledgerService.getYearDataToExcel(year, month, memberId, group_Id);
 
             byte[] excelFile = excelService.buildMonthlyLedgerExcel(summary, year, month);
-
+            String email = loginUser.getEmail();
             emailService.sendExcelFile(
                     email,
                     year + "년 " + " 가계부 내역",

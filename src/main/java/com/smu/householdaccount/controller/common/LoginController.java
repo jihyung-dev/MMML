@@ -17,6 +17,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.UnsupportedEncodingException;
+
 @Controller
 @RequiredArgsConstructor
 public class LoginController {
@@ -84,6 +86,12 @@ public class LoginController {
                 SecurityContextHolder.getContext()
         );
 
+        String inviteToken = (String) session.getAttribute("inviteToken");
+        // 그룹 가게부 초대 토큰이 있을 경우
+        if(inviteToken != null){
+            return "redirect:/api/group/accept?token=" + inviteToken;
+        }
+
         // 이 회원이 판매자인지 여부 세션에 저장
         boolean isSeller = sellerService.getSellerByMemberId(loginUser.getMemberId()) != null;
         session.setAttribute("isSeller", isSeller);
@@ -141,7 +149,7 @@ public class LoginController {
 
     // 메일 인증 절차 추가
     @GetMapping("/request/mail")
-    public ResponseEntity<String> requestMail(HttpSession session, @RequestParam String email) throws MessagingException {
+    public ResponseEntity<String> requestMail(HttpSession session, @RequestParam String email) throws MessagingException, UnsupportedEncodingException {
         // 세션에서 메일 정보 받아서 사용자 아이디로 TTL 10분 캐싱 추가
         Member member = (Member) session.getAttribute("loginUser");
 //        redisService.saveEmailAuthCode(member.getEmail());

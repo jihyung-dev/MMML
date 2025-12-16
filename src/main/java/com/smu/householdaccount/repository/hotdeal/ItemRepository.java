@@ -81,10 +81,39 @@ public interface ItemRepository extends JpaRepository<Item, Long>, JpaSpecificat
 
     // 4. 카테고리별 상품 조회 (필요하면)
 //     Page<Item> findByCategoryId(String categoryId, Pageable pageable);
+//        item.setItemName(bean.getItemName());
+//        item.setOriginalPrice(bean.getOriginalPrice());
+//        item.setItemSaleprice(bean.getItemSaleprice());
+//        item.setCategoryId(bean.getCategoryId());
+//        item.setItemImageUrl(itemImageUrl);
+//        item.setSaleStartAt(saleStartAt);
+//        item.setSaleEndAt(saleEndAt);
+//    @Modifying(clearAutomatically = true)
+//    @Query("""
+//    UPDATE Item i SET
+//        i.categoryId=:categoryId,
+//        i.itemImageUrl=:itemImageUrl,
+//        i.saleStartAt=:saleStartAt,
+//        i.saleEndAt=:saleEndAt,
+//        i.categoryId=:categoryId,
+//        i.originalPrice=:originalPrice,
+//        i.itemName=:itemName
+//        WHERE i.id=:id
+//    """)
+//    void update(Item item);
 
-
-
-
-
+    @Modifying(clearAutomatically = true, flushAutomatically = true) // ✅ flushAutomatically 추가 추천
+    @Query("""
+    UPDATE Item i SET
+        i.categoryId    = :#{#item.categoryId},     
+        i.itemImageUrl  = :#{#item.itemImageUrl},
+        i.saleStartAt   = :#{#item.saleStartAt},
+        i.saleEndAt     = :#{#item.saleEndAt},
+        i.originalPrice = :#{#item.originalPrice},
+        i.itemSaleprice = :#{#item.itemSaleprice}, 
+        i.itemName      = :#{#item.itemName}
+        WHERE i.id         = :#{#item.id}
+""")
+    int update(@Param("item") Item item);
 }
 

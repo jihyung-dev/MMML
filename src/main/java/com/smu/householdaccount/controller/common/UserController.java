@@ -126,6 +126,12 @@ public class UserController{
                 HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
                 SecurityContextHolder.getContext()
         );
+
+        String inviteToken = (String) session.getAttribute("inviteToken");
+        // 그룹 가게부 초대 토큰이 있을 경우
+        if(inviteToken != null){
+            return "redirect:/api/group/accept?token=" + inviteToken;
+        }
         // 로그인 성공 후 메인 페이지로
         return "redirect:/home";
     }
@@ -229,6 +235,12 @@ public class UserController{
                 HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
                 SecurityContextHolder.getContext()
         );
+
+        String inviteToken = (String) session.getAttribute("inviteToken");
+        // 그룹 가게부 초대 토큰이 있을 경우
+        if(inviteToken != null){
+            return "redirect:/api/group/accept?token=" + inviteToken;
+        }
 
         return "redirect:/home";
     }
