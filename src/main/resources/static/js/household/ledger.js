@@ -136,6 +136,7 @@ async function loadLedgerChart({ year, month, dataUpdate = false }) {
         drawCategoryPieChart(cached.current.categories);
         drawDailyLineChart(cached.current.daily, cached.prev1.daily);
         if(cached.current.daily) initCalendar(cached.current.daily);
+        updateMonthlyTotals(cached.current);
         return cached;
     }
 
@@ -149,7 +150,7 @@ async function loadLedgerChart({ year, month, dataUpdate = false }) {
         if (!isThreeMonthBarChartDrawn || (isWithinLast3Months && dataUpdate)) {
             await renderFullCategoryChart();
         }
-        if(bundle.current.daily) updateMonthlyTotals(bundle.current);
+        updateMonthlyTotals(bundle.current);
         if(bundle.current.daily) initCalendar(bundle.current.daily);
     }
     return bundle;
@@ -601,7 +602,7 @@ async function openModal(category) {
     const categories = threeMonthData ? threeMonthData.categories : [];
     const threeMonthCategory = categories.find(c => c.categoryName === category);
 
-    const avg = threeMonthCategory ? (Number(threeMonthCategory.amount) / 3) : 0;
+    const avg = threeMonthCategory ?  Math.floor(Number(threeMonthCategory.amount) / 3) : 0;
     const curr = currentMonthAmount || 0;
 
     drawModalComparePieChart(curr, avg, category);
@@ -799,7 +800,7 @@ function get3MonthAverage(categoryName, key) {
 
     if (!match) return { values: [], average: 0 };
 
-    const average = Number(match.amount) / 3;
+    const average = Math.floor(Number(match.amount) / 3);
 
     return {
         values: [match.amount],   // 쓸 필요 없으면 그냥 버려도 됨
@@ -862,7 +863,7 @@ function buildCategoryComparisonList(currentCategories, threeMonthCategories) {
 
     currentCategories.forEach(cur => {
         const avgData = threeMonthCategories.find(t => t.categoryName === cur.categoryName);
-        const avg = avgData ? Number(avgData.amount) / 3 : 0;
+        const avg = avgData ? Math.floor(Number(avgData.amount) / 3) : 0;
 
         result.push({
             name: cur.categoryName,
