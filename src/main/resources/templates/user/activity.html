@@ -18,7 +18,7 @@
         <section>
             <div class="section-header">
                 <h2 class="section-title">📝 내가 쓴 글</h2>
-                <a href="javascript:void(0)" onclick="loadPosts(0)" class="more-link">더보기 ></a>
+                <a href="javascript:void(0)" id="postToggleBtn" onclick="loadPosts()" class="more-link">더보기 ></a>
             </div>
 
             <div id="post-list-container">
@@ -62,7 +62,7 @@
 
         <section>
             <div class="section-header">
-                <h2 class="section-title">❤️ 좋아요 누른 게시글</h2>
+                <h2 class="section-title">🩷️ 좋아요 누른 게시글</h2>
                 <a href="javascript:void(0)" onclick="loadLiked(0)" class="more-link">더보기 ></a>
             </div>
 
@@ -81,48 +81,76 @@
             </div>
         </section>
 
-        <section>
-            <div class="section-header border-0 pb-0">
+        <section class="activity-wishlist">
+
+            <div class="section-header premium">
                 <h2 class="section-title">🛍️ 찜한 핫딜</h2>
-                <a th:href="@{/mypage/wishlist}" class="more-link">더보기 ></a>
+                <a th:href="@{/mypage/wishlist}" class="more-link">전체보기 →</a>
             </div>
 
-            <div th:if="${myWishPage == null or myWishPage.content.size() == 0}" class="text-center py-4 text-gray-400 text-sm">
-                찜한 핫딜 상품이 없습니다.
+            <!-- 찜 없음 -->
+            <div class="empty-wishlist"
+                 th:if="${myWishPage == null or myWishPage.content.size() == 0}">
+                <span>아직 찜한 핫딜이 없어요</span>
+                <a href="/hotdeal">핫딜 구경하러 가기 →</a>
             </div>
 
-            <div class="row g-3 mt-2" th:if="${myWishPage != null and myWishPage.content.size() > 0}">
-                <div class="col-6 col-md-4 col-lg-3" th:each="wish : ${myWishPage.content}">
-                    <div class="card h-100 shadow-sm hotdeal-card overflow-hidden">
-                        <a th:href="@{/hotdeal/{id}(id=${wish.item.id})}" style="text-decoration: none; color: inherit;">
-                            <div class="overflow-hidden bg-gray-100 relative" style="height: 140px;">
-                                <img th:src="${wish.item.itemImageUrl != null ? wish.item.itemImageUrl : '/img/no-image.png'}"
-                                     class="w-100 h-100"
-                                     alt="상품 이미지"
-                                     style="object-fit: cover;"
-                                     onerror="this.src='/img/no-image.png'"/>
+            <!-- 찜 목록 -->
+            <div class="wishlist-grid preview"
+                 th:if="${myWishPage != null and myWishPage.content.size() > 0}">
+
+                <div class="wishlist-card"
+                     th:each="wish, stat : ${myWishPage.content}"
+                     th:if="${stat.index < 4}">
+
+                    <a th:href="@{/hotdeal/{id}(id=${wish.item.id})}"
+                       style="text-decoration:none; color:inherit;">
+
+                        <div class="wishlist-img">
+                            <img th:src="${wish.item.itemImageUrl != null ? wish.item.itemImageUrl : '/img/no-image.png'}"
+                                 alt="상품 이미지"
+                                 onerror="this.src='/img/no-image.png'">
+                        </div>
+
+                        <div class="wishlist-info">
+                            <p class="item-name"
+                               th:text="${wish.item.itemName}">
+                                상품명
+                            </p>
+
+                            <div class="price-box">
+                        <span class="origin"
+                              th:if="${wish.item.originalPrice != null}"
+                              th:text="${#numbers.formatInteger(wish.item.originalPrice,0,'COMMA')} + '원'">
+                            0원
+                        </span>
+
+                                <span class="sale"
+                                      th:text="${#numbers.formatInteger(wish.item.itemSaleprice,0,'COMMA')} + '원'">
+                            0원
+                        </span>
                             </div>
 
-                            <div class="card-body p-2 bg-gray-50/50">
-                                <h5 class="card-title text-truncate mb-1 text-sm font-bold text-gray-800"
-                                    th:text="${wish.item.itemName}">상품명</h5>
-                                <p class="card-text">
-                                    <strong class="text-danger text-base"
-                                            th:text="${#numbers.formatInteger(wish.item.itemSaleprice, 0, 'COMMA') + '원'}">0원</strong>
-                                </p>
-                            </div>
-                        </a>
-                    </div>
+                            <span class="wish-date"
+                                  th:text="${#temporals.format(wish.createdAt,'yyyy.MM.dd')} + ' 찜함'">
+                        날짜
+                    </span>
+                        </div>
+                    </a>
                 </div>
+
             </div>
+
         </section>
 
     </div>
 </div>
 
 <script layout:fragment="script">
+    let postExpanded = false;
+
     // 1. 게시글 불러오기
-    function loadPosts(page) {
+    function loadPosts(page = 0) {
         fetch(`/mypage/ajax/posts?page=${page}`)
             .then(response => response.text()) // HTML 텍스트로 받음
             .then(html => {
@@ -151,6 +179,31 @@
             })
             .catch(err => console.error("좋아요 로드 실패:", err));
     }
+
+    function togglePosts() {
+        const btn = document.getElementById('postToggleBtn');
+
+        if (!postExpanded) {
+            // 🔽 더보기 → 전체 불러오기
+            fetch(`/mypage/ajax/posts?page=0`)
+                .then(res => res.text())
+                .then(html => {
+                    document.getElementById('post-list-container').innerHTML = html;
+                    btn.innerText = '접기 <';
+                    postExpanded = true;
+                });
+        } else {
+            // 🔼 접기 → 다시 미리보기
+            fetch(`/mypage/ajax/posts?page=0&preview=true`)
+                .then(res => res.text())
+                .then(html => {
+                    document.getElementById('post-list-container').innerHTML = html;
+                    btn.innerText = '더보기 >';
+                    postExpanded = false;
+                });
+        }
+    }
+
 </script>
 </body>
 </html>

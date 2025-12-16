@@ -105,3 +105,131 @@
     color: white;
     border-radius: 50%;
 }
+
+/* 내 활동 제목 색상 변경 */
+.section-title {
+    color: #6060FF;  /* 원하는 색상으로 바꾸세요 */
+}
+
+
+/* ===== Wishlist Premium Style ===== */
+
+.wishlist-wrap {
+    padding: 40px 0;
+}
+
+.wishlist-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    margin-bottom: 30px;
+}
+
+.wishlist-header h2 {
+    font-size: 26px;
+    font-weight: 700;
+}
+
+.wishlist-header p {
+    font-size: 14px;
+    color: #888;
+}
+
+/* empty */
+.empty-wishlist {
+    text-align: center;
+    padding: 80px 0;
+    color: #777;
+}
+.empty-wishlist a {
+    display: inline-block;
+    margin-top: 12px;
+    color: #6960FF;
+    font-weight: 600;
+}
+
+/* grid */
+.wishlist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 24px;
+}
+
+/* card */
+.wishlist-card {
+    position: relative;
+    border-radius: 18px;
+    background: #fff;
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    transition: transform .25s ease, box-shadow .25s ease;
+}
+
+.wishlist-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.12);
+}
+
+/* remove btn */
+.wish-remove {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    border: none;
+    background: rgba(255,255,255,0.9);
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    font-size: 18px;
+    cursor: pointer;
+    z-index: 10;
+}
+
+/* image */
+.wishlist-img {
+    height: 180px;
+    background: #f4f5f7;
+}
+.wishlist-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* info */
+.wishlist-info {
+    padding: 14px 16px 18px;
+}
+
+.item-name {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.price-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.price-box .origin {
+    font-size: 13px;
+    color: #aaa;
+    text-decoration: line-through;
+}
+
+.price-box .sale {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ff4d4f;
+}
+
+.wish-date {
+    display: block;
+    margin-top: 10px;
+    font-size: 12px;
+    color: #999;
+}
+
