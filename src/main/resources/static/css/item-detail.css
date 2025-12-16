@@ -144,19 +144,20 @@
 
 /* 기본배송지 배지 색상 */
 .badge.bg-primary {
-    background-color: #6960FF !important;
+    background-color: #a1aeba !important;
+    border-color: #131415 !important;
     color: #F5F6FF !important;
 }
 
 .addressModalBtn {
-    background-color: #6960FF;
-    border-color: #6960FF;
-    color: #F5F6FF;
+    background-color: #FFFFFF;
+    border-color: #a1aeba;
+    color: #1C2833;
 }
 
 .addressModalBtn:hover {
-    background-color: #5a52e0;
-    border-color: #5a52e0;
+    background-color: #1C2833;
+    border-color: #a1aeba;
     color: #F5F6FF;
 }
 
@@ -194,7 +195,7 @@
 
 
 /* -------------------------------------------
- * 1. 드롭다운 스타일
+ * 1. 드롭다운 스타일 (상세정보/이미지 보기)
  * ------------------------------------------- */
 .detail-toggle-btn {
     width: 100%;
@@ -239,7 +240,7 @@
 
 
 /* -------------------------------------------
- * 2. 화면 정가운데 정렬 (가장 중요)
+ * 2. 화면 정가운데 정렬 (상세정보/이미지 보기)
  * ------------------------------------------- */
 
 /* 상세 이미지 래퍼를 Flexbox로 설정하고, 내부 이미지를 수평 중앙에 정렬합니다. */
@@ -256,4 +257,35 @@
     max-width: 100%;
     height: auto;
     display: block;
+}
+
+/* 찜하기 버튼색깔 바꿀게 */
+/* 기본 찜하기 상태 (찜하지 않았을 때) */
+#wishBtn {
+    /* 부트스트랩의 btn-outline-primary 대신 커스텀 색상 적용 */
+    color: #130c8c; /* 텍스트 및 테두리 색상: 약간 밝은 빨간색 (선택 사항) */
+    border-color: #130c8c;
+    background-color: transparent;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+#wishBtn:hover {
+    color: #fff;
+    background-color: #130c8c;
+    border-color: #130c8c;
+}
+
+/* 찜 함 상태 (찜 했을 때) */
+.btn-wished {
+    /* 찜 했을 때 스타일 (버튼 채우기) */
+    background-color: #FFF9E5 !important;
+    border-color: #130c8c !important;
+    color: #130c8c !important; /* 텍스트 색상 */
+}
+
+/* 기존 부트스트랩 클래스를 오버라이딩하여 커스텀 클래스를 확실히 적용 */
+.btn-wished:hover {
+    background-color: #FFF9E5 !important; /* 호버 시 약간 어둡게 */
+    border-color: #FFF9E5 !important;
+    color: #5a52e0 !important;
 }

@@ -182,7 +182,7 @@
                             <button type="button" class="btn" id="wishBtn"
                                     th:data-item-id="${item.id}"
                                     th:data-is-wished="${item.isLiked}"
-                                    th:classappend="${item.isLiked} ? 'btn-primary text-white' : 'btn-outline-primary'">
+                                    th:classappend="${item.isLiked} ? 'btn-wished' : 'btn-outline-primary'">
                                 <span th:text="${item.isLiked} ? '♥ 찜함' : '♥ 찜하기'"></span>
                             </button>
                             <button type="submit" class="btn btn-success" th:disabled="${item.saleStatus != 'ON_SALE'}" id="buyBtn">구매하기</button>
@@ -410,11 +410,13 @@
                 if (wished) {
                     // 찜 했을 때 스타일 (파란색 채움)
                     button.classList.remove('btn-outline-primary');
-                    button.classList.add('btn-primary', 'text-white'); // btn-danger 대신 통일감 있게
+                    button.classList.add('btn-primary');
+                    button.classList.add('btn-wished');
                     button.innerText = '♥ 찜함';
                 } else {
                     // 찜 취소했을 때 스타일 (파란색 테두리)
-                    button.classList.remove('btn-primary', 'text-white', 'btn-danger');
+                    button.classList.remove('btn-wished');
+                    button.classList.remove('btn-primary');
                     button.classList.add('btn-outline-primary');
                     button.innerText = '♥ 찜하기';
                 }
