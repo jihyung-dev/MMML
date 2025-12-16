@@ -28,13 +28,17 @@
     <div class="row g-4">
         <!-- 이미지 / 캐러셀 -->
         <div class="col-12 col-lg-6">
-            <div th:if="${item.images != null and #lists.size(item.images) > 0}">
+            <div th:if="${item.detailImageUrls != null and #lists.size(item.detailImageUrls) > 0}">
                 <div id="itemCarousel" class="carousel slide" data-bs-ride="carousel">
                     <div class="carousel-inner">
-                        <div th:each="img, idx : ${item.images}"
+                        <!--<div th:each="img, idx : ${item.images}"
                              th:classappend="${idx.index == 0} ? 'carousel-item active' : 'carousel-item'">
                             <img th:src="${img.imageUrl}" th:alt="${item.itemName}" class="d-block w-100 thumb"
                                  onerror="this.onerror=null;this.src='/img/no-image.png'"/>
+                        </div>-->
+                        <div th:each="url, idx : ${item.detailImageUrls}"
+                             th:classappend="${idx.index == 0} ? 'carousel-item active' : 'carousel-item'">
+                            <img th:src="${url}" class="d-block w-100"/>
                         </div>
                     </div>
                     <button class="carousel-control-prev" type="button" data-bs-target="#itemCarousel" data-bs-slide="prev">
@@ -48,14 +52,14 @@
                 </div>
             </div>
             <!-- images가 있을 때만 반복 -->
-            <th:block th:if="${item.images != null}">
-                <div th:each="img : ${item.images}">
-                    <img th:src="@{${img.imageUrl}}" />
+            <!--<th:block th:if="${item.detailImageUrls != null}">
+                <div th:each="img : ${item.detailImageUrls}">
+                    <img th:src="@{${img}}" />
                 </div>
-            </th:block>
-            <div th:if="${item.images == null or #lists.size(item.images) == 0}" class="no-image">
-                이미지 없음
-            </div>
+            </th:block>-->
+<!--            <div th:if="${item.detailImageUrls == null or #lists.size(item.detailImageUrls) == 0}" class="no-image">-->
+<!--                이미지 없음-->
+<!--            </div>-->
         </div>
 
         <!-- 상품 정보 / 옵션 -->
@@ -213,7 +217,7 @@
             </div>
 
             <!-- 상세 설명 (간단) -->
-            <div class="card mt-3">
+            <!--<div class="card mt-3">
                 <div class="card-body">
                     <h5>상품 상세정보</h5>
                     <div th:utext="${item.description != null}">
@@ -221,7 +225,55 @@
                     </div>
                     <div th:unless="${item.description != null}" class="text-muted">상세 설명이 없습니다.</div>
                 </div>
+            </div>-->
+
+
+
+            <!--<div th:if="${item.detailImageUrls != null and !#lists.isEmpty(item.detailImageUrls)}">
+                <div th:each="url : ${item.detailImageUrls}" class="mb-3 text-center">
+                    <img th:src="${url}"
+                         class="img-fluid"
+                         alt="상품 상세 이미지"
+                         onerror="this.onerror=null;this.src='/img/no-image.png'"/>
+                </div>
             </div>
+
+            <div th:if="${item.detailImageUrls == null or #lists.isEmpty(item.detailImageUrls)}"
+                 class="text-muted">
+                상세 이미지가 없습니다.
+            </div>-->
+
+
+            <div class="item-detail-section mt-4">
+                <button type="button" class="detail-toggle-btn" onclick="toggleDetailImages(this)">
+                    상품 상세 정보/이미지 보기 <span class="arrow">▼</span>
+                </button>
+
+                <div id="detailImageContent" class="detail-content collapsed">
+
+                    <div class="detail-image-wrapper">
+
+                        <div th:if="${item.detailImageUrls != null and !#lists.isEmpty(item.detailImageUrls)}">
+
+                            <div th:each="url : ${item.detailImageUrls}" class="mb-3 text-center">
+                                <img th:src="${url}"
+                                     class="img-fluid detail-img-item"
+                                     alt="상품 상세 이미지"
+                                     onerror="this.onerror=null;this.src='/img/no-image.png'"/>
+                            </div>
+                        </div>
+
+                        <div th:if="${item.detailImageUrls == null or #lists.isEmpty(item.detailImageUrls)}"
+                             class="text-muted text-center p-3">
+                            상세 이미지가 없습니다.
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+
         </div>
     </div>
 </div>
@@ -441,6 +493,50 @@
         const arrow = document.getElementById('arrow');
         if(arrow.textContent === '▼') {
             arrow.textContent = '▲';
+        } else {
+            arrow.textContent = '▼';
+        }
+    }
+
+
+    //상품 상세 이미지 토글 함수
+    function toggleDetailImages(button) {
+        const content = document.getElementById('detailImageContent');
+        const detailSection = button.closest('.item-detail-section');
+        const arrow = button.querySelector('.arrow');
+
+        // 1. 콘텐츠 영역 토글
+        content.classList.toggle('expanded');
+
+        // 2. 버튼 상태 및 화살표 변경
+        button.classList.toggle('active');
+
+        if (content.classList.contains('expanded')) {
+            arrow.textContent = '▲';
+
+            // 3. 드롭다운 완료 이벤트 리스너 등록
+            // 애니메이션이 끝날 때까지 기다립니다. (가장 확실한 방법)
+            content.addEventListener('transitionend', function handler() {
+
+                // 이벤트 리스너가 중복 실행되지 않도록 즉시 제거
+                content.removeEventListener('transitionend', handler);
+
+                if (detailSection) {
+                    // 최종 높이가 확정된 detailSection의 위치를 가져옵니다.
+                    const sectionRect = detailSection.getBoundingClientRect();
+
+                    // 블록의 정중앙을 화면의 정중앙에 위치시키기 위한 스크롤 위치 계산
+                    // window.scrollY (현재 스크롤 위치) + sectionRect.top (화면 기준 블록 상단 위치)
+                    // + (sectionRect.height / 2) (블록 중앙으로 이동) - (window.innerHeight / 2) (화면 중앙 기준점)
+                    const offset = window.scrollY + sectionRect.top + (sectionRect.height / 2) - (window.innerHeight / 2);
+
+                    window.scrollTo({
+                        top: offset,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+
         } else {
             arrow.textContent = '▼';
         }

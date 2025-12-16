@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -239,5 +240,39 @@ public class ItemServiceImpl implements ItemService {
         // 4. DTO 반환
         return new ItemResponseDto(item, isLiked);
 
+    }
+
+
+
+    @Override
+    @Transactional
+    public Item createItem(Item item, List<MultipartFile> detailImageFiles) {
+
+        // 1. 상세 이미지 목록 초기화
+        List<ItemDetailImage> newDetailImages = new ArrayList<>();
+
+        // 2. 이미지 파일 처리 및 ItemDetailImage Entity 생성
+        for (long i = 0; i < detailImageFiles.size(); i++) {
+            MultipartFile file = detailImageFiles.get((int) i);
+
+            // 파일 유효성 검사 및 업로드
+            if (!file.isEmpty()) {
+                // **TODO: 실제 파일 업로드 로직 (예: S3 업로드)**
+                // String imageUrl = fileStorageService.upload(file);
+                // 지금은 임시 URL을 사용합니다.
+                String imageUrl = "https://cdn.hotdeal.com/item/" + item.getItemName() + "_" + (i + 1) + ".jpg";
+
+                ItemDetailImage detailImage = new ItemDetailImage();
+                detailImage.setImageUrl(imageUrl);
+                detailImage.setDisplayOrder(i + 1);
+
+                // 3. Item과의 양방향 관계 설정 (가장 중요)
+                item.addDetailImage(detailImage);
+            }
+        }
+
+        // 4. Item Entity 저장
+        // ItemDetailImage는 Item Entity의 CascadeType.ALL에 의해 함께 저장됩니다.
+        return itemRepository.save(item);
     }
 }

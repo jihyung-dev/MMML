@@ -8,14 +8,18 @@ import com.smu.householdaccount.entity.hotdeal.Item;
 import com.smu.householdaccount.entity.common.Member;
 import com.smu.householdaccount.repository.account.CategoryRepository;
 import com.smu.householdaccount.service.hotdeal.ItemService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
@@ -162,12 +166,13 @@ public class ItemController {    // 명시적 생성자 주입 (Lombok 없이 �
             @PathVariable Long id,
             Model model) {
         Item item = itemService.findById(id);
+        ItemResponseDto dto = new ItemResponseDto(item);
 
         // LocalDateTime -> 문자열
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String saleStartAtStr = item.getSaleStartAt().format(formatter);
 
-        model.addAttribute("item", item);
+        model.addAttribute("item", dto);
         model.addAttribute("saleStartAtStr", saleStartAtStr);
         return "item/detail";
     }
@@ -213,4 +218,22 @@ public class ItemController {    // 명시적 생성자 주입 (Lombok 없이 �
 
         return "item/list";
     }*/
+
+
+    // 상세 이미지 파일과 Item Entity 필드를 함께 받는 메서드
+    @PostMapping
+    public ResponseEntity<Item> createItem(
+            // @AuthenticationPrincipal Member member, // 실제 로그인된 판매자 정보
+            @Valid @RequestBody Item item, // JSON Body로 Item Entity 필드를 받음
+            @RequestParam("detailImages") List<MultipartFile> detailImageFiles // 이미지 파일 목록
+    ) {
+        // DTO가 없기 때문에 Item Entity를 직접 RequestBody로 받고,
+        // 이미지 파일은 별도의 @RequestParam으로 받습니다.
+
+        // **주의**: @RequestBody와 @RequestParam(MultipartFile)을 동시에 받는 경우,
+        // 폼 데이터 (multipart/form-data) 형식으로 요청을 보내야 합니다.
+
+        Item newItem = itemService.createItem(item, detailImageFiles);
+        return ResponseEntity.status(HttpStatus.CREATED).body(newItem);
+    }
 }

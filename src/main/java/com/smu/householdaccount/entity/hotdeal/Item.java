@@ -69,16 +69,8 @@ public class Item {
     @Column(name = "ITEM_IMAGE_URL", length = 500)
     private String itemImageUrl;
 
-    /*@ColumnDefault("0")
-    @Column(name = "VIEW_COUNT")
-    private Long viewCount;*/
-
     @Column(name = "VIEW_COUNT")
     private long viewCount = 0;  // ← 기본값 0
-
-    /*@ColumnDefault("0")
-    @Column(name = "POPULARITY_SCORE")
-    private Long popularityScore;*/
 
     @Column(name = "POPULARITY_SCORE")
     private long popularityScore = 0;  // ← 기본값 0
@@ -90,25 +82,13 @@ public class Item {
     @Column(name = "SALE_END_AT", nullable = false)
     private LocalDateTime saleEndAt;
 
-    /*@Size(max = 20)
-    @ColumnDefault("'ON_SALE'")
-    @Column(name = "SALE_STATUS", length = 20)
-    private String saleStatus;*/
-
     @Size(max = 20)
     @Column(name = "SALE_STATUS", length = 20)
     private String saleStatus = "ON_SALE"; // ← Java에서도 기본값
 
-    /*@ColumnDefault("SYSTIMESTAMP") //⇒ DB마다 동작 방식이 다를 수 있어서 사용 x
-    @Column(name = "CREATED_AT")
-    private Instant createdAt;*/
-
     @CreationTimestamp
     @Column(name = "CREATED_AT", updatable = false)
     private LocalDateTime createdAt;
-
-    /*@Column(name = "UPDATED_AT")
-    private Instant updatedAt;*/
 
     @UpdateTimestamp
     @Column(name = "UPDATED_AT")
@@ -120,7 +100,8 @@ public class Item {
 
 
     @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ItemDetailImage> images = new ArrayList<>();
+    private List<ItemDetailImage> detailImages = new ArrayList<>();
+
 
     @OneToMany(mappedBy = "item")
     private Set<ItemWish> wishes = new LinkedHashSet<>();
@@ -150,9 +131,18 @@ public class Item {
         BigDecimal scaled = this.getOriginalPrice().setScale(0, RoundingMode.HALF_UP);
         return df.format(scaled.longValue()) + "원";
     }
-    @Transient
+
+    /*@Transient
     @Size(max = 4000)
     @Column(name = "DESCRIPTION", length = 4000)
-    private String description;
+    private String description;*/
 
+
+    // 편의 메서드: 상세 이미지 추가 시 양방향 관계 설정
+    public void addDetailImage(ItemDetailImage detailImage) {
+        // 기존 이미지를 모두 지우고 새로 등록할 경우 이 로직이 항상 필요하지는 않지만,
+        // JPA의 영속성 관리를 위해 양방향으로 설정하는 것이 모범 사례입니다.
+        detailImages.add(detailImage);
+        detailImage.setItem(this);
+    }
 }

@@ -191,3 +191,69 @@
     opacity: 1;
     cursor: not-allowed;
 }
+
+
+/* -------------------------------------------
+ * 1. 드롭다운 스타일
+ * ------------------------------------------- */
+.detail-toggle-btn {
+    width: 100%;
+    padding: 15px 20px;
+    background-color: #f7f7f7;
+    border: 1px solid #eee;
+    text-align: left;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.detail-content {
+    /* 드롭다운 애니메이션을 위한 초기 설정 */
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out;
+    background-color: #fff;
+    border: 1px solid #eee;
+    border-top: none;
+    padding: 0; /* 초기 패딩 0 */
+}
+
+/* 드롭다운 상태: 펼쳐졌을 때의 스타일 */
+.detail-content.expanded {
+    /* 충분히 큰 높이로 설정하여 모든 상세 이미지를 표시 */
+    max-height: 5000px;
+    padding: 20px 0; /* 확장 시 패딩 적용 */
+}
+
+/* 화살표 회전 */
+.detail-toggle-btn .arrow {
+    transition: transform 0.3s;
+    margin-left: 10px;
+}
+.detail-toggle-btn.active .arrow {
+    transform: rotate(180deg);
+}
+
+
+/* -------------------------------------------
+ * 2. 화면 정가운데 정렬 (가장 중요)
+ * ------------------------------------------- */
+
+/* 상세 이미지 래퍼를 Flexbox로 설정하고, 내부 이미지를 수평 중앙에 정렬합니다. */
+.detail-image-wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column; /* 이미지들을 수직으로 배치 */
+    align-items: center; /* 이미지를 수평 중앙에 정렬 */
+    gap: 15px;
+}
+
+/* 상세 이미지 스타일 */
+.detail-image-wrapper .detail-img-item {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}

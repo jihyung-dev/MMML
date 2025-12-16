@@ -7,6 +7,7 @@ import com.smu.householdaccount.entity.hotdeal.Item;
 import com.smu.householdaccount.entity.hotdeal.ItemDetailImage;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -62,4 +63,6 @@ public interface ItemService {
     // ★ [New] 상세 조회용 DTO 변환 메서드 추가
     ItemResponseDto getItemDetailDto(Long id, String memberId);
 
+
+    Item createItem(Item item, List<MultipartFile> detailImageFiles);
 }

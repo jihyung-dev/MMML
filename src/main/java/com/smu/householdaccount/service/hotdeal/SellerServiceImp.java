@@ -245,7 +245,7 @@ public class SellerServiceImp implements SellerService {
         if (hasNewDetailImages) {
             // 기존 이미지 전체 삭제
 //            itemDetailImageRepository.deleteAll(oldImages);
-            if(item.getImages()!=null && !item.getImages().isEmpty()){
+            if(item.getDetailImages()!=null && !item.getDetailImages().isEmpty()){
                 itemDetailImageRepository.deleteAllByItemId(item.getId());
             }
 

@@ -45,12 +45,12 @@ public interface ItemRepository extends JpaRepository<Item, Long>, JpaSpecificat
     Page<Item> findCurrentlyOnSale(@Param("now") LocalDateTime now, Pageable pageable);
 
     // 옵션/이미지 함께 페치해서 단건 조회하고 싶다면 entity graph 사용
-    @EntityGraph(attributePaths = {"images", "hotdealOptions"})
+    @EntityGraph(attributePaths = {"detailImages", "hotdealOptions"})
     Optional<Item> findWithImagesAndOptionsById(Long id);
 
 
     // 상세 조회 (단건) — fetch join 대신 사용; service에서 연관 초기화 수행
-    @EntityGraph(attributePaths = {"seller","category","hotdealOptions","images","wishes"})
+    @EntityGraph(attributePaths = {"seller","category","hotdealOptions","detailImages","wishes"})
     @Override
     Optional<Item> findById(Long id);
     @EntityGraph(attributePaths = {"category","hotdealOptions"})
@@ -76,7 +76,7 @@ public interface ItemRepository extends JpaRepository<Item, Long>, JpaSpecificat
             Long id,
             String saleStatus,
             LocalDateTime saleStartAt,
-            LocalDateTime sateSaleEndAt
+            LocalDateTime saleSaleEndAt
     );
 
     // 4. 카테고리별 상품 조회 (필요하면)

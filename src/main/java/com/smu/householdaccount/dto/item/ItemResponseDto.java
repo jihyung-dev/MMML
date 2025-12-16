@@ -29,9 +29,9 @@ public class ItemResponseDto {
     private boolean isLiked;
 
     // 상세 페이지용 데이터
-    private List<ItemDetailImage> images;
+    private List<String> detailImageUrls;
     private Set<HotdealOption> hotdealOptions;
-    private String description;
+    //private String description;
     private long viewCount;
     private long popularityScore;
     private LocalDateTime saleStartAt;
@@ -53,9 +53,9 @@ public class ItemResponseDto {
         this.isLiked = isLiked;
 
         // 상세 정보 매핑
-        this.images = item.getImages();
+        this.detailImageUrls = item.getDetailImages().stream().map(ItemDetailImage::getImageUrl).toList();
         this.hotdealOptions = item.getHotdealOptions();
-        this.description = item.getDescription();
+        //this.description = item.getDescription();
         this.viewCount = item.getViewCount();
         this.popularityScore = item.getPopularityScore();
         this.saleStartAt = item.getSaleStartAt();
@@ -66,6 +66,9 @@ public class ItemResponseDto {
     }
 
     public ItemResponseDto(Item item, long daysLeft) {
+    }
+
+    public ItemResponseDto(Item item) {
     }
 
     public String getFormattedPrice() {
