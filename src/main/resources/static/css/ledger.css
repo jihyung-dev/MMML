@@ -140,24 +140,32 @@ body {
     margin: 0;
 }
 
+/* [수정] 차트 래퍼: Flex Column 적용 */
 .chart-wrapper {
-    flex: 1;
-    position: relative;
+    display: flex;             /* Flexbox 사용 */
+    flex-direction: column;    /* 세로 배치 (위: 차트, 아래: 소계) */
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     padding: 20px;
+    height: 600px;             /* 고정 높이 유지 */
     min-width: 300px;
-    /* 🌟 [추가/수정] 무한 늘어남 방지 🌟 */
-    min-height: 450px; /* 차트(400px) + 소계 영역보다 약간 크게 설정 */
-    height: auto;      /* 내용물 크기만큼 유동적으로 */
     box-sizing: border-box;
+    overflow: hidden;          /* 내용 넘침 방지 */
 }
+/* [수정] 차트 영역: 남은 공간 모두 차지 */
 #categoryChart {
     width: 100%;
-    height: 100%;
+    flex: 1;                   /* 남은 높이를 모두 가져감 */
+    min-height: 0;             /* FlexItem 축소 허용 (중요) */
 }
-
+/* [수정] 소계 영역: 내용물만큼만 높이 차지 */
+#categorySummary {
+    flex-shrink: 0;            /* 축소되지 않음 */
+    padding-top: 15px;         /* 차트와의 간격 */
+    border-top: 1px solid #f0f0f0; /* 구분선 (선택사항) */
+    margin-top: 10px;
+}
 /* chart empty 상태 전체 덮기 */
 .chart-empty {
     display: none;
@@ -1768,17 +1776,8 @@ div#driver-popover-item {
 }
 
 /* ===============================
-   좌측 사이드바 & 메인 레이아웃
+   메인 레이아웃
 =============================== */
-.group-sidebar {
-    width: 220px; /* 사이드바 너비 고정 */
-    flex-shrink: 0;
-    background-color: #f8f9fa;
-    border-right: 1px solid #dee2e6;
-    display: flex;
-    flex-direction: column;
-}
-
 .ledger-main-panel {
     flex-grow: 1; /* 나머지 공간 꽉 채움 */
     background-color: #fff;
@@ -1876,4 +1875,110 @@ div#driver-popover-item {
 .bookmark-item button:hover {
     background-color: #e2e6ea;
     border-radius: 50%;
+}
+
+/*=========================================
+플로팅 가이드 위젯 (Peek-a-boo 스타일)
+=========================================*/
+.tour-widget {
+    position: fixed;
+    bottom: 0;
+    right: 30px; /* 우측 여백 */
+    width: 220px;
+    background: #fff;
+    border-radius: 12px 12px 0 0; /* 위쪽만 둥글게 */
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+    z-index: 99990; /* 모달보다는 아래, 일반 컨텐츠보다는 위 */
+
+    /* 애니메이션 핵심 */
+    transform: translateY(calc(100% - 48px)); /* 기본값: 헤더(48px)만 남기고 숨김 */
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+/* 활성화(올라옴) 상태 */
+.tour-widget.expanded {
+    transform: translateY(0); /* 전체 다 보여줌 */
+}
+
+/* 1. 모자 (헤더) 스타일 */
+.widget-header {
+    height: 48px;
+    background: #4a90e2; /* 파란색 포인트 */
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 15px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.widget-header:hover {
+    background: #357abd;
+}
+
+.widget-header .icon {
+    font-size: 18px;
+}
+
+.widget-header .toggle-btn {
+    font-size: 12px;
+    transition: transform 0.3s;
+}
+
+/* 열렸을 때 화살표 뒤집기 */
+.tour-widget.expanded .toggle-btn {
+    transform: rotate(180deg);
+}
+
+/* 2. 몸통 (내용) 스타일 */
+.widget-body {
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #eee;
+    border-top: none;
+    text-align: center;
+}
+
+/* ===============================
+   좌측 사이드바 & 메인 레이아웃
+=============================== */
+.group-sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background-color: #f8f9fa;
+    border-right: 1px solid #dee2e6;
+    display: flex;
+    flex-direction: column;
+
+    /* Sticky 설정 */
+    position: sticky;
+
+    /* [수정 1] 상단 여백 추가 (0 -> 20px) */
+    top: 20px;
+
+    /* [수정 2] 높이 계산 (전체 화면 - 위쪽 여백) */
+    /* 이렇게 안 하면 사이드바 끝부분이 화면 밖으로 밀려납니다 */
+    height: calc(100vh - 20px);
+
+    overflow-y: auto;
+    z-index: 100;
+
+    /* (선택사항) 둥근 모서리와 그림자를 주면 더 '위젯'처럼 보입니다 */
+    border-radius: 0 12px 12px 0;
+    /* box-shadow: 2px 0 10px rgba(0,0,0,0.05); */
+}
+
+/* (참고) 모바일에서는 sticky 해제 */
+@media (max-width: 768px) {
+    .group-sidebar {
+        width: 100%;
+        height: auto;      /* 높이 자동 */
+        position: static;  /* 고정 해제 */
+        border-right: none;
+        border-bottom: 1px solid #dee2e6;
+        overflow-x: auto;
+    }
 }

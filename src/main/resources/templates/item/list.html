@@ -205,7 +205,7 @@
         // 찜하기 토글 함수
         function toggleLike(btn, itemId) {
         // 1. 서버에 찜 토글 요청 (POST)
-        fetch(`/hotdeal/wishlist/${itemId}`, {
+        fetch(`/hotdeal/ajax/wishlist/${itemId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

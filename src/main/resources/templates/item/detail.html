@@ -344,7 +344,7 @@
             wishBtn.addEventListener('click', async (e) => {
                 if (!itemId) { alert('아이템 정보가 없습니다.'); return; }
                 try {
-                    const res = await fetch(`/hotdeal/wishlist/${itemId}`, { method: 'POST' });
+                    const res = await fetch(`/hotdeal/ajax/wishlist/${itemId}`, { method: 'POST' });
                     if (!res.ok) {
                         if (res.status === 401) { alert('로그인이 필요합니다.'); window.location.href = '/login'; return; }
                         throw new Error('network response not ok');

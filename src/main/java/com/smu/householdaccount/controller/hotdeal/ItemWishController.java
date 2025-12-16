@@ -12,10 +12,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController // JSON/XML 응답을 위한 RestController 사용
-@RequestMapping("/hotdeal/wishlist")
+@RequestMapping("/hotdeal/ajax/wishlist")
 @RequiredArgsConstructor
 public class ItemWishController {
 
@@ -58,6 +59,21 @@ public class ItemWishController {
         }
 
         return ResponseEntity.ok(Map.of("wished", nowWished));
+    }
+
+    // ▼▼▼ [추가] 미리보기 데이터 반환 API ▼▼▼
+    // 최종 URL: /hotdeal/wishlist/preview
+    @GetMapping("/preview")
+    public ResponseEntity<List<Map<String, Object>>> getPreview(
+            @SessionAttribute(required = false) Member loginUser
+    ) {
+        if (loginUser == null) {
+            // 로그인 안 했으면 빈 리스트 반환 (오류 아님)
+            return ResponseEntity.ok(List.of());
+        }
+
+        List<Map<String, Object>> result = itemWishService.getTop3WishList(loginUser.getMemberId());
+        return ResponseEntity.ok(result);
     }
 
     // (선택) 찜 삭제 전용

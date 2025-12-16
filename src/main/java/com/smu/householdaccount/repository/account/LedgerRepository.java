@@ -129,4 +129,8 @@ public interface LedgerRepository extends JpaRepository<LedgerEntry, Long> {
 
     @Query(value = "SELECT MAX(group_id) FROM LEDGER_ENTRY", nativeQuery = true)
     Long findMaxGroupId();
+
+    // [추가] 그룹에 해당하는 모든 내역 삭제
+    void deleteByGroupId(BudgetGroup group);
+
 }

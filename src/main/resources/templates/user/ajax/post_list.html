@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="postListFragment">
+    <ul class="flex flex-col gap-3" th:if="${postPage.totalElements > 0}">
+        <li th:each="post : ${postPage}" class="p-4 bg-white border rounded-lg hover:shadow-sm transition">
+            <a th:href="@{/board/{id}(id=${post.id})}" class="block">
+                <h3 class="text-lg font-bold text-gray-800 mb-1" th:text="${post.postTitle}">제목</h3>
+                <div class="text-sm text-gray-500 flex gap-3">
+                    <span th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd HH:mm')}">날짜</span>
+                    <span>•</span>
+                    <span th:text="'조회 ' + ${post.viewCnt}">조회수</span>
+                </div>
+            </a>
+        </li>
+    </ul>
+    <div th:if="${postPage.totalElements == 0}" class="text-center py-5 text-gray-500">
+        작성한 게시글이 없습니다.
+    </div>
+
+    <div th:if="${postPage.totalPages > 1}" class="flex justify-center gap-2 mt-4">
+        <button th:if="${postPage.hasPrevious()}"
+                th:onclick="'loadPosts(' + ${postPage.number - 1} + ')'"
+                class="px-3 py-1 border rounded hover:bg-gray-100">&laquo;</button>
+
+        <span class="px-3 py-1 bg-primary text-white rounded" th:text="${postPage.number + 1}">1</span>
+
+        <button th:if="${postPage.hasNext()}"
+                th:onclick="'loadPosts(' + ${postPage.number + 1} + ')'"
+                class="px-3 py-1 border rounded hover:bg-gray-100">&raquo;</button>
+    </div>
+</div>
+</html>

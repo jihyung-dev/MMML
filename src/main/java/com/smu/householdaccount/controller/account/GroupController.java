@@ -107,4 +107,21 @@ public class GroupController {
     public ResponseEntity<?> acceptInvite(@RequestParam String token, HttpSession session) {
         return groupService.acceptInvite(token, session);
     }
+
+    /**
+     * 6. 그룹 삭제
+     * DELETE /api/group/{groupId}
+     */
+    @DeleteMapping("/{groupId}")
+    public ResponseEntity<String> deleteGroup(
+            @PathVariable Long groupId,
+            @SessionAttribute(name = "loginUserId") String requesterId
+    ) {
+        try {
+            groupService.deleteGroup(groupId, requesterId);
+            return ResponseEntity.ok("그룹이 삭제되었습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

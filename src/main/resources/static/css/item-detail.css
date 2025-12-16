@@ -114,3 +114,80 @@
     border: 2px solid #ffc107 !important;  /* 노란 테두리 */
     background-color: #fff7d6 !important;  /* 연한 노랑 */
 }
+
+
+/* =========================
+   결제하기 버튼 (payBtn)
+   ========================= */
+.pay-btn {
+    background-color: #6960FF;
+    border-color: #6960FF;
+    color: #F5F6FF;
+}
+
+/* hover */
+.pay-btn:hover {
+    background-color: #5a52e0;
+    border-color: #5a52e0;
+    color: #F5F6FF;
+}
+
+/* focus, active, 클릭 유지 */
+.pay-btn:focus,
+.pay-btn:active,
+.pay-btn:active:focus {
+    background-color: #6960FF !important;
+    border-color: #6960FF !important;
+    color: #F5F6FF !important;
+    box-shadow: none;
+}
+
+/* 기본배송지 배지 색상 */
+.badge.bg-primary {
+    background-color: #6960FF !important;
+    color: #F5F6FF !important;
+}
+
+.addressModalBtn {
+    background-color: #6960FF;
+    border-color: #6960FF;
+    color: #F5F6FF;
+}
+
+.addressModalBtn:hover {
+    background-color: #5a52e0;
+    border-color: #5a52e0;
+    color: #F5F6FF;
+}
+
+.addressModalBtn:active,
+.addressModalBtn:focus,
+.addressModalBtn:focus-visible {
+    background-color: #6960FF !important;
+    border-color: #6960FF !important;
+    color: #F5F6FF !important;
+    box-shadow: none;
+}
+
+#buyBtn.btn-success {
+    background-color: #6960FF;
+    border-color: #6960FF;
+    color: #F5F6FF;
+}
+
+#buyBtn.btn-success:hover,
+#buyBtn.btn-success:focus,
+#buyBtn.btn-success:active {
+    background-color: #5a52e0;
+    border-color: #5a52e0;
+    color: #F5F6FF;
+    box-shadow: none;
+}
+
+#buyBtn.btn-success:disabled {
+    background-color: #c7c5ff;
+    border-color: #c7c5ff;
+    color: #ffffff;
+    opacity: 1;
+    cursor: not-allowed;
+}

@@ -34,16 +34,18 @@
             내돈내삶
         </span>
             </a>
-            <div class="flex items-center gap-3">
-                <!--                <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="User profile picture" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA5SaWrnFq8dPfen7u6KTpI_DTQcXDUyLzW44foiYNC-EuFkaSTBWV0K7MV6OfBVls4JUgvZnCsSepJql8-mYtNAWm08D-iIOwQaqr7HeKeY8SrGbZ0UR9WagHZEBal47x9zP7d2mbZfFXXjfna3w3-AfP2FKk9FmPR3AN6QnHDF_kva6jjfvkZi3mfz6EXIroskl6-dN9JSKdKlhAGku6dty1AY3Kzg36eL8t9ZoFliYgywHgEgHlWhUojkyXjVd_k4ER6ipAC64vr");'></div>-->
+            <a href="/mypage"
+               class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-primary/20 transition-colors"
+               title="마이페이지 메인으로 이동">
+
                 <img th:src="@{/img/memberimg.png}"
                      class="rounded-circle" width="40" height="40" alt="Profile">
 
                 <div class="flex flex-col">
-                    <h1 class="text-black dark:text-white text-base font-medium leading-normal" th:text="${session.loginUser.memberName}">이름</h1>
-<!--                    <p class="text-gray-500 dark:text-[#9db9a6] text-sm font-normal leading-normal" th:text="${session.loginUser.email}">이메일</p>-->
+                    <h1 class="text-black dark:text-white text-base font-medium leading-normal"
+                        th:text="${session.loginUser.memberName}">이름</h1>
                 </div>
-            </div>
+            </a>
             <nav class="flex flex-col gap-2">
 
                 <a class="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-primary/20 rounded-lg" href="/board">

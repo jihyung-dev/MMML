@@ -4,6 +4,8 @@ import jakarta.persistence.LockModeType;
 import com.smu.householdaccount.entity.hotdeal.HotdealOption;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -21,4 +23,8 @@ public interface HotdealOptionRepository extends JpaRepository<HotdealOption, Lo
 
     @Lock(LockModeType.PESSIMISTIC_WRITE) //재고조회
     Optional<HotdealOption> findById(Long id);
+
+    @Modifying(clearAutomatically = true)
+    @Query("DELETE FROM HotdealOption h WHERE h.itemId=:itemId")
+    void deleteAllByItemId(Long itemId);
 }
