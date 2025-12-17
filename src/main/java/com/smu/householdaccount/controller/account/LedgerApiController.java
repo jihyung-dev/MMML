@@ -73,10 +73,10 @@ public class LedgerApiController {
     public ResponseEntity<List<LedgerDetailDto>> getDailyList(
             @RequestParam String date,
             @SessionAttribute(name = "loginUserId", required = false) String memberId
+            @RequestParam(required = false) Long groupId // [추가] groupId 파라미터 받기
     ) {
         if (memberId == null) memberId = "testuser";
-        return ResponseEntity.ok(ledgerService.getDailyTransactionList(memberId, date));
-    }
+        return ResponseEntity.ok(ledgerService.getDailyTransactionList(memberId, date, groupId));    }
 
     // 2. 수정 API
     @PutMapping("/entry/{id}")

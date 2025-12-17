@@ -2548,7 +2548,7 @@ async function submitNewEntry() {
 
             //수정 후
             // [수정] 올바른 캐시 키 삭제 (그룹ID 포함)
-            const key = `${currentYear}-${currentMonth}-${currentGroupId || 'default'}`;
+            const key = `${currentYear}-${currentMonth}-${currentGroupId || 'personal'}`;
             ledgerCache.delete(key);
 
             if (`${currentYear}-${currentMonth}` === `${new Date().getFullYear()}-${new Date().getMonth() + 1}`) {

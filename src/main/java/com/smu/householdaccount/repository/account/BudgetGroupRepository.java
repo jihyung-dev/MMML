@@ -11,7 +11,9 @@ public interface BudgetGroupRepository extends JpaRepository<BudgetGroup, Long> 
     Optional<BudgetGroup> findById(Long id);
 
     // 맴버로 그룹 조회
-    Optional<BudgetGroup> findByOwner(Member owner);
+//    Optional<BudgetGroup> findByOwner(Member owner);
+
+    List<BudgetGroup> findByOwner(Member owner);
 
     List<BudgetGroup> findAllByOwner(Member owner);
 

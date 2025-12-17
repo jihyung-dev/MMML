@@ -523,18 +523,19 @@ public class LedgerService {
         System.out.println("=== 저장 완료 (Group: " + group.getGroupName() + ") ===");
     }
 
-    // [수정] 1. 일별 상세 내역 조회 (안전장치 추가)
+    // [수정] 일별 상세 내역 조회 (groupId 적용 완료)
     @Transactional(readOnly = true)
-    public List<LedgerDetailDto> getDailyTransactionList(String memberId, String dateStr) {
-        // 1. 멤버 조회 (없으면 에러 대신 빈 리스트 반환)
+    public List<LedgerDetailDto> getDailyTransactionList(String memberId, String dateStr, Long groupId) { // [변경 1] groupId 파라미터 추가
+
+        // 1. 멤버 조회
         Member member = memberRepository.findById(memberId).orElse(null);
         if (member == null) {
-            System.out.println("⚠️ [투어용] 사용자가 없어 빈 리스트를 반환합니다. ID: " + memberId);
             return Collections.emptyList();
         }
 
-        // 2. 그룹 조회
-        BudgetGroup group = budgetGroupRepository.findByOwner(member).orElse(null);
+        // 2. 그룹 조회 [변경 2] resolveGroup을 사용하여 현재 보고 있는 그룹을 정확히 가져옴
+        BudgetGroup group = resolveGroup(memberId, groupId);
+
         if (group == null) {
             return Collections.emptyList();
         }
@@ -544,6 +545,7 @@ public class LedgerService {
             LocalDateTime start = date.atStartOfDay();
             LocalDateTime end = date.atTime(23, 59, 59);
 
+            // 해당 그룹의 해당 날짜 데이터 조회
             List<LedgerEntry> entries = ledgerRepository.findByGroupAndDateRange(group, start, end);
 
             return entries.stream()
