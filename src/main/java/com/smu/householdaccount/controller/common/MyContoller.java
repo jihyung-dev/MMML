@@ -127,7 +127,7 @@ public class MyContoller {
 
         // 5. 뷰 페이지 반환 (templates/user/wishlist.html)
         // 이 뷰 파일은 마이페이지 레이아웃을 상속받아 왼쪽 내비게이션을 포함해야 합니다.
-        return "user/wishlist";
+        return "user/ajax/wishlist";
     }
 
     // ==========================================
@@ -176,4 +176,11 @@ public class MyContoller {
 
         return "user/ajax/liked_list :: likedListFragment";
     }
+    // 찜한 핫딜 목록 페이지
+//    @GetMapping("/wishlist")
+//    public String wishlist(Model model) {
+//        // myWishPage 같은 데이터를 서비스에서 가져와 model에 담기
+//        model.addAttribute("myWishPage", wishService.getMyWishList());
+//        return "mypage/wishlist"; // thymeleaf 템플릿
+//    }
 }
