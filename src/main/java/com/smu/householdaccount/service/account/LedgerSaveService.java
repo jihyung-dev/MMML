@@ -44,17 +44,15 @@ public class LedgerSaveService {
         List<BudgetGroup> groups = budgetGroupRepository.findByOwner(member);        // 1) 기존 그룹이 있는지 확인
         BudgetGroup group = null;
 
-        // 그룹 아이디로 1차 검사
         if(groupId != null){
-            group = groups.stream().filter(
-                    group1 -> group1.getId().equals(groupId)
-            ).toList().get(0);
-        }
-
-        if (groups.isEmpty()) {
-            // 그룹이 여러 개여도 에러 없이 '첫 번째' 그룹(예: 가족 공동 생활비)을 사용
+            // 그룹 아이디가 넘겨져 온 경우 그룹 가게부.
+            // 그룹 가게부는 기본적으로 생성 시에 그룹 생성.
+            // null 처리 안해서.. 에러는 아니지만 DB에 안들어가는 경우 발생
+            group = budgetGroupRepository.findById(groupId).orElse(null);
+        } else {
             group = groups.get(0);
         }
+
         // 2) 카테고리 일괄 로딩
         List<Category> categories = categoryRepository.findByCategoryIdStartingWith("C");
         Map<String, Category> categoryMap = categories.stream()

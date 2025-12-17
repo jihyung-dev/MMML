@@ -2967,6 +2967,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const sendBtn = document.getElementById("sendDataBtn");
+    const groupId = document.getElementById("currentGroupId").value;
+    const groupParam = groupId ? `?group_Id=${groupId}` : "";
+
     if (sendBtn) {
         sendBtn.addEventListener("click", () => {
             if (!lastExcelRows) {
@@ -2974,7 +2977,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            fetch("/ledger/api/import/analyze", {
+            fetch(`/ledger/api/import/analyze${groupParam}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
