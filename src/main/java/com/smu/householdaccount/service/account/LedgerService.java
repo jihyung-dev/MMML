@@ -523,31 +523,28 @@ public class LedgerService {
         System.out.println("=== 저장 완료 (Group: " + group.getGroupName() + ") ===");
     }
 
-    // [수정] 일별 상세 내역 조회 (groupId 적용 완료)
+    // [수정] 일별 상세 내역 조회
     @Transactional(readOnly = true)
-    public List<LedgerDetailDto> getDailyTransactionList(String memberId, String dateStr, Long groupId) { // [변경 1] groupId 파라미터 추가
+    // 1. 파라미터에 Long groupId 추가
+    public List<LedgerDetailDto> getDailyTransactionList(String memberId, String dateStr, Long groupId) {
 
-        // 1. 멤버 조회
         Member member = memberRepository.findById(memberId).orElse(null);
-        if (member == null) {
-            return Collections.emptyList();
-        }
+        if (member == null) return Collections.emptyList();
 
-        // 2. 그룹 조회 [변경 2] resolveGroup을 사용하여 현재 보고 있는 그룹을 정확히 가져옴
+        // 2. [핵심] 그냥 findByOwner 하지 말고, resolveGroup을 통해 "지금 보고 있는 그 그룹"을 가져옴
         BudgetGroup group = resolveGroup(memberId, groupId);
 
-        if (group == null) {
-            return Collections.emptyList();
-        }
+        if (group == null) return Collections.emptyList();
 
         try {
             LocalDate date = LocalDate.parse(dateStr);
             LocalDateTime start = date.atStartOfDay();
             LocalDateTime end = date.atTime(23, 59, 59);
 
-            // 해당 그룹의 해당 날짜 데이터 조회
+            // 해당 그룹의 데이터만 정확히 조회
             List<LedgerEntry> entries = ledgerRepository.findByGroupAndDateRange(group, start, end);
 
+            // DTO 변환 (기존 로직 동일)
             return entries.stream()
                     .map(entry -> LedgerDetailDto.builder()
                             .id(entry.getId())
@@ -833,37 +830,35 @@ public class LedgerService {
     }
 
     // =================================================================
-    // [수정된 resolveGroup] 그룹이 여러 개여도 에러 안 나게 처리
+    // [수정된 resolveGroup] 나의 가계부와 그룹 가계부의 완벽한 분리
     // =================================================================
     private BudgetGroup resolveGroup(String memberId, Long requestGroupId) {
-        // 1. 요청 ID 우선
+        // 1. [그룹 가계부] 요청 ID가 명확히 있으면, 해당 '독립된' 그룹을 반환
         if (requestGroupId != null) {
             return budgetGroupRepository.findById(requestGroupId)
                     .orElseThrow(() -> new IllegalArgumentException("요청한 그룹을 찾을 수 없습니다."));
         }
 
-        // 2. Redis 조회
-        Long redisGroupId = redisService.getGroupIdByMemberId(memberId, null).orElse(null);
-        if (redisGroupId != null) {
-            return budgetGroupRepository.findById(redisGroupId).orElse(null);
-        }
+        // (Redis 캐시 로직은 선택 사항이며, 꼬일 수 있으므로 우선 순위를 낮추거나 주석 처리해도 됩니다.)
+        // 여기서는 안전하게 DB 조회를 우선합니다.
 
-        // 3. [핵심 수정] DB에서 소유 그룹 '리스트' 조회
+        // 2. [나의 가계부] ID 요청이 없을 때 -> 무조건 '가장 먼저 생성된' 원조 그룹 반환
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보 없음"));
 
-        // ★ findAllByOwner 호출
-        List<BudgetGroup> myGroups = budgetGroupRepository.findAllByOwner(member);
+        // ★ 핵심: findAll()이 아니라 findFirst...Asc()를 사용하여 '나의 가계부'를 고정
+        // 이렇게 하면 나중에 추가한 그룹(커플통장 등)이 '나의 가계부' 자리를 침범하지 못함
+        BudgetGroup defaultGroup = budgetGroupRepository.findFirstByOwnerOrderByCreatedAtAsc(member)
+                .orElse(null);
 
-        if (!myGroups.isEmpty()) {
-            // 그룹이 여러 개여도 에러 없이 '첫 번째' 그룹 반환
-            return myGroups.get(0);
+        if (defaultGroup != null) {
+            return defaultGroup;
         }
 
-        // 4. 없으면 자동 생성
-        System.out.println("⚠️ 사용자의 가계부 그룹이 없어 자동 생성합니다.");
+        // 3. 만약 진짜로 가계부가 하나도 없다면? (회원가입 직후 등) -> 나의 가계부 자동 생성
+        System.out.println("⚠️ 사용자의 기본 가계부가 없어 자동 생성합니다.");
         BudgetGroup newGroup = new BudgetGroup();
-        newGroup.setGroupName(member.getMemberNickname() + "님의 가계부");
+        newGroup.setGroupName(member.getMemberNickname() + "님의 가계부"); // 기본 이름
         newGroup.setOwner(member);
         newGroup.setCreatedAt(LocalDateTime.now());
 

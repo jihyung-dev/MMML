@@ -68,16 +68,18 @@ public class LedgerApiController {
         return ResponseEntity.ok("Saved successfully");
     }
 
-    // 1. 일별 상세 리스트 조회
+    // 1. 일별 상세 리스트 조회 API
     @GetMapping("/daily-list")
     public ResponseEntity<List<LedgerDetailDto>> getDailyList(
             @RequestParam String date,
-            @SessionAttribute(name = "loginUserId", required = false) String memberId
-            @RequestParam(required = false) Long groupId // [추가] groupId 파라미터 받기
+            @SessionAttribute(name = "loginUserId", required = false) String memberId,
+            @RequestParam(required = false) Long groupId // [추가] 파라미터 받기
     ) {
         if (memberId == null) memberId = "testuser";
-        return ResponseEntity.ok(ledgerService.getDailyTransactionList(memberId, date, groupId));    }
 
+        // [수정] groupId를 서비스로 전달
+        return ResponseEntity.ok(ledgerService.getDailyTransactionList(memberId, date, groupId));
+    }
     // 2. 수정 API
     @PutMapping("/entry/{id}")
     public ResponseEntity<String> updateEntry(
