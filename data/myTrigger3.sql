@@ -111,28 +111,28 @@ END;
 
 -- 1-1. MEMBER_HISTORY (이름 제거됨)
 CREATE TABLE smaccount.MEMBER_HISTORY (
-                                          history_id      NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-                                          member_id       VARCHAR2(50),
-                                          role            VARCHAR2(20),
-    -- member_name 제거됨 (개인정보 보호)
-                                          member_nickname VARCHAR2(50), -- 닉네임은 식별용으로 유지 (필요 시 제거 가능)
-                                          action_type     VARCHAR2(10), -- 'UPDATE' 또는 'DELETE'
-                                          action_date     TIMESTAMP DEFAULT SYSTIMESTAMP, -- 변경된 시점
-                                          original_updated_at TIMESTAMP -- 원본 데이터의 마지막 수정일
+    history_id      NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    member_id       VARCHAR2(50),
+    role            VARCHAR2(20),
+                                  -- member_name 제거됨 (개인정보 보호)
+    member_nickname VARCHAR2(50), -- 닉네임은 식별용으로 유지 (필요 시 제거 가능)
+    action_type     VARCHAR2(10), -- 'UPDATE' 또는 'DELETE'
+    action_date     TIMESTAMP DEFAULT SYSTIMESTAMP, -- 변경된 시점
+    original_updated_at TIMESTAMP -- 원본 데이터의 마지막 수정일
 );
 
 -- 1-2. LEDGER_ENTRY_HISTORY
 CREATE TABLE smaccount.LEDGER_ENTRY_HISTORY (
-                                                history_id      NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-                                                entry_id        NUMBER,
-                                                group_id        NUMBER,
-                                                member_id       VARCHAR2(50),
-                                                entry_amount    NUMBER(15,2),
-                                                occurred_at     DATE,
-                                                place_of_use    VARCHAR2(200),
-                                                action_type     VARCHAR2(10),
-                                                action_date     TIMESTAMP DEFAULT SYSTIMESTAMP,
-                                                original_updated_at TIMESTAMP
+    history_id      NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    entry_id        NUMBER,
+    group_id        NUMBER,
+    member_id       VARCHAR2(50),
+    entry_amount    NUMBER(15,2),
+    occurred_at     DATE,
+    place_of_use    VARCHAR2(200),
+    action_type     VARCHAR2(10),
+    action_date     TIMESTAMP DEFAULT SYSTIMESTAMP,
+    original_updated_at TIMESTAMP
 );
 
 -- 1-3. ORDER_MAIN_HISTORY

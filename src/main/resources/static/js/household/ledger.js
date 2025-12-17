@@ -1575,101 +1575,138 @@ function startExtendedTour() {
         },
 
         steps: [
-            // [Step 0] 환영 메시지 (기존 유지)
+            // [Step 0] 환영 메시지
             {
                 popover: { title: '👋 환영합니다!', description: '가계부의 핵심 기능을<br>빠르게 체험해볼까요?', align: 'center' }
             },
 
-            // [Step 1] 그룹 사이드바 전체 안내 (기존 유지)
+            // [Step 1] 사이드바 목록 하이라이트
             {
-                element: '.group-sidebar',
+                element: '.bookmark-list',
                 popover: {
                     title: '👥 그룹 가계부 관리',
-                    description: '여기서 내 가계부와 그룹 가계부를<br>자유롭게 오갈 수 있습니다.',
-                    side: "right",
-                    align: 'start'
+                    description: '이 목록에서 내 가계부와 그룹 가계부를<br>자유롭게 선택할 수 있습니다.',
+                    side: "right", align: 'start'
                 },
-                onHighlightStarted: (element) => {
+                onHighlightStarted: () => {
                     window.scrollTo(0, 0);
-                    setTimeout(() => { window.scrollTo({ top: 0, behavior: 'instant' }); }, 100);
+                    // 혹시 남아있을 잔여물 청소
+                    const fake = document.getElementById('tour-fake-group');
+                    if(fake) fake.remove();
                 }
             },
 
-            // ✨✨ [NEW 1] 새 그룹 만들기 ✨✨
+            // [Step 2] 새 그룹 만들기 버튼
             {
                 element: '.add-group-btn',
                 popover: {
                     title: '🆕 새 그룹 만들기',
-                    description: '가족, 연인, 친구와 함께 쓰시나요?<br>이 버튼을 눌러 <b>새로운 그룹을 생성</b>해보세요.',
-                    side: "right",
-                    align: 'start'
+                    description: '가족, 연인과 함께 쓰려면<br>이 버튼을 눌러 <b>그룹을 생성</b>하세요.',
+                    side: "right", align: 'start'
+                },
+                // 🌟 [핵심 변경 1] 시작할 때(onHighlightStarted) 미리 숨겨진 상태로 생성해둡니다.
+                // 그래야 다음 단계(Step 3)에서 Driver.js가 요소를 놓치지 않습니다.
+                onHighlightStarted: () => {
+                    const list = document.querySelector('.bookmark-list');
+                    // 중복 생성 방지
+                    if(list && !document.getElementById('tour-fake-group')) {
+                        const fakeLi = document.createElement('li');
+                        fakeLi.id = 'tour-fake-group';
+                        fakeLi.className = 'bookmark-item d-flex justify-content-between align-items-center pe-2 active';
+                        fakeLi.style.border = '2px dashed #6c63ff';
+
+                        // [인용] 타이밍 이슈 해결을 위해 일단 숨겨둠
+                        fakeLi.style.display = 'none';
+
+                        fakeLi.innerHTML = `
+                            <a href="javascript:void(0)" class="flex-grow-1" style="pointer-events: none;">
+                                <span class="icon">👨‍👩‍👧‍👦</span>
+                                <span class="text" style="white-space: nowrap;">가족 통장</span>
+                            </a>
+                            <div class="d-flex gap-1" style="z-index: 10; margin-right: 10px;"> 
+                                <button id="tour-fake-rename" class="btn btn-sm btn-link text-secondary p-0">✏️</button>
+                                <button id="tour-fake-invite" class="btn btn-sm btn-link text-secondary p-0">⚙️</button>
+                            </div>
+                        `;
+
+                        const addBtn = document.querySelector('.add-group-btn');
+                        list.insertBefore(fakeLi, addBtn);
+                    }
+                },
+                // 🌟 [핵심 변경 2] 단계가 끝날 때(onDeselected) 숨겨둔 그룹을 보이게(flex) 바꿉니다.
+                onDeselected: () => {
+                    const fake = document.getElementById('tour-fake-group');
+                    if(fake) {
+                        fake.style.display = 'flex'; // 짠! 하고 등장
+                    }
                 }
             },
 
-            // ✨✨ [NEW 2] 그룹 이름 변경 (연필 아이콘) ✨✨
-            // 주의: 이 버튼은 그룹 가계부 화면일 때만 존재하므로, 개인 가계부 화면에서는 자동으로 건너뜁니다.
+            // ✨✨ [Step 3] 가짜 그룹 "전체" 하이라이트 (이름 변경) ✨✨
             {
-                element: 'button[onclick="openRenameGroupModal()"]',
+                // [인용] 이제 DOM에 요소가 확실히 있으므로 하이라이트가 정상 작동합니다.
+                element: '#tour-fake-group',
                 popover: {
                     title: '✏️ 그룹 이름 변경',
-                    description: '그룹의 이름을 바꾸고 싶다면<br><b>연필 아이콘</b>을 클릭하여 수정할 수 있습니다.',
-                    side: "bottom",
-                    align: 'start'
+                    description: '그룹이 생성되었습니다!<br><b>연필 아이콘</b>을 눌러 이름을 바꿀 수 있어요.',
+                    side: "bottom", align: 'start'
                 }
             },
 
-            // ✨✨ [NEW 3] 멤버 초대 및 이메일 인증 (톱니바퀴 아이콘) ✨✨
-            // 주의: 이 버튼은 그룹 가계부 화면일 때만 존재합니다.
+            // ✨✨ [Step 4] "전체" 하이라이트 유지 + 톱니바퀴 네온 효과 (멤버 초대) ✨✨
             {
-                element: 'button[onclick="openMemberManageModal()"]',
+                element: '#tour-fake-group', // 여전히 줄 전체를 잡고 있음
                 popover: {
                     title: '⚙️ 멤버 초대 및 관리',
                     description: `
-                        <b>톱니바퀴</b>를 눌러 멤버를 관리합니다.<br>
+                        <b>톱니바퀴</b>를 누르면 관리 창이 뜹니다.<br>
                         초대할 <b>ID를 입력</b>하면 해당 이메일로<br>
-                        <b>📩 인증 메일</b>이 발송되며, 수락 시 멤버로 추가됩니다.
+                        📩 <b>인증 메일</b>이 발송됩니다.
                     `,
-                    side: "bottom",
-                    align: 'start'
+                    side: "bottom", align: 'start'
+                },
+                // [인용] 톱니바퀴 버튼만 반짝거리게 효과 추가
+                onHighlightStarted: () => {
+                    const gearBtn = document.getElementById('tour-fake-invite');
+                    if(gearBtn) gearBtn.classList.add('neon-active');
+                },
+                // [청소] 투어가 이 단계를 벗어나면 가짜 그룹 삭제
+                onDeselected: () => {
+                    const gearBtn = document.getElementById('tour-fake-invite');
+                    if(gearBtn) gearBtn.classList.remove('neon-active');
+
+                    const fake = document.getElementById('tour-fake-group');
+                    if(fake) fake.remove();
                 }
             },
+
+            // [Step 5] 데이터 입력 (기존 로직 연결)
             {
                 element: 'button[onclick="loadLedgerData()"]',
-                popover: { title: '1. 데이터 연동', description: '먼저 데이터를 가져옵니다.<br><b>이 버튼을 클릭하세요!</b>', side: "bottom", showButtons: [] },
+                popover: { title: '1. 데이터 연동', description: '다시 내 가계부로 돌아와서,<br><b>데이터를 불러와보세요!</b>', side: "bottom", showButtons: [] },
                 onHighlightStarted: (el) => {
-                    el.classList.add('neon-active');
+                    // 혹시 모를 잔여물 삭제 (이중 안전장치)
+                    const fake = document.getElementById('tour-fake-group');
+                    if(fake) fake.remove();
 
-                    // 🌟 [핵심] 1. 실제 기능 잠시 무력화 (onclick 속성 백업 및 제거)
-                    // 이렇게 하면 버튼을 눌러도 loadLedgerData() 함수가 실행되지 않습니다.
+                    el.classList.add('neon-active');
                     const originalAction = el.getAttribute('onclick');
                     el.removeAttribute('onclick');
-
-                    // 🌟 2. 가짜 클릭 이벤트 등록
                     el.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        e.stopPropagation(); // 이벤트 전파 중단
-
+                        e.preventDefault(); e.stopPropagation();
                         el.classList.remove('neon-active');
-
-                        // 🌟 3. 가짜 로딩 효과 연출 (기존 스켈레톤 활용)
-                        // 실제 데이터 로딩 없이 0.2초 동안 로딩 화면만 보여줍니다.
                         showSkeleton();
-
                         setTimeout(() => {
-                            hideSkeleton(); // 로딩 끝
-
-                            // 🌟 4. 원래 기능 복구 (투어가 끝나면 실제 사용 가능하도록)
+                            hideSkeleton();
                             if(originalAction) el.setAttribute('onclick', originalAction);
-
-                            driverObj.moveNext(); // 다음 단계로 이동
-                        }, 200); // 0.2초 딜레이로 그럴듯하게 연출
-
+                            driverObj.moveNext();
+                        }, 200);
                     }, { once: true });
                 }
             },
             {
                 element: `.fc-daygrid-day[data-date="${dynamicDate}"]`, // ✅ 수정 후
-                popover: { title: '2. 캘린더 조회',
+                popover: { title: '캘린더 조회',
                     description: `<b>${currentMonth}월 1일</b>을 클릭하여<br>상세 내역을 확인해보세요.`,
                     side: "top",
                     showButtons: [] }, //
@@ -1686,7 +1723,7 @@ function startExtendedTour() {
             },
             {
                 element: '#dayListModal button.btn-primary',
-                popover: { title: '3. 내역 등록', description: '새 내역을 등록해봅시다.<br><b>[+추가하기] 버튼을 클릭!</b>', side: "top", showButtons: [] },
+                popover: { title: '내역 등록', description: '새 내역을 등록해봅시다.<br><b>[+추가하기] 버튼을 클릭!</b>', side: "top", showButtons: [] },
                 onHighlightStarted: (el) => {
                     const listModal = document.getElementById("dayListModal");
                     if(listModal.style.display !== 'flex') openDayListModal(dynamicDate);    // ✅ 수정 후
@@ -1700,7 +1737,7 @@ function startExtendedTour() {
             },
             {
                 element: '#addEntryModal .modal-content',
-                popover: { title: '4. 정보 입력', description: '데이터는 제가 입력해드릴게요.<br><b>하단의 [저장하기] 버튼을 눌러보세요!</b>', side: "right", showButtons: [] },
+                popover: { title: '정보 입력', description: '데이터는 제가 입력해드릴게요.<br><b>하단의 [저장하기] 버튼을 눌러보세요!</b>', side: "right", showButtons: [] },
                 onHighlightStarted: (el) => {
                     const addModal = document.getElementById("addEntryModal");
                     if (!addModal || addModal.style.display === 'none') {
@@ -1732,7 +1769,7 @@ function startExtendedTour() {
             },
             {
                 element: '#tour-item',
-                popover: { title: '5. 등록 확인', description: '리스트에 내역이 추가되었습니다.<br><b>항목을 클릭해보세요.</b>', side: "left", showButtons: [] },
+                popover: { title: '등록 확인', description: '리스트에 내역이 추가되었습니다.<br><b>항목을 클릭해보세요.</b>', side: "left", showButtons: [] },
                 onHighlightStarted: (el) => {
                     const listModal = document.getElementById("dayListModal");
                     if (listModal.style.display === 'none') { listModal.style.display = 'flex'; listModal.classList.add('show'); const listGroup = document.getElementById("dayListGroup"); if(listGroup && listGroup.innerHTML.trim() === "") listGroup.innerHTML = `<li id="tour-item">...</li>`; }
@@ -1751,7 +1788,7 @@ function startExtendedTour() {
                 element: '#addEntryModal .close-btn',
                 element: '#addEntryModal .btn-primary:last-child', // ✅ 수정 후 (수정하기 버튼 타겟)
                 popover: {
-                    title: '6. 금액 수정 및 저장',
+                    title: '금액 수정 및 저장',
                     // 🌟 수정 내용 안내 🌟
                     description: '현재 금액 5,000원을 **4,500원**으로 수정한 뒤, <br>하단의 **[수정하기]** 버튼을 눌러주세요.',
                     side: "top",
@@ -1782,7 +1819,7 @@ function startExtendedTour() {
             },
             {
                 element: '#categorySelectList',
-                popover: { title: '7. 카테고리 분석', description: '비교하고 싶은 카테고리를<br><b>2개 이상 클릭</b>해주세요!', side: "top", showButtons: [] },
+                popover: { title: '카테고리 분석', description: '비교하고 싶은 카테고리를<br><b>2개 이상 클릭</b>해주세요!', side: "top", showButtons: [] },
                 onHighlightStarted: (el) => {
                     const btns = el.querySelectorAll('.category-btn');
                     btns.forEach(btn => btn.classList.add('neon-active'));
@@ -1809,7 +1846,7 @@ function startExtendedTour() {
             },
             {
                 element: '.table-wrapper [data-bs-toggle="collapse"]',
-                popover: { title: '9. 전체 리스트 확인', description: '마지막으로 <b>화살표(▼)를 눌러</b><br>이번 달 전체 내역을 확인해보세요.', side: "top", showButtons: [] },
+                popover: { title: '전체 리스트 확인', description: '마지막으로 <b>화살표(▼)를 눌러</b><br>이번 달 전체 내역을 확인해보세요.', side: "top", showButtons: [] },
                 onHighlightStarted: (el) => {
                     el.classList.add('neon-active');
                     el.addEventListener('click', () => {
@@ -1820,7 +1857,7 @@ function startExtendedTour() {
             },
             {
                 element: '#ledgerTable tbody tr:first-child',
-                popover: { title: '10. 수정 내역 확인', description: '방금 4,500원으로 수정한 내역을<br>리스트에서 **클릭**하여 확인해보세요.', side: "top", showButtons: [] },
+                popover: { title: '수정 내역 확인', description: '방금 4,500원으로 수정한 내역을<br>리스트에서 **클릭**하여 확인해보세요.', side: "top", showButtons: [] },
                 onHighlightStarted: (el) => {
                     if(!el) {
                         const tbody = document.querySelector('#ledgerTable tbody');
@@ -1848,7 +1885,7 @@ function startExtendedTour() {
             },
             {
                 element: '#addEntryModal .close-btn',
-                popover: { title: '11. 수정 완료', description: '내역을 확인하셨다면<br><b>[X] 버튼을 눌러 닫아주세요.</b>', side: "left", showButtons: [] },
+                popover: { title: '수정 완료', description: '내역을 확인하셨다면<br><b>[X] 버튼을 눌러 닫아주세요.</b>', side: "left", showButtons: [] },
                 onHighlightStarted: (el) => {
                     const addModal = document.getElementById("addEntryModal");
                     addModal.style.zIndex = "100005";
@@ -2589,7 +2626,17 @@ async function openDayListModal(dateStr) {
 
     try {
         // API 호출
-        const res = await fetch(`/ledger/api/daily-list?date=${dateStr}`);
+        // const res = await fetch(`/ledger/api/daily-list?date=${dateStr}`);
+
+        // ▼▼▼ [수정 후 코드] (그룹 ID 추가)
+        // 1. 현재 그룹 ID 가져오기
+        const currentGroupId = document.getElementById("currentGroupId").value;
+
+        // 2. 그룹 ID가 있으면 파라미터에 붙이기
+        const groupParam = currentGroupId ? `&groupId=${currentGroupId}` : "";
+
+        // 3. API 호출 (groupId 포함)
+        const res = await fetch(`/ledger/api/daily-list?date=${dateStr}${groupParam}`);
 
         if (!res.ok) throw new Error("네트워크 응답 실패");
 
